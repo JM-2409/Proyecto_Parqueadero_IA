@@ -88,7 +88,7 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
     setSavingSettings(true);
     const { error } = await supabase
       .from('settings')
-      .upsert({ key: 'entry_fields', value: entryFields });
+      .upsert({ key: 'entry_fields', value: entryFields }, { onConflict: 'key' });
     if (error) {
       alert('Error al guardar configuración: ' + error.message);
     } else {
