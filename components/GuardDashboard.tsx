@@ -8,16 +8,20 @@ import { format, differenceInMinutes } from 'date-fns';
 export default function GuardDashboard({ user, onLogout }: { user: any, onLogout: () => void }) {
   const [sessions, setSessions] = useState<any[]>([]);
   const [rates, setRates] = useState<any[]>([]);
+  const [entryFields, setEntryFields] = useState<any[]>([]);
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const [plate, setPlate] = useState('');
   const [type, setType] = useState<'car' | 'motorcycle'>('car');
   const [loading, setLoading] = useState(false);
   const [checkoutSession, setCheckoutSession] = useState<any | null>(null);
+  const [confirmAmount, setConfirmAmount] = useState(false);
   const [selectedRateId, setSelectedRateId] = useState<string>('');
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     fetchActiveSessions();
     fetchActiveRates();
+    fetchEntryFields();
     
     // Refresh times every minute without re-fetching data
     const interval = setInterval(() => {
@@ -26,6 +30,17 @@ export default function GuardDashboard({ user, onLogout }: { user: any, onLogout
     
     return () => clearInterval(interval);
   }, []);
+
+  const fetchEntryFields = async () => {
+    const { data } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'entry_fields')
+      .single();
+    if (data && data.value) {
+      setEntryFields(data.value);
+    }
+  };
 
   const fetchActiveSessions = async () => {
     const { data } = await supabase
@@ -69,11 +84,13 @@ export default function GuardDashboard({ user, onLogout }: { user: any, onLogout
     const { error } = await supabase.from('parking_sessions').insert({
       license_plate: formattedPlate,
       vehicle_type: type,
-      guard_id: user.id
+      guard_id: user.id,
+      metadata: fieldValues
     });
 
     if (!error) {
       setPlate('');
+      setFieldValues({});
       fetchActiveSessions();
     } else {
       alert('Error al registrar ingreso.');
@@ -173,6 +190,7 @@ export default function GuardDashboard({ user, onLogout }: { user: any, onLogout
 
   const handleCheckoutClick = (session: any) => {
     setCheckoutSession(session);
+    setConfirmAmount(false);
     // Find applicable rates
     const applicableRates = rates.filter(r => r.vehicle_type === 'all' || r.vehicle_type === session.vehicle_type);
     if (applicableRates.length > 0) {
@@ -189,6 +207,12 @@ export default function GuardDashboard({ user, onLogout }: { user: any, onLogout
 
   const handleCheckout = async () => {
     if (!checkoutSession || !selectedRateId) return;
+    
+    if (!confirmAmount) {
+      setConfirmAmount(true);
+      return;
+    }
+
     setLoading(true);
     
     const selectedRate = rates.find(r => r.id === selectedRateId);
@@ -283,6 +307,22 @@ export default function GuardDashboard({ user, onLogout }: { user: any, onLogout
                 </div>
               </div>
 
+              {entryFields.filter(f => f.enabled).map(field => (
+                <div key={field.id}>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    {field.label} {field.required && <span className="text-red-500">*</span>}
+                  </label>
+                  <input
+                    type="text"
+                    required={field.required}
+                    value={fieldValues[field.id] || ''}
+                    onChange={(e) => setFieldValues({...fieldValues, [field.id]: e.target.value})}
+                    className="block w-full px-3 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                    placeholder={`Ingrese ${field.label.toLowerCase()}`}
+                  />
+                </div>
+              ))}
+
               <button
                 type="submit"
                 disabled={loading || plate.length < 5}
@@ -321,6 +361,15 @@ export default function GuardDashboard({ user, onLogout }: { user: any, onLogout
                         </div>
                         <div>
                           <h3 className="text-xl font-bold text-slate-800 font-mono tracking-wider">{session.license_plate}</h3>
+                          {session.metadata && Object.keys(session.metadata).length > 0 && (
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 mt-1 mb-1">
+                              {Object.entries(session.metadata).map(([key, value]) => (
+                                <span key={key} className="bg-slate-100 px-2 py-0.5 rounded-md">
+                                  <strong className="capitalize">{key}:</strong> {String(value)}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                           <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
                             <Clock className="w-3.5 h-3.5" />
                             <span>{format(new Date(session.entry_time), 'dd/MM/yy h:mm a')}</span>
@@ -350,45 +399,54 @@ export default function GuardDashboard({ user, onLogout }: { user: any, onLogout
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-3xl shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="p-6 text-center">
-              <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-indigo-600" />
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${confirmAmount ? 'bg-emerald-50' : 'bg-indigo-50'}`}>
+                {confirmAmount ? <DollarSign className="w-8 h-8 text-emerald-600" /> : <CheckCircle className="w-8 h-8 text-indigo-600" />}
               </div>
-              <h2 className="text-2xl font-bold text-slate-800 mb-1">Confirmar Salida</h2>
+              <h2 className="text-2xl font-bold text-slate-800 mb-1">
+                {confirmAmount ? 'Confirmar Pago' : 'Confirmar Salida'}
+              </h2>
               <p className="text-slate-500 mb-6 font-mono text-lg">{checkoutSession.license_plate}</p>
               
-              <div className="bg-slate-50 rounded-2xl p-4 mb-6 text-left space-y-4">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-500">Ingreso:</span>
-                  <span className="font-medium text-slate-800">{format(new Date(checkoutSession.entry_time), 'dd/MM/yy h:mm a')}</span>
+              {!confirmAmount ? (
+                <div className="bg-slate-50 rounded-2xl p-4 mb-6 text-left space-y-4">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500">Ingreso:</span>
+                    <span className="font-medium text-slate-800">{format(new Date(checkoutSession.entry_time), 'dd/MM/yy h:mm a')}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500">Salida:</span>
+                    <span className="font-medium text-slate-800">{format(new Date(), 'dd/MM/yy h:mm a')}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-slate-500">Tiempo Transcurrido:</span>
+                    <span className="font-medium text-slate-800">{Math.max(1, differenceInMinutes(new Date(), new Date(checkoutSession.entry_time)))} minutos</span>
+                  </div>
+                  
+                  <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
+                    <span className="font-semibold text-slate-800">Total a Pagar:</span>
+                    <span className="text-2xl font-bold text-indigo-600">{formatCurrency(currentCost)}</span>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-500">Salida:</span>
-                  <span className="font-medium text-slate-800">{format(new Date(), 'dd/MM/yy h:mm a')}</span>
+              ) : (
+                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 mb-6">
+                  <p className="text-emerald-800 mb-2">¿Confirma que ha recibido el pago exacto de:</p>
+                  <p className="text-4xl font-bold text-emerald-600">{formatCurrency(currentCost)}?</p>
                 </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-500">Tiempo Transcurrido:</span>
-                  <span className="font-medium text-slate-800">{Math.max(1, differenceInMinutes(new Date(), new Date(checkoutSession.entry_time)))} minutos</span>
-                </div>
-                
-                <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
-                  <span className="font-semibold text-slate-800">Total a Pagar:</span>
-                  <span className="text-2xl font-bold text-indigo-600">{formatCurrency(currentCost)}</span>
-                </div>
-              </div>
+              )}
 
               <div className="flex gap-3">
                 <button
-                  onClick={() => setCheckoutSession(null)}
+                  onClick={() => confirmAmount ? setConfirmAmount(false) : setCheckoutSession(null)}
                   className="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors"
                 >
-                  Cancelar
+                  {confirmAmount ? 'Atrás' : 'Cancelar'}
                 </button>
                 <button
                   onClick={handleCheckout}
                   disabled={loading || !selectedRateId}
-                  className="flex-1 py-3 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                  className={`flex-1 py-3 px-4 rounded-xl text-white font-medium disabled:opacity-50 transition-colors shadow-sm ${confirmAmount ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}
                 >
-                  {loading ? 'Procesando...' : 'Confirmar Pago'}
+                  {loading ? 'Procesando...' : (confirmAmount ? 'Sí, Dar Salida' : 'Cobrar')}
                 </button>
               </div>
             </div>

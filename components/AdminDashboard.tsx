@@ -8,13 +8,18 @@ import { es } from 'date-fns/locale';
 import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 export default function AdminDashboard({ user, onLogout }: { user: any, onLogout: () => void }) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'rates'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'rates' | 'settings'>('dashboard');
   
   // Dashboard state
   const [history, setHistory] = useState<any[]>([]);
   const [stats, setStats] = useState({ totalRevenue: 0, activeVehicles: 0, totalToday: 0 });
   const [loading, setLoading] = useState(true);
   
+  // Settings state
+  const [entryFields, setEntryFields] = useState<any[]>([]);
+  const [loadingSettings, setLoadingSettings] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+
   // Users state
   const [usersList, setUsersList] = useState<any[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -61,8 +66,49 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
       fetchUsers();
     } else if (activeTab === 'rates') {
       fetchRates();
+    } else if (activeTab === 'settings') {
+      fetchSettings();
     }
   }, [activeTab]);
+
+  const fetchSettings = async () => {
+    setLoadingSettings(true);
+    const { data } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'entry_fields')
+      .single();
+    if (data && data.value) {
+      setEntryFields(data.value);
+    }
+    setLoadingSettings(false);
+  };
+
+  const saveSettings = async () => {
+    setSavingSettings(true);
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ key: 'entry_fields', value: entryFields });
+    if (error) {
+      alert('Error al guardar configuración: ' + error.message);
+    } else {
+      alert('Configuración guardada exitosamente.');
+    }
+    setSavingSettings(false);
+  };
+
+  const addEntryField = () => {
+    const newId = `campo_${Date.now()}`;
+    setEntryFields([...entryFields, { id: newId, label: 'Nuevo Campo', required: false, enabled: true }]);
+  };
+
+  const removeEntryField = (id: string) => {
+    setEntryFields(entryFields.filter(f => f.id !== id));
+  };
+
+  const updateEntryField = (id: string, updates: any) => {
+    setEntryFields(entryFields.map(f => f.id === id ? { ...f, ...updates } : f));
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -354,6 +400,13 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
           <Settings className="w-4 h-4" />
           Tarifas
         </button>
+        <button
+          onClick={() => setActiveTab('settings')}
+          className={`px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all ${activeTab === 'settings' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}
+        >
+          <Settings className="w-4 h-4" />
+          Configuración
+        </button>
       </div>
 
       {activeTab === 'dashboard' && (
@@ -440,6 +493,7 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
                   <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
                     <th className="px-6 py-4 font-medium">Placa</th>
                     <th className="px-6 py-4 font-medium">Tipo</th>
+                    <th className="px-6 py-4 font-medium">Detalles</th>
                     <th className="px-6 py-4 font-medium">Ingreso</th>
                     <th className="px-6 py-4 font-medium">Salida</th>
                     <th className="px-6 py-4 font-medium">Tiempo</th>
@@ -450,11 +504,11 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
                 <tbody className="divide-y divide-slate-100">
                   {loading ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center text-slate-500">Cargando datos...</td>
+                      <td colSpan={8} className="px-6 py-12 text-center text-slate-500">Cargando datos...</td>
                     </tr>
                   ) : history.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center text-slate-500">No hay registros en el sistema.</td>
+                      <td colSpan={8} className="px-6 py-12 text-center text-slate-500">No hay registros en el sistema.</td>
                     </tr>
                   ) : (
                     currentItems.map((session) => {
@@ -470,6 +524,17 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
                               {session.vehicle_type === 'car' ? <Car className="w-4 h-4 text-blue-500" /> : <Bike className="w-4 h-4 text-orange-500" />}
                               <span className="capitalize text-sm">{session.vehicle_type === 'car' ? 'Carro' : 'Moto'}</span>
                             </div>
+                          </td>
+                          <td className="px-6 py-4 text-xs text-slate-500 max-w-[200px] truncate">
+                            {session.metadata && Object.keys(session.metadata).length > 0 ? (
+                              <div className="flex flex-col gap-0.5">
+                                {Object.entries(session.metadata).map(([key, value]) => (
+                                  <span key={key}><strong className="capitalize">{key}:</strong> {String(value)}</span>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 italic">Sin detalles</span>
+                            )}
                           </td>
                           <td className="px-6 py-4 text-sm text-slate-600">
                             {format(new Date(session.entry_time), 'dd/MM/yy h:mm a')}
@@ -726,6 +791,89 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'settings' && (
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+            <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+              <Settings className="w-5 h-5 text-slate-500" />
+              Configuración de Campos de Ingreso
+            </h2>
+            <button
+              onClick={saveSettings}
+              disabled={savingSettings}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+            >
+              {savingSettings ? 'Guardando...' : 'Guardar Cambios'}
+            </button>
+          </div>
+          
+          <div className="p-6">
+            <p className="text-slate-600 mb-6">
+              Configura los campos adicionales que el vigilante debe llenar al registrar el ingreso de un vehículo. La placa siempre es obligatoria.
+            </p>
+
+            {loadingSettings ? (
+              <div className="py-12 text-center text-slate-500">Cargando configuración...</div>
+            ) : (
+              <div className="space-y-4">
+                {entryFields.map((field, index) => (
+                  <div key={field.id} className="flex flex-col sm:flex-row gap-4 items-start sm:items-center p-4 border border-slate-200 rounded-2xl bg-slate-50">
+                    <div className="flex-1 w-full">
+                      <label className="block text-xs font-medium text-slate-500 mb-1 uppercase tracking-wider">Nombre del Campo</label>
+                      <input
+                        type="text"
+                        value={field.label}
+                        onChange={(e) => updateEntryField(field.id, { label: e.target.value })}
+                        className="block w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white"
+                        placeholder="Ej. Nombre, Celular, Bloque..."
+                      />
+                    </div>
+                    
+                    <div className="flex items-center gap-6 mt-2 sm:mt-0">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={field.required}
+                          onChange={(e) => updateEntryField(field.id, { required: e.target.checked })}
+                          className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                        />
+                        <span className="text-sm font-medium text-slate-700">Obligatorio</span>
+                      </label>
+                      
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={field.enabled}
+                          onChange={(e) => updateEntryField(field.id, { enabled: e.target.checked })}
+                          className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500"
+                        />
+                        <span className="text-sm font-medium text-slate-700">Activo</span>
+                      </label>
+
+                      <button
+                        onClick={() => removeEntryField(field.id)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                        title="Eliminar campo"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                <button
+                  onClick={addEntryField}
+                  className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-500 font-medium hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-5 h-5" />
+                  Agregar Nuevo Campo
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}

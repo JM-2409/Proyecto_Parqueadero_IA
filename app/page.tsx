@@ -18,6 +18,9 @@ export default function Home() {
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Run migration
+    fetch('/api/migrate').catch(console.error);
+
     // Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       handleUserSession(session?.user ?? null);
