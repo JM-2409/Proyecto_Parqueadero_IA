@@ -1,0 +1,5 @@
+{
+  "name": "Sistema de Parqueadero",
+  "description": "Sistema de gestión de parqueadero con panel administrativo y panel de vigilancia para control de ingresos y salidas de vehículos.",
+  "requestFramePermissions": []
+}
