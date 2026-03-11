@@ -33,22 +33,26 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
 export async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
-    const { password, role } = await request.json();
+    const { password, role, parking_lot_id } = await request.json();
     
     if (password) {
       const { error } = await supabaseAdmin.auth.admin.updateUserById(id, { password });
       if (error) throw error;
     }
 
-    if (role) {
+    if (role || parking_lot_id !== undefined) {
       // Check if role exists
       const { data: existingRole } = await supabaseAdmin.from('user_roles').select('role').eq('user_id', id).single();
       
+      const updateData: any = {};
+      if (role) updateData.role = role;
+      if (parking_lot_id !== undefined) updateData.parking_lot_id = parking_lot_id;
+
       if (existingRole) {
-        const { error } = await supabaseAdmin.from('user_roles').update({ role }).eq('user_id', id);
+        const { error } = await supabaseAdmin.from('user_roles').update(updateData).eq('user_id', id);
         if (error) throw error;
       } else {
-        const { error } = await supabaseAdmin.from('user_roles').insert({ user_id: id, role });
+        const { error } = await supabaseAdmin.from('user_roles').insert({ user_id: id, ...updateData });
         if (error) throw error;
       }
     }

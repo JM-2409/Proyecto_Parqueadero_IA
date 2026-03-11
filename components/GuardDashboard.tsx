@@ -5,10 +5,11 @@ import { supabase } from '@/lib/supabase';
 import { Car, Bike, Clock, LogOut, CheckCircle, Search, DollarSign } from 'lucide-react';
 import { format, differenceInMinutes } from 'date-fns';
 
-export default function GuardDashboard({ user, onLogout }: { user: any, onLogout: () => void }) {
+export default function GuardDashboard({ user, onLogout, parkingLotId }: { user: any, onLogout: () => void, parkingLotId: string | null }) {
   const [sessions, setSessions] = useState<any[]>([]);
   const [rates, setRates] = useState<any[]>([]);
   const [entryFields, setEntryFields] = useState<any[]>([]);
+  const [globalSettings, setGlobalSettings] = useState<any>({});
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const [plate, setPlate] = useState('');
   const [type, setType] = useState<'car' | 'motorcycle'>('car');
@@ -22,6 +23,7 @@ export default function GuardDashboard({ user, onLogout }: { user: any, onLogout
     fetchActiveSessions();
     fetchActiveRates();
     fetchEntryFields();
+    fetchGlobalSettings();
     
     // Refresh times every minute without re-fetching data
     const interval = setInterval(() => {
@@ -31,11 +33,23 @@ export default function GuardDashboard({ user, onLogout }: { user: any, onLogout
     return () => clearInterval(interval);
   }, []);
 
+  const fetchGlobalSettings = async () => {
+    const { data } = await supabase
+      .from('parking_lots')
+      .select('name, nit, address, phone, email')
+      .eq('id', parkingLotId)
+      .single();
+    if (data) {
+      setGlobalSettings(data);
+    }
+  };
+
   const fetchEntryFields = async () => {
     const { data } = await supabase
       .from('settings')
       .select('value')
       .eq('key', 'entry_fields')
+      .eq('parking_lot_id', parkingLotId)
       .single();
     if (data && data.value) {
       setEntryFields(data.value);
@@ -47,6 +61,7 @@ export default function GuardDashboard({ user, onLogout }: { user: any, onLogout
       .from('parking_sessions')
       .select('*')
       .eq('status', 'active')
+      .eq('parking_lot_id', parkingLotId)
       .order('entry_time', { ascending: false });
     if (data) setSessions(data);
   };
@@ -56,6 +71,7 @@ export default function GuardDashboard({ user, onLogout }: { user: any, onLogout
       .from('rates')
       .select('*')
       .eq('is_active', true)
+      .eq('parking_lot_id', parkingLotId)
       .order('name');
     if (data) setRates(data);
   };
@@ -73,6 +89,7 @@ export default function GuardDashboard({ user, onLogout }: { user: any, onLogout
       .select('id')
       .eq('license_plate', formattedPlate)
       .eq('status', 'active')
+      .eq('parking_lot_id', parkingLotId)
       .single();
       
     if (existing) {
@@ -85,7 +102,8 @@ export default function GuardDashboard({ user, onLogout }: { user: any, onLogout
       license_plate: formattedPlate,
       vehicle_type: type,
       guard_id: user.id,
-      metadata: fieldValues
+      metadata: fieldValues,
+      parking_lot_id: parkingLotId
     });
 
     if (!error) {
@@ -244,7 +262,7 @@ export default function GuardDashboard({ user, onLogout }: { user: any, onLogout
     <div className="max-w-5xl mx-auto p-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Control de Parqueadero</h1>
+          <h1 className="text-2xl font-bold text-slate-800">{globalSettings.name || 'Control de Parqueadero'}</h1>
           <p className="text-slate-500 text-sm">Panel de Vigilancia - {user.email}</p>
         </div>
         

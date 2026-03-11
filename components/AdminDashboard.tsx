@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
-import { BarChart3, Users, History, DollarSign, LogOut, Car, Bike, Clock, ChevronLeft, ChevronRight, UserPlus, Shield, Trash2, Edit2, Key, Settings, Plus } from 'lucide-react';
+import { BarChart3, Users, History, DollarSign, LogOut, Car, Bike, Clock, ChevronLeft, ChevronRight, UserPlus, Shield, Trash2, Edit2, Key, Settings, Plus, Building2 } from 'lucide-react';
 import { format, differenceInMinutes, subDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-export default function AdminDashboard({ user, onLogout }: { user: any, onLogout: () => void }) {
+export default function AdminDashboard({ user, onLogout, userRole, parkingLotId }: { user: any, onLogout: () => void, userRole: 'admin', parkingLotId: string | null }) {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'rates' | 'settings'>('dashboard');
   
   // Dashboard state
@@ -19,6 +19,13 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
   const [entryFields, setEntryFields] = useState<any[]>([]);
   const [loadingSettings, setLoadingSettings] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
+
+  // Superadmin settings state
+  const [parkingLotName, setParkingLotName] = useState('Parqueadero Central');
+  const [parkingLotAddress, setParkingLotAddress] = useState('Calle Principal 123');
+  const [parkingLotNit, setParkingLotNit] = useState('900.123.456-7');
+  const [loadingSuperSettings, setLoadingSuperSettings] = useState(false);
+  const [savingSuperSettings, setSavingSuperSettings] = useState(false);
 
   // Users state
   const [usersList, setUsersList] = useState<any[]>([]);
@@ -73,22 +80,57 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
 
   const fetchSettings = async () => {
     setLoadingSettings(true);
-    const { data } = await supabase
+    setLoadingSuperSettings(true);
+    
+    // Fetch entry fields
+    const { data: entryData } = await supabase
       .from('settings')
       .select('value')
       .eq('key', 'entry_fields')
+      .eq('parking_lot_id', parkingLotId)
       .single();
-    if (data && data.value) {
-      setEntryFields(data.value);
+    if (entryData && entryData.value) {
+      setEntryFields(entryData.value);
     }
+    
+    // Fetch global settings (parking lot details)
+    const { data: lotData } = await supabase
+      .from('parking_lots')
+      .select('name, nit, address, phone, email')
+      .eq('id', parkingLotId)
+      .single();
+      
+    if (lotData) {
+      setParkingLotName(lotData.name || 'Parqueadero Central');
+      setParkingLotNit(lotData.nit || '900.123.456-7');
+      setParkingLotAddress(lotData.address || '');
+    }
+    
     setLoadingSettings(false);
+    setLoadingSuperSettings(false);
   };
 
   const saveSettings = async () => {
+    // Validation
+    const labels = entryFields.map(f => f.label.trim().toLowerCase());
+    
+    // Check for empty labels
+    if (labels.some(l => l === '')) {
+      alert('Error: No se pueden guardar campos con nombres vacíos.');
+      return;
+    }
+    
+    // Check for duplicates
+    const uniqueLabels = new Set(labels);
+    if (uniqueLabels.size !== labels.length) {
+      alert('Error: Existen campos con nombres duplicados. Por favor, usa nombres únicos.');
+      return;
+    }
+
     setSavingSettings(true);
     const { error } = await supabase
       .from('settings')
-      .upsert({ key: 'entry_fields', value: entryFields }, { onConflict: 'key' });
+      .upsert({ key: 'entry_fields', value: entryFields, parking_lot_id: parkingLotId }, { onConflict: 'key,parking_lot_id' });
     if (error) {
       alert('Error al guardar configuración: ' + error.message);
     } else {
@@ -97,9 +139,26 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
     setSavingSettings(false);
   };
 
+  const saveSuperSettings = async () => {
+    setSavingSuperSettings(true);
+    const { error } = await supabase
+      .from('parking_lots')
+      .update({ 
+        address: parkingLotAddress,
+      })
+      .eq('id', parkingLotId);
+      
+    if (error) {
+      alert('Error al guardar configuración: ' + error.message);
+    } else {
+      alert('Configuración guardada exitosamente.');
+    }
+    setSavingSuperSettings(false);
+  };
+
   const addEntryField = () => {
     const newId = `campo_${Date.now()}`;
-    setEntryFields([...entryFields, { id: newId, label: 'Nuevo Campo', required: false, enabled: true }]);
+    setEntryFields([...entryFields, { id: newId, label: `Nuevo Campo ${entryFields.length + 1}`, required: false, enabled: true }]);
   };
 
   const removeEntryField = (id: string) => {
@@ -115,6 +174,7 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
     const { data: sessions } = await supabase
       .from('parking_sessions')
       .select('*')
+      .eq('parking_lot_id', parkingLotId)
       .order('entry_time', { ascending: false });
       
     if (sessions) {
@@ -165,7 +225,7 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
   const fetchUsers = async () => {
     setLoadingUsers(true);
     try {
-      const res = await fetch('/api/users');
+      const res = await fetch(`/api/users?parking_lot_id=${parkingLotId}`);
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setUsersList(data);
@@ -178,7 +238,7 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
 
   const fetchRates = async () => {
     setLoadingRates(true);
-    const { data, error } = await supabase.from('rates').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase.from('rates').select('*').eq('parking_lot_id', parkingLotId).order('created_at', { ascending: false });
     if (error) {
       console.error(error);
       alert('Error al cargar tarifas');
@@ -208,7 +268,7 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
         const res = await fetch('/api/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password, role })
+          body: JSON.stringify({ username, password, role, parking_lot_id: parkingLotId })
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
@@ -254,7 +314,8 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
       rate: rateValue,
       base_rate: rateBaseValue,
       fraction_minutes: rateFraction,
-      is_active: rateActive
+      is_active: rateActive,
+      parking_lot_id: parkingLotId
     };
 
     try {
@@ -363,7 +424,7 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-3">
             <Shield className="w-6 h-6 text-indigo-400" />
-            Panel Administrativo
+            {parkingLotName || 'Panel Administrativo'}
           </h1>
           <p className="text-slate-400 text-sm mt-1">Gestión de Parqueadero - {user.email}</p>
         </div>
@@ -663,9 +724,10 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
                       <td className="px-6 py-4 font-medium text-slate-800">{u.username || u.email}</td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          u.role === 'superadmin' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
                           u.role === 'admin' ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-blue-50 text-blue-700 border border-blue-200'
                         }`}>
-                          {u.role === 'admin' ? 'Administrador' : 'Vigilante'}
+                          {u.role === 'superadmin' ? 'Super Admin' : u.role === 'admin' ? 'Administrador' : 'Vigilante'}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-600">
@@ -673,14 +735,16 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2">
-                          <button 
-                            onClick={() => openEditUserForm(u)}
-                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
-                            title="Editar usuario"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          {u.id !== user.id && (
+                          {u.role !== 'superadmin' && (
+                            <button 
+                              onClick={() => openEditUserForm(u)}
+                              className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                              title="Editar usuario"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                          )}
+                          {u.id !== user.id && u.role !== 'superadmin' && (
                             <button 
                               onClick={() => confirmDeleteUser(u.id)}
                               className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -796,12 +860,69 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
       )}
 
       {activeTab === 'settings' && (
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-            <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-              <Settings className="w-5 h-5 text-slate-500" />
-              Configuración de Campos de Ingreso
-            </h2>
+        <div className="space-y-6">
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-indigo-600" />
+                Información del Parqueadero
+              </h2>
+              <button
+                onClick={saveSuperSettings}
+                disabled={savingSuperSettings}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+              >
+                {savingSuperSettings ? 'Guardando...' : 'Guardar Cambios'}
+              </button>
+            </div>
+            
+            <div className="p-6">
+              {loadingSuperSettings ? (
+                <div className="py-12 text-center text-slate-500">Cargando información...</div>
+              ) : (
+                <div className="space-y-6 max-w-2xl">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">Nombre del Parqueadero</label>
+                      <input
+                        type="text"
+                        value={parkingLotName}
+                        disabled
+                        className="block w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-100 text-slate-500 cursor-not-allowed"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">NIT / RUT</label>
+                      <input
+                        type="text"
+                        value={parkingLotNit}
+                        disabled
+                        className="block w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-100 text-slate-500 cursor-not-allowed"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Dirección</label>
+                    <input
+                      type="text"
+                      value={parkingLotAddress}
+                      onChange={(e) => setParkingLotAddress(e.target.value)}
+                      className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                      placeholder="Ej. Calle Principal 123"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <Settings className="w-5 h-5 text-slate-500" />
+                Configuración de Campos de Ingreso
+              </h2>
             <button
               onClick={saveSettings}
               disabled={savingSettings}
@@ -875,6 +996,7 @@ export default function AdminDashboard({ user, onLogout }: { user: any, onLogout
               </div>
             )}
           </div>
+        </div>
         </div>
       )}
 

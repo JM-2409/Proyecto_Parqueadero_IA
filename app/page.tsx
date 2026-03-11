@@ -4,11 +4,13 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import GuardDashboard from '@/components/GuardDashboard';
 import AdminDashboard from '@/components/AdminDashboard';
+import SuperAdminDashboard from '@/components/SuperAdminDashboard';
 import { Car, User, Lock, Loader2 } from 'lucide-react';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
-  const [role, setRole] = useState<'admin' | 'guard' | null>(null);
+  const [role, setRole] = useState<'superadmin' | 'admin' | 'guard' | null>(null);
+  const [parkingLotId, setParkingLotId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   
   // Auth form state
@@ -38,20 +40,27 @@ export default function Home() {
       const { data: roles } = await supabase.from('user_roles').select('*');
       
       if (!roles || roles.length === 0) {
-        // First user becomes admin
-        await supabase.from('user_roles').insert({ user_id: currentUser.id, role: 'admin' });
-        setRole('admin');
+        // First user becomes superadmin
+        await supabase.from('user_roles').insert({ user_id: currentUser.id, role: 'superadmin' });
+        setRole('superadmin');
+        setParkingLotId(null);
       } else {
-        const { data: myRole } = await supabase.from('user_roles').select('role').eq('user_id', currentUser.id).single();
+        const { data: myRole } = await supabase.from('user_roles').select('role, parking_lot_id').eq('user_id', currentUser.id).single();
         if (!myRole) {
-          await supabase.from('user_roles').insert({ user_id: currentUser.id, role: 'guard' });
+          // If no role, assign guard and try to assign to the first parking lot
+          const { data: firstLot } = await supabase.from('parking_lots').select('id').limit(1).single();
+          const lotId = firstLot?.id || null;
+          await supabase.from('user_roles').insert({ user_id: currentUser.id, role: 'guard', parking_lot_id: lotId });
           setRole('guard');
+          setParkingLotId(lotId);
         } else {
-          setRole(myRole.role as 'admin' | 'guard');
+          setRole(myRole.role as 'superadmin' | 'admin' | 'guard');
+          setParkingLotId(myRole.parking_lot_id);
         }
       }
     } else {
       setRole(null);
+      setParkingLotId(null);
     }
     setLoading(false);
   };
@@ -189,10 +198,12 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-slate-50 pb-12 pt-6">
-      {role === 'admin' ? (
-        <AdminDashboard user={user} onLogout={handleLogout} />
+      {role === 'superadmin' ? (
+        <SuperAdminDashboard user={user} onLogout={handleLogout} />
+      ) : role === 'admin' ? (
+        <AdminDashboard user={user} onLogout={handleLogout} userRole={role} parkingLotId={parkingLotId} />
       ) : (
-        <GuardDashboard user={user} onLogout={handleLogout} />
+        <GuardDashboard user={user} onLogout={handleLogout} parkingLotId={parkingLotId} />
       )}
     </main>
   );
