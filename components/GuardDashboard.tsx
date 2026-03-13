@@ -1,28 +1,49 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Car, Bike, Clock, LogOut, CheckCircle, Search, DollarSign } from 'lucide-react';
+import { Car, Bike, Clock, LogOut, CheckCircle, Search, DollarSign, Zap } from 'lucide-react';
 import { format, differenceInMinutes } from 'date-fns';
 
 export default function GuardDashboard({ user, onLogout, parkingLotId }: { user: any, onLogout: () => void, parkingLotId: string | null }) {
   const [sessions, setSessions] = useState<any[]>([]);
   const [rates, setRates] = useState<any[]>([]);
   const [entryFields, setEntryFields] = useState<any[]>([]);
+  const [capacitySettings, setCapacitySettings] = useState<any>({ enforce: false });
+  const [revenueSettings, setRevenueSettings] = useState<any>({ show_to_guards: true, last_closing: null });
+  const [specialVehicles, setSpecialVehicles] = useState<any[]>([]);
+  const [totalRevenue, setTotalRevenue] = useState(0);
   const [globalSettings, setGlobalSettings] = useState<any>({});
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const [plate, setPlate] = useState('');
-  const [type, setType] = useState<'car' | 'motorcycle'>('car');
+  const [type, setType] = useState<'car' | 'motorcycle' | 'bicycle'>('car');
   const [loading, setLoading] = useState(false);
   const [checkoutSession, setCheckoutSession] = useState<any | null>(null);
   const [confirmAmount, setConfirmAmount] = useState(false);
   const [selectedRateId, setSelectedRateId] = useState<string>('');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [searchQuery, setSearchQuery] = useState('');
+  const [autoCompleted, setAutoCompleted] = useState(false);
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    const allowCars = capacitySettings?.allow_cars !== false;
+    const allowMotorcycles = capacitySettings?.allow_motorcycles !== false;
+    const allowBicycles = capacitySettings?.allow_bicycles === true;
+
+    if (type === 'car' && !allowCars) {
+      setType(allowMotorcycles ? 'motorcycle' : (allowBicycles ? 'bicycle' : 'car'));
+    } else if (type === 'motorcycle' && !allowMotorcycles) {
+      setType(allowCars ? 'car' : (allowBicycles ? 'bicycle' : 'car'));
+    } else if (type === 'bicycle' && !allowBicycles) {
+      setType(allowCars ? 'car' : (allowMotorcycles ? 'motorcycle' : 'car'));
+    }
+  }, [capacitySettings, type]);
 
   useEffect(() => {
     fetchActiveSessions();
     fetchActiveRates();
-    fetchEntryFields();
+    fetchSettings();
     fetchGlobalSettings();
     
     // Refresh times every minute without re-fetching data
@@ -30,8 +51,29 @@ export default function GuardDashboard({ user, onLogout, parkingLotId }: { user:
       setCurrentTime(new Date());
     }, 60000);
     
-    return () => clearInterval(interval);
-  }, []);
+    // Realtime subscriptions for auto-updating settings and rates
+    const channel = supabase.channel('guard-updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'settings', filter: `parking_lot_id=eq.${parkingLotId}` }, () => {
+        fetchSettings();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'rates', filter: `parking_lot_id=eq.${parkingLotId}` }, () => {
+        fetchActiveRates();
+      })
+      .subscribe();
+    
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parkingLotId]);
+
+  useEffect(() => {
+    if (revenueSettings) {
+      fetchTotalRevenue(revenueSettings.last_closing);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revenueSettings, parkingLotId]);
 
   const fetchGlobalSettings = async () => {
     const { data } = await supabase
@@ -44,15 +86,42 @@ export default function GuardDashboard({ user, onLogout, parkingLotId }: { user:
     }
   };
 
-  const fetchEntryFields = async () => {
+  const fetchSettings = async () => {
     const { data } = await supabase
       .from('settings')
-      .select('value')
-      .eq('key', 'entry_fields')
-      .eq('parking_lot_id', parkingLotId)
-      .single();
-    if (data && data.value) {
-      setEntryFields(data.value);
+      .select('key, value')
+      .eq('parking_lot_id', parkingLotId);
+      
+    if (data) {
+      const entryFieldsData = data.find(d => d.key === 'entry_fields');
+      if (entryFieldsData) setEntryFields(entryFieldsData.value);
+
+      const capacityData = data.find(d => d.key === 'capacity_settings');
+      if (capacityData) setCapacitySettings(capacityData.value);
+
+      const revenueData = data.find(d => d.key === 'revenue_settings');
+      if (revenueData) setRevenueSettings(revenueData.value);
+
+      const specialData = data.find(d => d.key === 'special_vehicles');
+      if (specialData) setSpecialVehicles(specialData.value);
+    }
+  };
+
+  const fetchTotalRevenue = async (lastClosing: string | null) => {
+    let query = supabase
+      .from('parking_sessions')
+      .select('amount_paid')
+      .eq('status', 'completed')
+      .eq('parking_lot_id', parkingLotId);
+
+    if (lastClosing) {
+      query = query.gte('exit_time', lastClosing);
+    }
+
+    const { data } = await query;
+    if (data) {
+      const total = data.reduce((sum, session) => sum + (session.amount_paid || 0), 0);
+      setTotalRevenue(total);
     }
   };
 
@@ -76,6 +145,37 @@ export default function GuardDashboard({ user, onLogout, parkingLotId }: { user:
     if (data) setRates(data);
   };
 
+  const handlePlateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    setPlate(val);
+    setAutoCompleted(false);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    if (val.length >= 5) {
+      searchTimeoutRef.current = setTimeout(async () => {
+        const { data } = await supabase
+          .from('parking_sessions')
+          .select('vehicle_type, metadata')
+          .eq('parking_lot_id', parkingLotId)
+          .eq('license_plate', val)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (data) {
+          setType(data.vehicle_type);
+          if (data.metadata && Object.keys(data.metadata).length > 0) {
+            setFieldValues(data.metadata);
+          }
+          setAutoCompleted(true);
+        }
+      }, 400); // debounce 400ms
+    }
+  };
+
   const handleEntry = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!plate) return;
@@ -83,6 +183,33 @@ export default function GuardDashboard({ user, onLogout, parkingLotId }: { user:
     
     const formattedPlate = plate.trim().toUpperCase();
     
+    // Check capacity limits
+    if (capacitySettings?.enforce) {
+      const isAllowed = capacitySettings[`allow_${type}s`];
+      if (!isAllowed) {
+        alert(`El ingreso de ${type === 'car' ? 'carros' : type === 'motorcycle' ? 'motos' : 'bicicletas'} no está permitido.`);
+        setLoading(false);
+        return;
+      }
+
+      const capacity = capacitySettings[`capacity_${type}s`];
+      if (capacity > 0) {
+        // Count active sessions for this type
+        const { count } = await supabase
+          .from('parking_sessions')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'active')
+          .eq('vehicle_type', type)
+          .eq('parking_lot_id', parkingLotId);
+
+        if (count !== null && count >= capacity) {
+          alert(`Capacidad máxima alcanzada para ${type === 'car' ? 'carros' : type === 'motorcycle' ? 'motos' : 'bicicletas'}. No se puede ingresar.`);
+          setLoading(false);
+          return;
+        }
+      }
+    }
+
     // Check if already active
     const { data: existing } = await supabase
       .from('parking_sessions')
@@ -98,18 +225,20 @@ export default function GuardDashboard({ user, onLogout, parkingLotId }: { user:
       return;
     }
 
-    const { error } = await supabase.from('parking_sessions').insert({
+    const { data: newSession, error } = await supabase.from('parking_sessions').insert({
       license_plate: formattedPlate,
       vehicle_type: type,
       guard_id: user.id,
       metadata: fieldValues,
       parking_lot_id: parkingLotId
-    });
+    }).select().single();
 
-    if (!error) {
+    if (!error && newSession) {
       setPlate('');
       setFieldValues({});
+      setAutoCompleted(false);
       fetchActiveSessions();
+      alert(`Ingreso registrado exitosamente.\nNúmero de Recibo: ${newSession.ticket_number}`);
     } else {
       alert('Error al registrar ingreso.');
     }
@@ -209,6 +338,13 @@ export default function GuardDashboard({ user, onLogout, parkingLotId }: { user:
   const handleCheckoutClick = (session: any) => {
     setCheckoutSession(session);
     setConfirmAmount(false);
+
+    const specialVehicle = specialVehicles.find(v => v.plate === session.license_plate);
+    if (specialVehicle) {
+      setSelectedRateId('special');
+      return;
+    }
+
     // Find applicable rates
     const applicableRates = rates.filter(r => r.vehicle_type === 'all' || r.vehicle_type === session.vehicle_type);
     if (applicableRates.length > 0) {
@@ -233,8 +369,14 @@ export default function GuardDashboard({ user, onLogout, parkingLotId }: { user:
 
     setLoading(true);
     
-    const selectedRate = rates.find(r => r.id === selectedRateId);
-    const cost = calculateCostWithRate(checkoutSession, selectedRate);
+    let cost = 0;
+    if (selectedRateId === 'special') {
+      const specialVehicle = specialVehicles.find(v => v.plate === checkoutSession.license_plate);
+      cost = specialVehicle ? (specialVehicle.paid_to_admin ? 0 : specialVehicle.amount) : 0;
+    } else {
+      const selectedRate = rates.find(r => r.id === selectedRateId);
+      cost = calculateCostWithRate(checkoutSession, selectedRate);
+    }
     
     const { error } = await supabase
       .from('parking_sessions')
@@ -248,6 +390,9 @@ export default function GuardDashboard({ user, onLogout, parkingLotId }: { user:
     if (!error) {
       setCheckoutSession(null);
       fetchActiveSessions();
+      if (revenueSettings?.show_to_guards) {
+        fetchTotalRevenue(revenueSettings.last_closing);
+      }
     } else {
       alert('Error al registrar salida.');
     }
@@ -255,34 +400,59 @@ export default function GuardDashboard({ user, onLogout, parkingLotId }: { user:
   };
 
   const applicableRates = checkoutSession ? rates.filter(r => r.vehicle_type === 'all' || r.vehicle_type === checkoutSession.vehicle_type) : [];
-  const selectedRateObj = rates.find(r => r.id === selectedRateId);
-  const currentCost = checkoutSession && selectedRateObj ? calculateCostWithRate(checkoutSession, selectedRateObj) : 0;
+  
+  let currentCost = 0;
+  if (checkoutSession) {
+    if (selectedRateId === 'special') {
+      const specialVehicle = specialVehicles.find(v => v.plate === checkoutSession.license_plate);
+      currentCost = specialVehicle ? (specialVehicle.paid_to_admin ? 0 : specialVehicle.amount) : 0;
+    } else {
+      const selectedRateObj = rates.find(r => r.id === selectedRateId);
+      currentCost = selectedRateObj ? calculateCostWithRate(checkoutSession, selectedRateObj) : 0;
+    }
+  }
+
+  const filteredSessions = sessions.filter(s => s.license_plate.includes(searchQuery.toUpperCase()));
 
   return (
     <div className="max-w-5xl mx-auto p-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">{globalSettings.name || 'Control de Parqueadero'}</h1>
-          <p className="text-slate-500 text-sm">Panel de Vigilancia - {user.email}</p>
         </div>
         
-        <button
-          onClick={onLogout}
-          className="px-4 py-2 rounded-xl flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 transition-colors font-medium"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Cerrar Sesión</span>
-        </button>
+        <div className="flex items-center gap-4">
+          {revenueSettings?.show_to_guards && (
+            <div className="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl border border-emerald-100 flex items-center gap-2 font-medium">
+              <DollarSign className="w-4 h-4" />
+              <span>Recaudo: {formatCurrency(totalRevenue)}</span>
+            </div>
+          )}
+          <button
+            onClick={onLogout}
+            className="px-4 py-2 rounded-xl flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 transition-colors font-medium"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Cerrar Sesión</span>
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Formulario de Ingreso */}
         <div className="lg:col-span-1">
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-6">
-            <h2 className="text-lg font-semibold text-slate-800 mb-6 flex items-center gap-2">
-              <CheckCircle className="w-5 h-5 text-emerald-500" />
-              Registrar Ingreso
-            </h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-emerald-500" />
+                Registrar Ingreso
+              </h2>
+              {autoCompleted && (
+                <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-full flex items-center gap-1 animate-in fade-in">
+                  <Zap className="w-3 h-3" /> Autocompletado
+                </span>
+              )}
+            </div>
             
             <form onSubmit={handleEntry} className="space-y-5">
               <div>
@@ -296,7 +466,7 @@ export default function GuardDashboard({ user, onLogout, parkingLotId }: { user:
                     required
                     maxLength={6}
                     value={plate}
-                    onChange={(e) => setPlate(e.target.value.toUpperCase())}
+                    onChange={handlePlateChange}
                     className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white uppercase font-mono text-lg tracking-wider"
                     placeholder="ABC123"
                   />
@@ -305,27 +475,59 @@ export default function GuardDashboard({ user, onLogout, parkingLotId }: { user:
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Tipo de Vehículo</label>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setType('car')}
-                    className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === 'car' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
-                  >
-                    <Car className="w-6 h-6" />
-                    <span className="font-medium text-sm">Carro</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setType('motorcycle')}
-                    className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === 'motorcycle' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
-                  >
-                    <Bike className="w-6 h-6" />
-                    <span className="font-medium text-sm">Moto</span>
-                  </button>
+                <div className={`grid gap-3 ${
+                  [capacitySettings?.allow_cars !== false, capacitySettings?.allow_motorcycles !== false, capacitySettings?.allow_bicycles === true].filter(Boolean).length === 3 ? 'grid-cols-3' :
+                  [capacitySettings?.allow_cars !== false, capacitySettings?.allow_motorcycles !== false, capacitySettings?.allow_bicycles === true].filter(Boolean).length === 2 ? 'grid-cols-2' : 'grid-cols-1'
+                }`}>
+                  {capacitySettings?.allow_cars !== false && (
+                    <button
+                      type="button"
+                      onClick={() => setType('car')}
+                      className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === 'car' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <Car className="w-6 h-6" />
+                      <span className="font-medium text-sm">Carro</span>
+                      {capacitySettings?.enforce && capacitySettings?.capacity_cars > 0 && (
+                        <span className="text-xs font-medium opacity-75">
+                          {capacitySettings.capacity_cars - sessions.filter(s => s.vehicle_type === 'car').length} disp.
+                        </span>
+                      )}
+                    </button>
+                  )}
+                  {capacitySettings?.allow_motorcycles !== false && (
+                    <button
+                      type="button"
+                      onClick={() => setType('motorcycle')}
+                      className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === 'motorcycle' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <Bike className="w-6 h-6" />
+                      <span className="font-medium text-sm">Moto</span>
+                      {capacitySettings?.enforce && capacitySettings?.capacity_motorcycles > 0 && (
+                        <span className="text-xs font-medium opacity-75">
+                          {capacitySettings.capacity_motorcycles - sessions.filter(s => s.vehicle_type === 'motorcycle').length} disp.
+                        </span>
+                      )}
+                    </button>
+                  )}
+                  {capacitySettings?.allow_bicycles === true && (
+                    <button
+                      type="button"
+                      onClick={() => setType('bicycle')}
+                      className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === 'bicycle' ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'}`}
+                    >
+                      <Bike className="w-6 h-6" />
+                      <span className="font-medium text-sm">Bicicleta</span>
+                      {capacitySettings?.enforce && capacitySettings?.capacity_bicycles > 0 && (
+                        <span className="text-xs font-medium opacity-75">
+                          {capacitySettings.capacity_bicycles - sessions.filter(s => s.vehicle_type === 'bicycle').length} disp.
+                        </span>
+                      )}
+                    </button>
+                  )}
                 </div>
               </div>
 
-              {entryFields.filter(f => f.enabled).map(field => (
+              {entryFields.filter(f => f.enabled && f.label.trim().toLowerCase() !== 'placa').map(field => (
                 <div key={field.id}>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
                     {field.label} {field.required && <span className="text-red-500">*</span>}
@@ -354,31 +556,53 @@ export default function GuardDashboard({ user, onLogout, parkingLotId }: { user:
 
         {/* Lista de Vehículos Activos */}
         <div className="lg:col-span-2">
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-5 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-              <h2 className="text-lg font-semibold text-slate-800">Vehículos en Parqueadero</h2>
-              <span className="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-full text-sm font-medium">
-                {sessions.length} activos
-              </span>
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
+            <div className="p-5 border-b border-slate-200 bg-slate-50 space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-lg font-semibold text-slate-800">Vehículos en Parqueadero</h2>
+                <span className="bg-indigo-100 text-indigo-700 py-1 px-3 rounded-full text-sm font-medium">
+                  {sessions.length} activos
+                </span>
+              </div>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-slate-400" />
+                </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Buscar por placa..."
+                  className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white text-sm"
+                />
+              </div>
             </div>
             
-            {sessions.length === 0 ? (
-              <div className="p-12 text-center text-slate-500">
-                <Car className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                <p>No hay vehículos en el parqueadero en este momento.</p>
-              </div>
-            ) : (
-              <div className="divide-y divide-slate-100">
-                {sessions.map((session) => {
-                  const mins = Math.max(1, differenceInMinutes(currentTime, new Date(session.entry_time)));
+            <div className="flex-1 overflow-y-auto max-h-[600px]">
+              {filteredSessions.length === 0 ? (
+                <div className="p-12 text-center text-slate-500">
+                  <Car className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                  <p>{searchQuery ? 'No se encontraron vehículos con esa placa.' : 'No hay vehículos en el parqueadero en este momento.'}</p>
+                </div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {filteredSessions.map((session) => {
+                    const mins = Math.max(1, differenceInMinutes(currentTime, new Date(session.entry_time)));
                   return (
                     <div key={session.id} className="p-5 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                       <div className="flex items-center gap-4">
-                        <div className={`p-3 rounded-xl ${session.vehicle_type === 'car' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'}`}>
+                        <div className={`p-3 rounded-xl ${session.vehicle_type === 'car' ? 'bg-blue-50 text-blue-600' : session.vehicle_type === 'motorcycle' ? 'bg-orange-50 text-orange-600' : 'bg-green-50 text-green-600'}`}>
                           {session.vehicle_type === 'car' ? <Car className="w-6 h-6" /> : <Bike className="w-6 h-6" />}
                         </div>
                         <div>
-                          <h3 className="text-xl font-bold text-slate-800 font-mono tracking-wider">{session.license_plate}</h3>
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-xl font-bold text-slate-800 font-mono tracking-wider">{session.license_plate}</h3>
+                            {session.ticket_number && (
+                              <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs font-medium">
+                                #{session.ticket_number}
+                              </span>
+                            )}
+                          </div>
                           {session.metadata && Object.keys(session.metadata).length > 0 && (
                             <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 mt-1 mb-1">
                               {Object.entries(session.metadata).map(([key, value]) => (
@@ -397,17 +621,18 @@ export default function GuardDashboard({ user, onLogout, parkingLotId }: { user:
                         </div>
                       </div>
                       
-                      <button
-                        onClick={() => handleCheckoutClick(session)}
-                        className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 text-white font-medium hover:bg-slate-700 transition-colors"
-                      >
-                        Dar Salida
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+                        <button
+                          onClick={() => handleCheckoutClick(session)}
+                          className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 text-white font-medium hover:bg-slate-700 transition-colors"
+                        >
+                          Dar Salida
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -440,6 +665,13 @@ export default function GuardDashboard({ user, onLogout, parkingLotId }: { user:
                     <span className="font-medium text-slate-800">{Math.max(1, differenceInMinutes(new Date(), new Date(checkoutSession.entry_time)))} minutos</span>
                   </div>
                   
+                  {selectedRateId === 'special' && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-slate-500">Tarifa Aplicada:</span>
+                      <span className="font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">Tarifa Especial</span>
+                    </div>
+                  )}
+
                   <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
                     <span className="font-semibold text-slate-800">Total a Pagar:</span>
                     <span className="text-2xl font-bold text-indigo-600">{formatCurrency(currentCost)}</span>

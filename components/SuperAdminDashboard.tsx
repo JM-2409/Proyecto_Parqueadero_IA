@@ -9,6 +9,7 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
   const [parkingLots, setParkingLots] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Parking Lot Form
   const [showLotForm, setShowLotForm] = useState(false);
@@ -27,6 +28,10 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
   const [password, setPassword] = useState('');
   const [userRole, setUserRole] = useState<'admin' | 'guard'>('admin');
   const [userLotId, setUserLotId] = useState('');
+
+  // Delete Modals
+  const [deletingLot, setDeletingLot] = useState<any>(null);
+  const [deletingUser, setDeletingUser] = useState<any>(null);
 
   useEffect(() => {
     fetchData();
@@ -79,15 +84,23 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
       email: lotEmail
     };
 
-    if (editingLot) {
-      await supabase.from('parking_lots').update(lotData).eq('id', editingLot.id);
-    } else {
-      await supabase.from('parking_lots').insert(lotData);
-    }
+    try {
+      if (editingLot) {
+        const { error } = await supabase.from('parking_lots').update(lotData).eq('id', editingLot.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('parking_lots').insert(lotData);
+        if (error) throw error;
+      }
 
-    setFormLoading(false);
-    setShowLotForm(false);
-    fetchData();
+      setShowLotForm(false);
+      fetchData();
+    } catch (err: any) {
+      console.error(err);
+      alert('Error al guardar el parqueadero: ' + err.message);
+    } finally {
+      setFormLoading(false);
+    }
   };
 
   const handleToggleLotStatus = async (lot: any) => {
@@ -104,19 +117,23 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
       const cleanUsername = username.trim().toLowerCase();
       const email = cleanUsername.includes('@') ? cleanUsername : `${cleanUsername}@parqueadero.local`;
 
+      let res;
       if (editingUser) {
-        await fetch(`/api/users/${editingUser.user_id}`, {
+        res = await fetch(`/api/users/${editingUser.user_id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password: password || undefined, role: userRole, parking_lot_id: userLotId })
+          body: JSON.stringify({ password: password || undefined, role: userRole, parking_lot_id: userLotId })
         });
       } else {
-        await fetch('/api/users', {
+        res = await fetch('/api/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, role: userRole, parking_lot_id: userLotId })
+          body: JSON.stringify({ username: email, password, role: userRole, parking_lot_id: userLotId })
         });
       }
+      
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al guardar');
       
       setShowUserForm(false);
       fetchData();
@@ -128,15 +145,43 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
     }
   };
 
-  const handleDeleteUser = async (userId: string) => {
-    if (!confirm('¿Estás seguro de eliminar este usuario?')) return;
-    
+  const executeDeleteLot = async () => {
+    if (!deletingLot) return;
+    setFormLoading(true);
     try {
-      await fetch(`/api/users/${userId}`, { method: 'DELETE' });
+      // First, we need to delete all users associated with this lot via API
+      const usersInLot = users.filter(u => u.parking_lot_id === deletingLot.id);
+      for (const u of usersInLot) {
+        await fetch(`/api/users/${u.user_id}`, { method: 'DELETE' });
+      }
+      
+      // Then delete the lot (cascade will handle rates, sessions, settings, user_roles)
+      const { error } = await supabase.from('parking_lots').delete().eq('id', deletingLot.id);
+      if (error) throw error;
+      
+      setDeletingLot(null);
       fetchData();
-    } catch (err) {
-      console.error(err);
-      alert('Error al eliminar');
+    } catch (err: any) {
+      alert('Error al eliminar parqueadero: ' + err.message);
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const executeDeleteUser = async () => {
+    if (!deletingUser) return;
+    setFormLoading(true);
+    try {
+      const res = await fetch(`/api/users/${deletingUser.user_id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
+      setDeletingUser(null);
+      fetchData();
+    } catch (err: any) {
+      alert('Error al eliminar usuario: ' + err.message);
+    } finally {
+      setFormLoading(false);
     }
   };
 
@@ -156,21 +201,36 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
         </button>
       </div>
 
-      <div className="flex gap-2 mb-8 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 w-fit">
-        <button
-          onClick={() => setActiveTab('parking_lots')}
-          className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 ${activeTab === 'parking_lots' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
-        >
-          <Building2 className="w-4 h-4" />
-          Parqueaderos
-        </button>
-        <button
-          onClick={() => setActiveTab('users')}
-          className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 ${activeTab === 'users' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
-        >
-          <Users className="w-4 h-4" />
-          Usuarios
-        </button>
+      <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-between items-start sm:items-center">
+        <div className="flex gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 w-fit">
+          <button
+            onClick={() => { setActiveTab('parking_lots'); setSearchTerm(''); }}
+            className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 ${activeTab === 'parking_lots' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
+          >
+            <Building2 className="w-4 h-4" />
+            Parqueaderos
+          </button>
+          <button
+            onClick={() => { setActiveTab('users'); setSearchTerm(''); }}
+            className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 ${activeTab === 'users' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
+          >
+            <Users className="w-4 h-4" />
+            Usuarios
+          </button>
+        </div>
+
+        <div className="relative w-full sm:w-72">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Search className="h-5 w-5 text-slate-400" />
+          </div>
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white shadow-sm text-sm"
+            placeholder={`Buscar ${activeTab === 'parking_lots' ? 'parqueaderos' : 'usuarios'}...`}
+          />
+        </div>
       </div>
 
       {loading ? (
@@ -204,7 +264,9 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
               </div>
               
               <div className="divide-y divide-slate-100">
-                {parkingLots.map(lot => (
+                {parkingLots
+                  .filter(lot => lot.name.toLowerCase().includes(searchTerm.toLowerCase()) || (lot.nit && lot.nit.includes(searchTerm)))
+                  .map(lot => (
                   <div key={lot.id} className={`p-6 flex items-center justify-between hover:bg-slate-50 transition-colors ${lot.status === 'suspended' ? 'opacity-60' : ''}`}>
                     <div>
                       <h3 className="font-semibold text-slate-800 text-lg">{lot.name}</h3>
@@ -239,6 +301,13 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
                         className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                       >
                         <Edit2 className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => setDeletingLot(lot)}
+                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Eliminar"
+                      >
+                        <Trash2 className="w-5 h-5" />
                       </button>
                     </div>
                   </div>
@@ -276,7 +345,9 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
               </div>
               
               <div className="divide-y divide-slate-100">
-                {users.map(u => (
+                {users
+                  .filter(u => u.email.toLowerCase().includes(searchTerm.toLowerCase()) || (u.parking_lot_name && u.parking_lot_name.toLowerCase().includes(searchTerm.toLowerCase())))
+                  .map(u => (
                   <div key={u.user_id} className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors">
                     <div className="flex items-center gap-4">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${u.role === 'admin' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
@@ -310,7 +381,7 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
                         <Edit2 className="w-5 h-5" />
                       </button>
                       <button
-                        onClick={() => handleDeleteUser(u.user_id)}
+                        onClick={() => setDeletingUser(u)}
                         className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       >
                         <Trash2 className="w-5 h-5" />
@@ -413,6 +484,65 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
                 <button type="submit" disabled={formLoading} className="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50">Guardar</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Delete Lot Modal */}
+      {deletingLot && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden p-6">
+            <h3 className="text-xl font-bold text-slate-800 mb-2">Eliminar Parqueadero</h3>
+            <p className="text-slate-600 mb-6">
+              ¿Estás seguro de que deseas eliminar el parqueadero <strong>{deletingLot.name}</strong>?
+              <br/><br/>
+              <span className="text-red-600 font-medium">¡Advertencia!</span> Esta acción eliminará permanentemente todos los usuarios, tarifas, configuraciones y registros de vehículos asociados a este parqueadero. Esta acción no se puede deshacer.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeletingLot(null)}
+                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition-colors"
+                disabled={formLoading}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={executeDeleteLot}
+                disabled={formLoading}
+                className="px-4 py-2 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2"
+              >
+                {formLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                Eliminar Parqueadero
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete User Modal */}
+      {deletingUser && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden p-6">
+            <h3 className="text-xl font-bold text-slate-800 mb-2">Eliminar Usuario</h3>
+            <p className="text-slate-600 mb-6">
+              ¿Estás seguro de que deseas eliminar al usuario <strong>{deletingUser.email}</strong>? Esta acción no se puede deshacer.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setDeletingUser(null)}
+                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition-colors"
+                disabled={formLoading}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={executeDeleteUser}
+                disabled={formLoading}
+                className="px-4 py-2 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2"
+              >
+                {formLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                Eliminar Usuario
+              </button>
+            </div>
           </div>
         </div>
       )}

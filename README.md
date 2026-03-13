@@ -12,13 +12,19 @@ Un sistema web moderno y completo para la administración y control de estaciona
   * Hora y fracción.
   * Día / Noche (Con lógica de turnos de 06:00 a 18:00 y 18:00 a 06:00).
   * Configuración de **minutos de gracia** para evitar cobros injustos en los límites de los turnos.
-* **Gestión de Usuarios:** Creación, edición y eliminación de cuentas para vigilantes y otros administradores.
-* **Historial Completo:** Registro detallado de todas las entradas y salidas con cálculo de tiempos y valores pagados.
+* **Límites de Capacidad:** Configuración de límites máximos de vehículos por tipo (carros, motos, bicicletas) con opción de bloqueo automático al alcanzar la capacidad.
+* **Control de Recaudo y Cierres de Caja:** Seguimiento del dinero recaudado por los vigilantes y opción para realizar cierres de caja, reiniciando el contador de ingresos.
+* **Tarifas Especiales y Mensualidades:** Asignación de tarifas fijas, mensualidades o cobros especiales a vehículos específicos por placa, controlando si el pago se realiza a la administración o al vigilante.
+* **Gestión de Usuarios:** Creación, edición y eliminación de cuentas para vigilantes y otros administradores. **Nota:** Por seguridad, el auto-registro está deshabilitado; solo los administradores pueden crear cuentas.
+* **Historial Completo:** Registro detallado de todas las entradas y salidas con cálculo de tiempos y valores pagados, incluyendo búsqueda por placa o recibo.
 
 ### Panel de Vigilante (Guarda)
-* **Ingreso Rápido:** Registro de entrada de vehículos (carros o motos) con un solo clic.
-* **Control en Tiempo Real:** Visualización de todos los vehículos actualmente en el parqueadero con su tiempo de estancia en vivo.
-* **Salida Automatizada:** Cálculo automático del valor a cobrar basado en las tarifas configuradas por el administrador (sin necesidad de que el guarda seleccione la tarifa manualmente).
+* **Ingreso Rápido:** Registro de entrada de vehículos (carros, motos o bicicletas) con un solo clic.
+* **Autocompletado Inteligente:** Al ingresar una placa registrada anteriormente, el sistema autocompleta los datos adicionales del vehículo para agilizar el proceso.
+* **Control en Tiempo Real:** Visualización de todos los vehículos actualmente en el parqueadero con su tiempo de estancia en vivo y búsqueda rápida.
+* **Control de Capacidad:** Visualización de la disponibilidad actual de parqueaderos por tipo de vehículo. Los tipos de vehículos deshabilitados por administración se ocultan automáticamente.
+* **Salida Automatizada:** Cálculo automático del valor a cobrar basado en las tarifas configuradas por el administrador, aplicando automáticamente tarifas especiales o mensualidades si corresponden.
+* **Visibilidad de Recaudo:** (Opcional) Visualización del dinero recaudado en el turno actual, según la configuración del administrador.
 
 ## 🛠️ Tecnologías Utilizadas
 

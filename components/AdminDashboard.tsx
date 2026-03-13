@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
-import { BarChart3, Users, History, DollarSign, LogOut, Car, Bike, Clock, ChevronLeft, ChevronRight, UserPlus, Shield, Trash2, Edit2, Key, Settings, Plus, Building2 } from 'lucide-react';
+import { BarChart3, Users, History, DollarSign, LogOut, Car, Bike, Clock, ChevronLeft, ChevronRight, UserPlus, Shield, Trash2, Edit2, Key, Settings, Plus, Building2, X, Search } from 'lucide-react';
 import { format, differenceInMinutes, subDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -12,11 +12,30 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
   
   // Dashboard state
   const [history, setHistory] = useState<any[]>([]);
-  const [stats, setStats] = useState({ totalRevenue: 0, activeVehicles: 0, totalToday: 0 });
+  const [stats, setStats] = useState({ totalRevenue: 0, activeVehicles: 0, totalToday: 0, activeCars: 0, activeMotorcycles: 0, activeBicycles: 0 });
   const [loading, setLoading] = useState(true);
+  
+  // Admin checkout state
+  const [adminCheckoutSession, setAdminCheckoutSession] = useState<any | null>(null);
+  const [adminCheckoutObservation, setAdminCheckoutObservation] = useState('');
+  const [adminCheckoutLoading, setAdminCheckoutLoading] = useState(false);
   
   // Settings state
   const [entryFields, setEntryFields] = useState<any[]>([]);
+  const [capacitySettings, setCapacitySettings] = useState({
+    enforce: false,
+    allow_cars: true,
+    allow_motorcycles: true,
+    allow_bicycles: false,
+    capacity_cars: 20,
+    capacity_motorcycles: 10,
+    capacity_bicycles: 5
+  });
+  const [revenueSettings, setRevenueSettings] = useState({
+    show_to_guards: false,
+    last_closing: new Date().toISOString()
+  });
+  const [specialVehicles, setSpecialVehicles] = useState<any[]>([]);
   const [loadingSettings, setLoadingSettings] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
 
@@ -63,9 +82,11 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [searchHistory, setSearchHistory] = useState('');
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -76,21 +97,26 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
     } else if (activeTab === 'settings') {
       fetchSettings();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const fetchSettings = async () => {
     setLoadingSettings(true);
     setLoadingSuperSettings(true);
     
-    // Fetch entry fields
-    const { data: entryData } = await supabase
+    // Fetch all settings for this parking lot
+    const { data: settingsData } = await supabase
       .from('settings')
-      .select('value')
-      .eq('key', 'entry_fields')
-      .eq('parking_lot_id', parkingLotId)
-      .single();
-    if (entryData && entryData.value) {
-      setEntryFields(entryData.value);
+      .select('key, value')
+      .eq('parking_lot_id', parkingLotId);
+
+    if (settingsData) {
+      settingsData.forEach(setting => {
+        if (setting.key === 'entry_fields') setEntryFields(setting.value);
+        if (setting.key === 'capacity_settings') setCapacitySettings(setting.value);
+        if (setting.key === 'revenue_settings') setRevenueSettings(setting.value);
+        if (setting.key === 'special_vehicles') setSpecialVehicles(setting.value);
+      });
     }
     
     // Fetch global settings (parking lot details)
@@ -110,6 +136,64 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
     setLoadingSuperSettings(false);
   };
 
+  const saveCapacitySettings = async () => {
+    setSavingSettings(true);
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ key: 'capacity_settings', value: capacitySettings, parking_lot_id: parkingLotId }, { onConflict: 'key,parking_lot_id' });
+    if (error) {
+      alert('Error al guardar configuración de capacidad: ' + error.message);
+    } else {
+      alert('Configuración de capacidad guardada exitosamente.');
+    }
+    setSavingSettings(false);
+  };
+
+  const saveRevenueSettings = async () => {
+    setSavingSettings(true);
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ key: 'revenue_settings', value: revenueSettings, parking_lot_id: parkingLotId }, { onConflict: 'key,parking_lot_id' });
+    if (error) {
+      alert('Error al guardar configuración de ingresos: ' + error.message);
+    } else {
+      alert('Configuración de ingresos guardada exitosamente.');
+    }
+    setSavingSettings(false);
+  };
+
+  const handleCashClosing = async () => {
+    if (!window.confirm('¿Estás seguro de que deseas realizar el cierre de caja? Esto reiniciará el contador de ingresos acumulados a cero.')) return;
+    
+    const newSettings = { ...revenueSettings, last_closing: new Date().toISOString() };
+    setRevenueSettings(newSettings);
+    
+    setSavingSettings(true);
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ key: 'revenue_settings', value: newSettings, parking_lot_id: parkingLotId }, { onConflict: 'key,parking_lot_id' });
+    if (error) {
+      alert('Error al realizar el cierre de caja: ' + error.message);
+    } else {
+      alert('Cierre de caja realizado exitosamente.');
+      fetchData(); // Refresh stats
+    }
+    setSavingSettings(false);
+  };
+
+  const saveSpecialVehicles = async (updatedVehicles: any[]) => {
+    setSavingSettings(true);
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ key: 'special_vehicles', value: updatedVehicles, parking_lot_id: parkingLotId }, { onConflict: 'key,parking_lot_id' });
+    if (error) {
+      alert('Error al guardar vehículos especiales: ' + error.message);
+    } else {
+      setSpecialVehicles(updatedVehicles);
+    }
+    setSavingSettings(false);
+  };
+
   const saveSettings = async () => {
     // Validation
     const labels = entryFields.map(f => f.label.trim().toLowerCase());
@@ -127,13 +211,22 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
       return;
     }
 
+    // Enforce 'Placa' to be always required and enabled
+    const processedFields = entryFields.map(f => {
+      if (f.label.trim().toLowerCase() === 'placa') {
+        return { ...f, required: true, enabled: true };
+      }
+      return f;
+    });
+
     setSavingSettings(true);
     const { error } = await supabase
       .from('settings')
-      .upsert({ key: 'entry_fields', value: entryFields, parking_lot_id: parkingLotId }, { onConflict: 'key,parking_lot_id' });
+      .upsert({ key: 'entry_fields', value: processedFields, parking_lot_id: parkingLotId }, { onConflict: 'key,parking_lot_id' });
     if (error) {
       alert('Error al guardar configuración: ' + error.message);
     } else {
+      setEntryFields(processedFields); // Update state to reflect enforced changes
       alert('Configuración guardada exitosamente.');
     }
     setSavingSettings(false);
@@ -171,6 +264,17 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
 
   const fetchData = async () => {
     setLoading(true);
+    
+    // Fetch revenue settings to get last closing time
+    const { data: revSettings } = await supabase
+      .from('settings')
+      .select('value')
+      .eq('key', 'revenue_settings')
+      .eq('parking_lot_id', parkingLotId)
+      .single();
+      
+    const lastClosing = revSettings?.value?.last_closing || new Date(0).toISOString();
+
     const { data: sessions } = await supabase
       .from('parking_sessions')
       .select('*')
@@ -184,16 +288,24 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
       let revenue = 0;
       let active = 0;
       let todayCount = 0;
+      let activeCars = 0;
+      let activeMotorcycles = 0;
+      let activeBicycles = 0;
       
       sessions.forEach(s => {
-        if (s.status === 'active') active++;
+        if (s.status === 'active') {
+          active++;
+          if (s.vehicle_type === 'car') activeCars++;
+          if (s.vehicle_type === 'motorcycle') activeMotorcycles++;
+          if (s.vehicle_type === 'bicycle') activeBicycles++;
+        }
         if (s.entry_time.startsWith(today)) todayCount++;
-        if (s.status === 'completed' && s.exit_time?.startsWith(today)) {
+        if (s.status === 'completed' && s.exit_time && new Date(s.exit_time) >= new Date(lastClosing)) {
           revenue += Number(s.amount_paid);
         }
       });
       
-      setStats({ totalRevenue: revenue, activeVehicles: active, totalToday: todayCount });
+      setStats({ totalRevenue: revenue, activeVehicles: active, totalToday: todayCount, activeCars, activeMotorcycles, activeBicycles });
     }
     setLoading(false);
   };
@@ -221,6 +333,44 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
       };
     });
   }, [history]);
+
+  const handleAdminCheckout = async () => {
+    if (!adminCheckoutSession || !adminCheckoutObservation.trim()) {
+      alert('Por favor, ingresa una observación.');
+      return;
+    }
+
+    setAdminCheckoutLoading(true);
+    
+    // Calculate a default cost or set to 0 since it's an admin forced checkout
+    // For simplicity, we'll set it to 0 and note it in metadata
+    const updatedMetadata = {
+      ...(adminCheckoutSession.metadata || {}),
+      admin_checkout_observation: adminCheckoutObservation,
+      admin_checkout_by: user.id,
+      admin_checkout_time: new Date().toISOString()
+    };
+
+    const { error } = await supabase
+      .from('parking_sessions')
+      .update({
+        status: 'completed',
+        exit_time: new Date().toISOString(),
+        amount_paid: 0,
+        metadata: updatedMetadata
+      })
+      .eq('id', adminCheckoutSession.id);
+
+    setAdminCheckoutLoading(false);
+
+    if (error) {
+      alert('Error al procesar la salida: ' + error.message);
+    } else {
+      setAdminCheckoutSession(null);
+      setAdminCheckoutObservation('');
+      fetchData(); // Refresh history
+    }
+  };
 
   const fetchUsers = async () => {
     setLoadingUsers(true);
@@ -413,10 +563,14 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
   };
 
   // Pagination logic
+  const filteredHistory = history.filter(s => 
+    s.license_plate.includes(searchHistory.toUpperCase()) || 
+    (s.ticket_number && String(s.ticket_number).includes(searchHistory))
+  );
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = history.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(history.length / itemsPerPage);
+  const currentItems = filteredHistory.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
 
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6">
@@ -424,9 +578,8 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
         <div>
           <h1 className="text-2xl font-bold flex items-center gap-3">
             <Shield className="w-6 h-6 text-indigo-400" />
-            {parkingLotName || 'Panel Administrativo'}
+            {parkingLotName || 'Control de Parqueadero'}
           </h1>
-          <p className="text-slate-400 text-sm mt-1">Gestión de Parqueadero - {user.email}</p>
         </div>
         
         <button
@@ -488,9 +641,16 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
               <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center">
                 <Car className="w-7 h-7 text-indigo-600" />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-sm font-medium text-slate-500 mb-1">Vehículos Activos</p>
-                <h3 className="text-2xl font-bold text-slate-800">{stats.activeVehicles}</h3>
+                <div className="flex items-end gap-3">
+                  <h3 className="text-2xl font-bold text-slate-800">{stats.activeVehicles}</h3>
+                  <div className="flex gap-2 text-xs text-slate-500 mb-1">
+                    <span title="Carros">🚗 {stats.activeCars}</span>
+                    <span title="Motos">🏍️ {stats.activeMotorcycles}</span>
+                    {stats.activeBicycles > 0 && <span title="Bicicletas">🚲 {stats.activeBicycles}</span>}
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -538,20 +698,38 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
 
           {/* Historial Table */}
           <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+            <div className="p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50">
               <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                 <History className="w-5 h-5 text-slate-500" />
                 Historial General
               </h2>
-              <button onClick={() => { setCurrentPage(1); fetchData(); }} className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
-                Actualizar
-              </button>
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                <div className="relative w-full sm:w-64">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-4 w-4 text-slate-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={searchHistory}
+                    onChange={(e) => {
+                      setSearchHistory(e.target.value);
+                      setCurrentPage(1);
+                    }}
+                    placeholder="Buscar placa o recibo..."
+                    className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white text-sm"
+                  />
+                </div>
+                <button onClick={() => { setCurrentPage(1); fetchData(); }} className="text-sm font-medium text-indigo-600 hover:text-indigo-700 whitespace-nowrap">
+                  Actualizar
+                </button>
+              </div>
             </div>
             
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
+                    <th className="px-6 py-4 font-medium">Recibo</th>
                     <th className="px-6 py-4 font-medium">Placa</th>
                     <th className="px-6 py-4 font-medium">Tipo</th>
                     <th className="px-6 py-4 font-medium">Detalles</th>
@@ -560,16 +738,19 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
                     <th className="px-6 py-4 font-medium">Tiempo</th>
                     <th className="px-6 py-4 font-medium text-right">Valor Pagado</th>
                     <th className="px-6 py-4 font-medium text-center">Estado</th>
+                    <th className="px-6 py-4 font-medium text-center">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {loading ? (
                     <tr>
-                      <td colSpan={8} className="px-6 py-12 text-center text-slate-500">Cargando datos...</td>
+                      <td colSpan={10} className="px-6 py-12 text-center text-slate-500">Cargando datos...</td>
                     </tr>
-                  ) : history.length === 0 ? (
+                  ) : filteredHistory.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-6 py-12 text-center text-slate-500">No hay registros en el sistema.</td>
+                      <td colSpan={10} className="px-6 py-12 text-center text-slate-500">
+                        {searchHistory ? 'No se encontraron registros con esa búsqueda.' : 'No hay registros en el sistema.'}
+                      </td>
                     </tr>
                   ) : (
                     currentItems.map((session) => {
@@ -579,6 +760,9 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
                       
                       return (
                         <tr key={session.id} className="hover:bg-slate-50 transition-colors">
+                          <td className="px-6 py-4 font-mono text-slate-500 text-sm">
+                            {session.ticket_number ? `#${session.ticket_number}` : '-'}
+                          </td>
                           <td className="px-6 py-4 font-mono font-bold text-slate-800">{session.license_plate}</td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2 text-slate-600">
@@ -616,6 +800,16 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
                               {isCompleted ? 'Completado' : 'Activo'}
                             </span>
                           </td>
+                          <td className="px-6 py-4 text-center">
+                            {!isCompleted && (
+                              <button
+                                onClick={() => setAdminCheckoutSession(session)}
+                                className="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-medium hover:bg-red-100 transition-colors"
+                              >
+                                Forzar Salida
+                              </button>
+                            )}
+                          </td>
                         </tr>
                       );
                     })
@@ -625,10 +819,10 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
             </div>
             
             {/* Pagination Controls */}
-            {!loading && history.length > 0 && (
+            {!loading && filteredHistory.length > 0 && (
               <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 bg-white">
                 <div className="text-sm text-slate-500">
-                  Mostrando <span className="font-medium">{indexOfFirstItem + 1}</span> a <span className="font-medium">{Math.min(indexOfLastItem, history.length)}</span> de <span className="font-medium">{history.length}</span> resultados
+                  Mostrando <span className="font-medium">{indexOfFirstItem + 1}</span> a <span className="font-medium">{Math.min(indexOfLastItem, filteredHistory.length)}</span> de <span className="font-medium">{filteredHistory.length}</span> resultados
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -913,6 +1107,289 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
                     />
                   </div>
                 </div>
+              )}
+            </div>
+          </div>
+
+          {/* Capacity Settings */}
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <Car className="w-5 h-5 text-indigo-600" />
+                Límites de Capacidad y Tipos de Vehículos
+              </h2>
+              <button
+                onClick={saveCapacitySettings}
+                disabled={savingSettings}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+              >
+                {savingSettings ? 'Guardando...' : 'Guardar Cambios'}
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6 max-w-3xl">
+                <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <input
+                    type="checkbox"
+                    id="enforce_capacity"
+                    checked={capacitySettings.enforce}
+                    onChange={(e) => setCapacitySettings({...capacitySettings, enforce: e.target.checked})}
+                    className="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                  />
+                  <label htmlFor="enforce_capacity" className="font-medium text-slate-800">
+                    Habilitar límites de capacidad (No permitir ingresos si el parqueadero está lleno)
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* Cars */}
+                  <div className="p-4 border border-slate-200 rounded-xl space-y-4">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="allow_cars"
+                        checked={capacitySettings.allow_cars}
+                        onChange={(e) => setCapacitySettings({...capacitySettings, allow_cars: e.target.checked})}
+                        className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                      />
+                      <label htmlFor="allow_cars" className="font-medium text-slate-700 flex items-center gap-2">
+                        <Car className="w-4 h-4" /> Permitir Carros
+                      </label>
+                    </div>
+                    {capacitySettings.allow_cars && (
+                      <div>
+                        <label className="block text-sm text-slate-500 mb-1">Capacidad Máxima</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={capacitySettings.capacity_cars}
+                          onChange={(e) => setCapacitySettings({...capacitySettings, capacity_cars: parseInt(e.target.value) || 0})}
+                          className="block w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Motorcycles */}
+                  <div className="p-4 border border-slate-200 rounded-xl space-y-4">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="allow_motorcycles"
+                        checked={capacitySettings.allow_motorcycles}
+                        onChange={(e) => setCapacitySettings({...capacitySettings, allow_motorcycles: e.target.checked})}
+                        className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                      />
+                      <label htmlFor="allow_motorcycles" className="font-medium text-slate-700 flex items-center gap-2">
+                        <Bike className="w-4 h-4" /> Permitir Motos
+                      </label>
+                    </div>
+                    {capacitySettings.allow_motorcycles && (
+                      <div>
+                        <label className="block text-sm text-slate-500 mb-1">Capacidad Máxima</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={capacitySettings.capacity_motorcycles}
+                          onChange={(e) => setCapacitySettings({...capacitySettings, capacity_motorcycles: parseInt(e.target.value) || 0})}
+                          className="block w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bicycles */}
+                  <div className="p-4 border border-slate-200 rounded-xl space-y-4">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        id="allow_bicycles"
+                        checked={capacitySettings.allow_bicycles}
+                        onChange={(e) => setCapacitySettings({...capacitySettings, allow_bicycles: e.target.checked})}
+                        className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                      />
+                      <label htmlFor="allow_bicycles" className="font-medium text-slate-700 flex items-center gap-2">
+                        <Bike className="w-4 h-4" /> Permitir Bicicletas
+                      </label>
+                    </div>
+                    {capacitySettings.allow_bicycles && (
+                      <div>
+                        <label className="block text-sm text-slate-500 mb-1">Capacidad Máxima</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={capacitySettings.capacity_bicycles}
+                          onChange={(e) => setCapacitySettings({...capacitySettings, capacity_bicycles: parseInt(e.target.value) || 0})}
+                          className="block w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Revenue Settings */}
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <DollarSign className="w-5 h-5 text-indigo-600" />
+                Cierre de Caja y Visibilidad
+              </h2>
+              <button
+                onClick={saveRevenueSettings}
+                disabled={savingSettings}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+              >
+                {savingSettings ? 'Guardando...' : 'Guardar Cambios'}
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6 max-w-2xl">
+                <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
+                  <input
+                    type="checkbox"
+                    id="show_to_guards"
+                    checked={revenueSettings.show_to_guards}
+                    onChange={(e) => setRevenueSettings({...revenueSettings, show_to_guards: e.target.checked})}
+                    className="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                  />
+                  <label htmlFor="show_to_guards" className="font-medium text-slate-800">
+                    Mostrar ingresos acumulados a los vigilantes
+                  </label>
+                </div>
+
+                <div className="p-6 border border-slate-200 rounded-xl bg-white flex flex-col sm:flex-row justify-between items-center gap-4">
+                  <div>
+                    <h3 className="font-semibold text-slate-800">Cierre de Caja</h3>
+                    <p className="text-sm text-slate-500 mt-1">
+                      Último cierre: {format(new Date(revenueSettings.last_closing), 'dd/MM/yyyy h:mm a')}
+                    </p>
+                    <p className="text-sm text-slate-500">
+                      Ingresos acumulados desde el último cierre: <strong className="text-emerald-600">{formatCurrency(stats.totalRevenue)}</strong>
+                    </p>
+                  </div>
+                  <button
+                    onClick={handleCashClosing}
+                    className="px-6 py-3 bg-emerald-600 text-white rounded-xl font-medium hover:bg-emerald-700 transition-colors shadow-sm whitespace-nowrap"
+                  >
+                    Realizar Cierre de Caja
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Special Vehicles */}
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <Shield className="w-5 h-5 text-indigo-600" />
+                Tarifas Especiales y Mensualidades
+              </h2>
+            </div>
+            <div className="p-6">
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  const newVehicle = {
+                    id: crypto.randomUUID(),
+                    plate: formData.get('plate')?.toString().toUpperCase(),
+                    type: formData.get('type'),
+                    rate_type: formData.get('rate_type'),
+                    amount: Number(formData.get('amount')),
+                    paid_to_admin: formData.get('paid_to_admin') === 'on'
+                  };
+                  saveSpecialVehicles([...specialVehicles, newVehicle]);
+                  e.currentTarget.reset();
+                }}
+                className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200"
+              >
+                <h3 className="font-medium text-slate-800 mb-4">Agregar Vehículo Especial</h3>
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                  <div>
+                    <label className="block text-sm text-slate-600 mb-1">Placa</label>
+                    <input name="plate" type="text" required maxLength={6} className="w-full px-3 py-2 border rounded-lg uppercase" placeholder="ABC123" />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-600 mb-1">Tipo</label>
+                    <select name="type" className="w-full px-3 py-2 border rounded-lg">
+                      <option value="car">Carro</option>
+                      <option value="motorcycle">Moto</option>
+                      <option value="bicycle">Bicicleta</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-600 mb-1">Tarifa</label>
+                    <select name="rate_type" className="w-full px-3 py-2 border rounded-lg">
+                      <option value="monthly">Mensualidad</option>
+                      <option value="fixed_daily">Fijo por Día</option>
+                      <option value="day_only">Solo Día</option>
+                      <option value="night_only">Solo Noche</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-slate-600 mb-1">Valor</label>
+                    <input name="amount" type="number" required min="0" className="w-full px-3 py-2 border rounded-lg" placeholder="0" />
+                  </div>
+                  <div className="flex items-center gap-2 pb-2">
+                    <input type="checkbox" name="paid_to_admin" id="paid_to_admin" className="w-4 h-4" />
+                    <label htmlFor="paid_to_admin" className="text-sm text-slate-700">Pagado a Admin</label>
+                  </div>
+                </div>
+                <div className="mt-4 flex justify-end">
+                  <button type="submit" className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+                    Agregar Vehículo
+                  </button>
+                </div>
+              </form>
+
+              {specialVehicles.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-sm text-slate-500">
+                        <th className="pb-3 font-medium">Placa</th>
+                        <th className="pb-3 font-medium">Tipo</th>
+                        <th className="pb-3 font-medium">Tarifa</th>
+                        <th className="pb-3 font-medium">Valor</th>
+                        <th className="pb-3 font-medium">Pago a</th>
+                        <th className="pb-3 font-medium text-right">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {specialVehicles.map((v) => (
+                        <tr key={v.id}>
+                          <td className="py-3 font-mono font-medium">{v.plate}</td>
+                          <td className="py-3 capitalize">{v.type === 'car' ? 'Carro' : v.type === 'motorcycle' ? 'Moto' : 'Bicicleta'}</td>
+                          <td className="py-3">
+                            {v.rate_type === 'monthly' ? 'Mensualidad' : 
+                             v.rate_type === 'fixed_daily' ? 'Fijo por Día' : 
+                             v.rate_type === 'day_only' ? 'Solo Día' : 'Solo Noche'}
+                          </td>
+                          <td className="py-3 font-medium text-emerald-600">{formatCurrency(v.amount)}</td>
+                          <td className="py-3">
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${v.paid_to_admin ? 'bg-blue-50 text-blue-700' : 'bg-orange-50 text-orange-700'}`}>
+                              {v.paid_to_admin ? 'Administración' : 'Vigilante'}
+                            </span>
+                          </td>
+                          <td className="py-3 text-right">
+                            <button 
+                              onClick={() => saveSpecialVehicles(specialVehicles.filter(sv => sv.id !== v.id))}
+                              className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p className="text-center text-slate-500 py-4">No hay vehículos con tarifas especiales configurados.</p>
               )}
             </div>
           </div>
@@ -1281,6 +1758,59 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
                 >
                   Eliminar
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Checkout Modal */}
+      {adminCheckoutSession && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-slate-800">Forzar Salida de Vehículo</h2>
+                <button onClick={() => setAdminCheckoutSession(null)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <p className="text-sm text-slate-500 mb-1">Placa</p>
+                <p className="text-xl font-mono font-bold text-slate-800">{adminCheckoutSession.license_plate}</p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Observación (Requerida)</label>
+                  <textarea
+                    required
+                    value={adminCheckoutObservation}
+                    onChange={(e) => setAdminCheckoutObservation(e.target.value)}
+                    className="block w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all bg-slate-50 focus:bg-white min-h-[100px] resize-none"
+                    placeholder="Indica la razón por la cual estás forzando la salida de este vehículo..."
+                  />
+                  <p className="text-xs text-slate-500 mt-2">
+                    Esta acción marcará el vehículo como completado con valor $0 y guardará tu observación en el registro.
+                  </p>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <button
+                    onClick={() => setAdminCheckoutSession(null)}
+                    className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleAdminCheckout}
+                    disabled={adminCheckoutLoading || !adminCheckoutObservation.trim()}
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 disabled:opacity-50 transition-colors shadow-sm"
+                  >
+                    {adminCheckoutLoading ? 'Procesando...' : 'Confirmar Salida'}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
