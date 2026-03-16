@@ -48,6 +48,8 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
   const [parkingLotName, setParkingLotName] = useState('Parqueadero Central');
   const [parkingLotAddress, setParkingLotAddress] = useState('Calle Principal 123');
   const [parkingLotNit, setParkingLotNit] = useState('900.123.456-7');
+  const [parkingLotLogo, setParkingLotLogo] = useState<string | null>(null);
+  const [newLogoFile, setNewLogoFile] = useState<File | null>(null);
   const [loadingSuperSettings, setLoadingSuperSettings] = useState(false);
   const [savingSuperSettings, setSavingSuperSettings] = useState(false);
 
@@ -129,7 +131,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
     // Fetch global settings (parking lot details)
     const { data: lotData } = await supabase
       .from('parking_lots')
-      .select('name, nit, address, phone, email')
+      .select('name, nit, address, phone, email, logo_url')
       .eq('id', parkingLotId)
       .single();
       
@@ -137,6 +139,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
       setParkingLotName(lotData.name || 'Parqueadero Central');
       setParkingLotNit(lotData.nit || '900.123.456-7');
       setParkingLotAddress(lotData.address || '');
+      setParkingLotLogo(lotData.logo_url || null);
     }
     
     setLoadingSettings(false);
@@ -267,16 +270,41 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
 
   const saveSuperSettings = async () => {
     setSavingSuperSettings(true);
+    
+    let finalLogoUrl = parkingLotLogo;
+
+    if (newLogoFile) {
+      const fileExt = newLogoFile.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `${parkingLotId}/${fileName}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('logos')
+        .upload(filePath, newLogoFile);
+        
+      if (!uploadError) {
+        const { data: publicUrlData } = supabase.storage
+          .from('logos')
+          .getPublicUrl(filePath);
+        finalLogoUrl = publicUrlData.publicUrl;
+        setParkingLotLogo(finalLogoUrl);
+      } else {
+        alert('Error al subir el logo: ' + uploadError.message);
+      }
+    }
+
     const { error } = await supabase
       .from('parking_lots')
       .update({ 
         address: parkingLotAddress,
+        logo_url: finalLogoUrl
       })
       .eq('id', parkingLotId);
       
     if (error) {
       alert('Error al guardar configuración: ' + error.message);
     } else {
+      setNewLogoFile(null);
       alert('Configuración guardada exitosamente.');
     }
     setSavingSuperSettings(false);
@@ -1263,6 +1291,45 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
                 <div className="py-12 text-center text-slate-500">Cargando información...</div>
               ) : (
                 <div className="space-y-6 max-w-2xl">
+                  <div className="flex items-center gap-6 mb-6">
+                    <div className="w-24 h-24 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden relative group">
+                      {(newLogoFile || parkingLotLogo) ? (
+                        <img 
+                          src={newLogoFile ? URL.createObjectURL(newLogoFile) : parkingLotLogo!} 
+                          alt="Logo" 
+                          className="w-full h-full object-contain"
+                        />
+                      ) : (
+                        <Building2 className="w-8 h-8 text-slate-400" />
+                      )}
+                      <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                        <span className="text-white text-xs font-medium">Cambiar</span>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              setNewLogoFile(e.target.files[0]);
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-slate-800">Logo del Parqueadero</h3>
+                      <p className="text-xs text-slate-500 mt-1">Sube una imagen para mostrar en los recibos y en el panel. Recomendado: PNG o JPG, máx 2MB.</p>
+                      {newLogoFile && (
+                        <button 
+                          onClick={() => setNewLogoFile(null)}
+                          className="text-xs text-red-600 mt-2 font-medium hover:underline"
+                        >
+                          Cancelar cambio de logo
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">Nombre del Parqueadero</label>
@@ -1271,6 +1338,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
                         value={parkingLotName}
                         disabled
                         className="block w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-100 text-slate-500 cursor-not-allowed"
+                        placeholder="Ej. Parqueadero Central"
                       />
                     </div>
                     <div>
@@ -1280,9 +1348,11 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
                         value={parkingLotNit}
                         disabled
                         className="block w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-100 text-slate-500 cursor-not-allowed"
+                        placeholder="Ej. 900.123.456-7"
                       />
                     </div>
                   </div>
+                  <p className="text-xs text-slate-500 mt-1">* El Nombre y el NIT solo pueden ser modificados por el Super Administrador.</p>
                   
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">Dirección</label>

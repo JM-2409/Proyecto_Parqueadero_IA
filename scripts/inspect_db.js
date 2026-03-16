@@ -41,38 +41,20 @@ function runQuery(sql) {
 async function main() {
   try {
     const result = await runQuery(`
-      CREATE TABLE IF NOT EXISTS vehicle_novelties (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        parking_lot_id UUID REFERENCES parking_lots(id) ON DELETE CASCADE,
-        license_plate TEXT NOT NULL,
-        vehicle_type TEXT NOT NULL,
-        observation TEXT NOT NULL,
-        photo_url TEXT,
-        guard_name TEXT NOT NULL,
-        created_at TIMESTAMPTZ DEFAULT NOW()
-      );
+      -- Add logo_url and nit to parking_lots if they don't exist
+      ALTER TABLE parking_lots ADD COLUMN IF NOT EXISTS logo_url TEXT;
+      ALTER TABLE parking_lots ADD COLUMN IF NOT EXISTS nit TEXT;
 
-      -- Enable RLS
-      ALTER TABLE vehicle_novelties ENABLE ROW LEVEL SECURITY;
-
-      -- Create policies
-      CREATE POLICY "Allow authenticated read access" ON vehicle_novelties FOR SELECT TO authenticated USING (true);
-      CREATE POLICY "Allow authenticated insert access" ON vehicle_novelties FOR INSERT TO authenticated WITH CHECK (true);
-
+      -- Create logos bucket
       INSERT INTO storage.buckets (id, name, public) 
-      VALUES ('novelties', 'novelties', true)
+      VALUES ('logos', 'logos', true)
       ON CONFLICT (id) DO NOTHING;
       
-      -- Drop existing policies if they exist to avoid errors
-      DROP POLICY IF EXISTS "Allow public read access" ON storage.objects;
-      DROP POLICY IF EXISTS "Allow authenticated uploads" ON storage.objects;
-      DROP POLICY IF EXISTS "Allow authenticated updates" ON storage.objects;
-      DROP POLICY IF EXISTS "Allow authenticated deletes" ON storage.objects;
-
-      CREATE POLICY "Allow public read access" ON storage.objects FOR SELECT USING (bucket_id = 'novelties');
-      CREATE POLICY "Allow authenticated uploads" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'novelties');
-      CREATE POLICY "Allow authenticated updates" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'novelties');
-      CREATE POLICY "Allow authenticated deletes" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'novelties');
+      -- Create policies for logos bucket
+      CREATE POLICY "Allow public read access logos" ON storage.objects FOR SELECT USING (bucket_id = 'logos');
+      CREATE POLICY "Allow authenticated uploads logos" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'logos');
+      CREATE POLICY "Allow authenticated updates logos" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'logos');
+      CREATE POLICY "Allow authenticated deletes logos" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'logos');
     `);
     console.log(JSON.stringify(result, null, 2));
   } catch (err) {

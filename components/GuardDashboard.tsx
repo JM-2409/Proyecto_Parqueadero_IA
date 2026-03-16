@@ -113,7 +113,7 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
   const fetchGlobalSettings = async () => {
     const { data } = await supabase
       .from('parking_lots')
-      .select('name, nit, address, phone, email')
+      .select('name, nit, address, phone, email, logo_url')
       .eq('id', parkingLotId)
       .single();
     if (data) {
@@ -597,6 +597,13 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
     setShowGuardModal(false);
   };
 
+  const handleLockScreen = () => {
+    setGuardName('');
+    setTempGuardName('');
+    localStorage.removeItem('current_guard_name');
+    setShowGuardModal(true);
+  };
+
   const handleOpenNovelties = async (vehicle: any, type: 'visitor' | 'special') => {
     setNoveltyModalVehicle({ ...vehicle, type });
     setNoveltyLoading(true);
@@ -770,9 +777,9 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
           <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
             <span className="text-sm font-medium text-slate-700">Turno: {guardName || 'Sin asignar'}</span>
             <button
-              onClick={() => { setTempGuardName(guardName); setShowGuardModal(true); }}
+              onClick={handleLockScreen}
               className="p-1 rounded-md hover:bg-slate-200 text-slate-500 transition-colors"
-              title="Cambiar Turno"
+              title="Entregar Turno / Bloquear"
             >
               <UserCircle className="w-4 h-4" />
             </button>
@@ -1140,8 +1147,14 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
               
               <div id="receipt-content" className="bg-slate-50 rounded-2xl p-4 mb-6 text-left space-y-4">
                 <div className="text-center mb-4 border-b border-slate-200 pb-4">
-                  <h3 className="font-bold text-slate-800">{globalSettings.name || 'Parqueadero'}</h3>
-                  <p className="text-sm text-slate-500">Recibo No: {completedSession.ticket_number}</p>
+                  {globalSettings.logo_url && (
+                    <img src={globalSettings.logo_url} alt="Logo" className="w-16 h-16 object-contain mx-auto mb-2" />
+                  )}
+                  <h3 className="font-bold text-slate-800 text-lg">{globalSettings.name || 'Parqueadero'}</h3>
+                  {globalSettings.nit && (
+                    <p className="text-xs text-slate-500 font-mono mt-1">NIT: {globalSettings.nit}</p>
+                  )}
+                  <p className="text-sm text-slate-500 mt-2">Recibo No: {completedSession.ticket_number}</p>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-slate-500">Ingreso:</span>
@@ -1280,6 +1293,48 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
                   className={`flex-1 py-3 px-4 rounded-xl text-white font-medium disabled:opacity-50 transition-colors shadow-sm ${confirmAmount ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}
                 >
                   {loading ? 'Procesando...' : (confirmAmount ? 'Sí, Dar Salida' : 'Cobrar')}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Guard Name Modal (Lock Screen) */}
+      {showGuardModal && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
+          <div className="bg-white rounded-3xl shadow-xl max-w-sm w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-indigo-50">
+                <Shield className="w-8 h-8 text-indigo-600" />
+              </div>
+              <h2 className="text-2xl font-bold text-slate-800 mb-2">
+                Turno de Guarda
+              </h2>
+              <p className="text-slate-500 mb-6 text-sm">
+                Por favor, ingresa tu nombre para registrar las operaciones a tu cargo.
+              </p>
+              
+              <div className="space-y-4 text-left">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Nombre del Guarda</label>
+                  <input
+                    type="text"
+                    value={tempGuardName}
+                    onChange={(e) => setTempGuardName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSaveGuardName()}
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                    placeholder="Ej. Juan Pérez"
+                    autoFocus
+                  />
+                </div>
+                
+                <button
+                  onClick={handleSaveGuardName}
+                  disabled={!tempGuardName.trim()}
+                  className="w-full py-3 px-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                >
+                  Iniciar Turno
                 </button>
               </div>
             </div>

@@ -16,6 +16,7 @@ Un sistema web moderno y completo para la administración y control de estaciona
 * **Control de Recaudo y Cierres de Caja:** Seguimiento del dinero recaudado por los vigilantes y opción para realizar cierres de caja, reiniciando el contador de ingresos.
 * **Tarifas Especiales y Mensualidades:** Asignación de tarifas fijas, mensualidades o cobros especiales a vehículos específicos por placa, controlando si el pago se realiza a la administración o al vigilante.
 * **Gestión de Usuarios:** Creación, edición y eliminación de cuentas para vigilantes y otros administradores. **Nota:** Por seguridad, el auto-registro está deshabilitado; solo los administradores pueden crear cuentas.
+* **Personalización del Parqueadero:** Configuración del nombre, NIT y logo del parqueadero, los cuales se reflejan en la interfaz y en los recibos impresos.
 * **Historial Completo:** Registro detallado de todas las entradas y salidas con cálculo de tiempos y valores pagados, incluyendo búsqueda por placa o recibo.
 
 ### Panel de Vigilante (Guarda)
@@ -25,8 +26,9 @@ Un sistema web moderno y completo para la administración y control de estaciona
 * **Control de Capacidad:** Visualización de la disponibilidad actual de parqueaderos por tipo de vehículo. Los tipos de vehículos deshabilitados por administración se ocultan automáticamente.
 * **Salida Automatizada:** Cálculo automático del valor a cobrar basado en las tarifas configuradas por el administrador, aplicando automáticamente tarifas especiales o mensualidades si corresponden.
 * **Visibilidad de Recaudo:** (Opcional) Visualización del dinero recaudado en el turno actual, según la configuración del administrador.
-* **Gestión de Turnos:** Registro del nombre del guarda en turno para trazabilidad de operaciones.
+* **Gestión de Turnos y Bloqueo de Pantalla:** Registro del nombre del guarda en turno para trazabilidad de operaciones. Opción de "Entregar Turno" que bloquea la pantalla hasta que el nuevo guarda ingrese su nombre.
 * **Registro de Novedades:** Sistema para reportar novedades (rayones, golpes, etc.) con evidencia fotográfica tanto al ingreso como durante las revistas, aplicable a visitantes y vehículos privados.
+* **Recibos Personalizados:** Generación de recibos de pago que incluyen el logo, nombre y NIT del parqueadero, listos para imprimir o compartir por WhatsApp.
 
 ## 🛠️ Tecnologías Utilizadas
 
