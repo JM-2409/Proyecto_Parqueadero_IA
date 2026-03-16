@@ -49,6 +49,8 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
   const [parkingLotAddress, setParkingLotAddress] = useState('Calle Principal 123');
   const [parkingLotNit, setParkingLotNit] = useState('900.123.456-7');
   const [parkingLotLogo, setParkingLotLogo] = useState<string | null>(null);
+  const [parkingLotSubscriptionPlan, setParkingLotSubscriptionPlan] = useState('trial');
+  const [parkingLotSubscriptionEndDate, setParkingLotSubscriptionEndDate] = useState('');
   const [newLogoFile, setNewLogoFile] = useState<File | null>(null);
   const [loadingSuperSettings, setLoadingSuperSettings] = useState(false);
   const [savingSuperSettings, setSavingSuperSettings] = useState(false);
@@ -131,7 +133,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
     // Fetch global settings (parking lot details)
     const { data: lotData } = await supabase
       .from('parking_lots')
-      .select('name, nit, address, phone, email, logo_url')
+      .select('name, nit, address, phone, email, logo_url, subscription_plan, subscription_end_date')
       .eq('id', parkingLotId)
       .single();
       
@@ -140,6 +142,8 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
       setParkingLotNit(lotData.nit || '900.123.456-7');
       setParkingLotAddress(lotData.address || '');
       setParkingLotLogo(lotData.logo_url || null);
+      setParkingLotSubscriptionPlan(lotData.subscription_plan || 'trial');
+      setParkingLotSubscriptionEndDate(lotData.subscription_end_date || '');
     }
     
     setLoadingSettings(false);
@@ -1363,6 +1367,25 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
                       className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
                       placeholder="Ej. Calle Principal 123"
                     />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 mt-6 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                    <div>
+                      <label className="block text-sm font-medium text-indigo-900 mb-1">Plan de Suscripción</label>
+                      <div className="font-semibold text-indigo-700 capitalize">
+                        {parkingLotSubscriptionPlan === 'trial' ? 'Prueba (Trial)' : 
+                         parkingLotSubscriptionPlan === 'monthly' ? 'Mensual' : 
+                         parkingLotSubscriptionPlan === 'semi-annual' ? 'Semestral' : 
+                         parkingLotSubscriptionPlan === 'annual' ? 'Anual' : 
+                         parkingLotSubscriptionPlan === 'expired' ? 'Expirado' : parkingLotSubscriptionPlan}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-indigo-900 mb-1">Fecha de Vencimiento</label>
+                      <div className="font-semibold text-indigo-700">
+                        {parkingLotSubscriptionEndDate ? new Date(parkingLotSubscriptionEndDate).toLocaleDateString() : 'N/A'}
+                      </div>
+                    </div>
                   </div>
                 </div>
               )}

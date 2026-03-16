@@ -19,6 +19,12 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
   const [lotAddress, setLotAddress] = useState('');
   const [lotPhone, setLotPhone] = useState('');
   const [lotEmail, setLotEmail] = useState('');
+  const [lotSubscriptionPlan, setLotSubscriptionPlan] = useState('trial');
+  const [lotSubscriptionEndDate, setLotSubscriptionEndDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 14);
+    return d.toISOString().split('T')[0];
+  });
   const [formLoading, setFormLoading] = useState(false);
 
   // User Form
@@ -85,7 +91,9 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
       nit: lotNit,
       address: lotAddress,
       phone: lotPhone,
-      email: lotEmail
+      email: lotEmail,
+      subscription_plan: lotSubscriptionPlan,
+      subscription_end_date: lotSubscriptionEndDate ? new Date(lotSubscriptionEndDate).toISOString() : null
     };
 
     try {
@@ -276,6 +284,13 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
                     setLotAddress('');
                     setLotPhone('');
                     setLotEmail('');
+                    setLotSubscriptionPlan('trial');
+                    
+                    // Default to 14 days from now
+                    const defaultEndDate = new Date();
+                    defaultEndDate.setDate(defaultEndDate.getDate() + 14);
+                    setLotSubscriptionEndDate(defaultEndDate.toISOString().split('T')[0]);
+                    
                     setShowLotForm(true);
                   }}
                   className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-2"
@@ -295,6 +310,8 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
                       <div className="text-sm text-slate-500 mt-1 flex gap-4">
                         <span>NIT: {lot.nit || 'N/A'}</span>
                         <span>Dir: {lot.address || 'N/A'}</span>
+                        <span className="capitalize">Plan: {lot.subscription_plan || 'trial'}</span>
+                        <span>Vence: {lot.subscription_end_date ? new Date(lot.subscription_end_date).toLocaleDateString() : 'N/A'}</span>
                       </div>
                       {lot.status === 'suspended' && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 mt-2">
@@ -318,6 +335,8 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
                           setLotAddress(lot.address || '');
                           setLotPhone(lot.phone || '');
                           setLotEmail(lot.email || '');
+                          setLotSubscriptionPlan(lot.subscription_plan || 'trial');
+                          setLotSubscriptionEndDate(lot.subscription_end_date ? new Date(lot.subscription_end_date).toISOString().split('T')[0] : '');
                           setShowLotForm(true);
                         }}
                         className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
@@ -452,6 +471,22 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Email</label>
                   <input type="email" value={lotEmail} onChange={e => setLotEmail(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Plan de Suscripción</label>
+                  <select value={lotSubscriptionPlan} onChange={e => setLotSubscriptionPlan(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
+                    <option value="trial">Prueba (Trial)</option>
+                    <option value="monthly">Mensual</option>
+                    <option value="semi-annual">Semestral</option>
+                    <option value="annual">Anual</option>
+                    <option value="expired">Expirado</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Fecha de Fin</label>
+                  <input type="date" value={lotSubscriptionEndDate} onChange={e => setLotSubscriptionEndDate(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" />
                 </div>
               </div>
               <div className="flex gap-3 pt-4">
