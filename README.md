@@ -25,6 +25,8 @@ Un sistema web moderno y completo para la administración y control de estaciona
 * **Control de Capacidad:** Visualización de la disponibilidad actual de parqueaderos por tipo de vehículo. Los tipos de vehículos deshabilitados por administración se ocultan automáticamente.
 * **Salida Automatizada:** Cálculo automático del valor a cobrar basado en las tarifas configuradas por el administrador, aplicando automáticamente tarifas especiales o mensualidades si corresponden.
 * **Visibilidad de Recaudo:** (Opcional) Visualización del dinero recaudado en el turno actual, según la configuración del administrador.
+* **Gestión de Turnos:** Registro del nombre del guarda en turno para trazabilidad de operaciones.
+* **Registro de Novedades:** Sistema para reportar novedades (rayones, golpes, etc.) con evidencia fotográfica tanto al ingreso como durante las revistas, aplicable a visitantes y vehículos privados.
 
 ## 🛠️ Tecnologías Utilizadas
 

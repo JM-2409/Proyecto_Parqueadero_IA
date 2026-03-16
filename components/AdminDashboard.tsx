@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/lib/supabase';
-import { BarChart3, Users, History, DollarSign, LogOut, Car, Bike, Clock, ChevronLeft, ChevronRight, UserPlus, Shield, Trash2, Edit2, Key, Settings, Plus, Building2, X, Search } from 'lucide-react';
+import { BarChart3, Users, History, DollarSign, LogOut, Car, Bike, Motorbike, Clock, ChevronLeft, ChevronRight, UserPlus, Shield, Trash2, Edit2, Key, Settings, Plus, Building2, X, Search } from 'lucide-react';
 import { format, differenceInMinutes, subDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-export default function AdminDashboard({ user, onLogout, userRole, parkingLotId }: { user: any, onLogout: () => void, userRole: 'admin', parkingLotId: string | null }) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'rates' | 'settings'>('dashboard');
+export default function AdminDashboard({ user, onLogout, userRole, parkingLotId, onSwitchView, currentView }: { user: any, onLogout: () => void, userRole: 'admin', parkingLotId: string | null, onSwitchView?: (view: 'admin' | 'guard') => void, currentView?: 'admin' | 'guard' }) {
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'users' | 'rates' | 'settings' | 'private_spots'>('dashboard');
   
   // Dashboard state
   const [history, setHistory] = useState<any[]>([]);
@@ -35,7 +35,12 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
     show_to_guards: false,
     last_closing: new Date().toISOString()
   });
+  const [guardPermissions, setGuardPermissions] = useState({
+    show_history: false,
+    history_days: 1
+  });
   const [specialVehicles, setSpecialVehicles] = useState<any[]>([]);
+  const [privateSpots, setPrivateSpots] = useState<any[]>([]);
   const [loadingSettings, setLoadingSettings] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
 
@@ -67,7 +72,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
 
   // Rate form state
   const [rateName, setRateName] = useState('');
-  const [rateVehicleType, setRateVehicleType] = useState<'car' | 'motorcycle' | 'all'>('all');
+  const [rateVehicleType, setRateVehicleType] = useState<'car' | 'motorcycle' | 'bicycle' | 'all'>('all');
   const [rateType, setRateType] = useState<'minute' | 'hour_fraction' | 'day' | 'night' | 'day_night' | 'hour' | 'hour_minute' | 'flat' | 'daily'>('minute');
   const [rateValue, setRateValue] = useState<number>(0);
   const [rateBaseValue, setRateBaseValue] = useState<number>(0);
@@ -94,7 +99,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
       fetchUsers();
     } else if (activeTab === 'rates') {
       fetchRates();
-    } else if (activeTab === 'settings') {
+    } else if (activeTab === 'settings' || activeTab === 'private_spots') {
       fetchSettings();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -115,7 +120,9 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
         if (setting.key === 'entry_fields') setEntryFields(setting.value);
         if (setting.key === 'capacity_settings') setCapacitySettings(setting.value);
         if (setting.key === 'revenue_settings') setRevenueSettings(setting.value);
+        if (setting.key === 'guard_permissions') setGuardPermissions(setting.value);
         if (setting.key === 'special_vehicles') setSpecialVehicles(setting.value);
+        if (setting.key === 'private_spots') setPrivateSpots(setting.value);
       });
     }
     
@@ -162,6 +169,19 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
     setSavingSettings(false);
   };
 
+  const saveGuardPermissions = async () => {
+    setSavingSettings(true);
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ key: 'guard_permissions', value: guardPermissions, parking_lot_id: parkingLotId }, { onConflict: 'key,parking_lot_id' });
+    if (error) {
+      alert('Error al guardar permisos de guardas: ' + error.message);
+    } else {
+      alert('Permisos de guardas guardados exitosamente.');
+    }
+    setSavingSettings(false);
+  };
+
   const handleCashClosing = async () => {
     if (!window.confirm('¿Estás seguro de que deseas realizar el cierre de caja? Esto reiniciará el contador de ingresos acumulados a cero.')) return;
     
@@ -190,6 +210,19 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
       alert('Error al guardar vehículos especiales: ' + error.message);
     } else {
       setSpecialVehicles(updatedVehicles);
+    }
+    setSavingSettings(false);
+  };
+
+  const savePrivateSpots = async (updatedSpots: any[]) => {
+    setSavingSettings(true);
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ key: 'private_spots', value: updatedSpots, parking_lot_id: parkingLotId }, { onConflict: 'key,parking_lot_id' });
+    if (error) {
+      alert('Error al guardar parqueaderos privados: ' + error.message);
+    } else {
+      setPrivateSpots(updatedSpots);
     }
     setSavingSettings(false);
   };
@@ -357,6 +390,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
         status: 'completed',
         exit_time: new Date().toISOString(),
         amount_paid: 0,
+        rate_name: 'Salida Forzada',
         metadata: updatedMetadata
       })
       .eq('id', adminCheckoutSession.id);
@@ -375,7 +409,11 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
   const fetchUsers = async () => {
     setLoadingUsers(true);
     try {
-      const res = await fetch(`/api/users?parking_lot_id=${parkingLotId}`);
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch(`/api/users?parking_lot_id=${parkingLotId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setUsersList(data);
@@ -404,11 +442,16 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
     setFormError('');
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
       if (editingUser) {
         // Update user
         const res = await fetch(`/api/users/${editingUser.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify({ password: password || undefined, role })
         });
         const data = await res.json();
@@ -417,7 +460,10 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
         // Create user
         const res = await fetch('/api/users', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify({ username, password, role, parking_lot_id: parkingLotId })
         });
         const data = await res.json();
@@ -440,7 +486,12 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
   const executeDeleteUser = async () => {
     if (!deletingUserId) return;
     try {
-      const res = await fetch(`/api/users/${deletingUserId}`, { method: 'DELETE' });
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch(`/api/users/${deletingUserId}`, { 
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       fetchUsers();
@@ -455,7 +506,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
     e.preventDefault();
     setRateFormLoading(true);
     
-    const generatedName = `${getRateTypeName(rateType)} - ${rateVehicleType === 'car' ? 'Carro' : rateVehicleType === 'motorcycle' ? 'Moto' : 'Todos'}`;
+    const generatedName = `${getRateTypeName(rateType)} - ${rateVehicleType === 'car' ? 'Carro' : rateVehicleType === 'motorcycle' ? 'Moto' : rateVehicleType === 'bicycle' ? 'Bicicleta' : 'Todos'}`;
     
     const rateData = {
       name: generatedName,
@@ -582,13 +633,31 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
           </h1>
         </div>
         
-        <button
-          onClick={onLogout}
-          className="px-5 py-2.5 rounded-xl flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors font-medium"
-        >
-          <LogOut className="w-4 h-4" />
-          <span>Cerrar Sesión</span>
-        </button>
+        <div className="flex items-center gap-4">
+          {onSwitchView && (
+            <div className="bg-slate-800 rounded-xl p-1 flex border border-slate-700">
+              <button
+                onClick={() => onSwitchView('admin')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${currentView === 'admin' ? 'bg-indigo-500 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+              >
+                Admin
+              </button>
+              <button
+                onClick={() => onSwitchView('guard')}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${currentView === 'guard' ? 'bg-emerald-500 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+              >
+                Vigilancia
+              </button>
+            </div>
+          )}
+          <button
+            onClick={onLogout}
+            className="px-5 py-2.5 rounded-xl flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors font-medium"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Cerrar Sesión</span>
+          </button>
+        </div>
       </div>
 
       {/* Navigation Tabs */}
@@ -613,6 +682,13 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
         >
           <Settings className="w-4 h-4" />
           Tarifas
+        </button>
+        <button
+          onClick={() => setActiveTab('private_spots')}
+          className={`px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all ${activeTab === 'private_spots' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}
+        >
+          <Car className="w-4 h-4" />
+          Privados
         </button>
         <button
           onClick={() => setActiveTab('settings')}
@@ -645,10 +721,10 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
                 <p className="text-sm font-medium text-slate-500 mb-1">Vehículos Activos</p>
                 <div className="flex items-end gap-3">
                   <h3 className="text-2xl font-bold text-slate-800">{stats.activeVehicles}</h3>
-                  <div className="flex gap-2 text-xs text-slate-500 mb-1">
-                    <span title="Carros">🚗 {stats.activeCars}</span>
-                    <span title="Motos">🏍️ {stats.activeMotorcycles}</span>
-                    {stats.activeBicycles > 0 && <span title="Bicicletas">🚲 {stats.activeBicycles}</span>}
+                  <div className="flex gap-3 text-xs text-slate-500 mb-1">
+                    <span title="Carros" className="flex items-center gap-1"><Car className="w-3 h-3" /> {stats.activeCars}</span>
+                    <span title="Motos" className="flex items-center gap-1"><Motorbike className="w-3 h-3" /> {stats.activeMotorcycles}</span>
+                    {stats.activeBicycles > 0 && <span title="Bicicletas" className="flex items-center gap-1"><Bike className="w-3 h-3" /> {stats.activeBicycles}</span>}
                   </div>
                 </div>
               </div>
@@ -736,6 +812,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
                     <th className="px-6 py-4 font-medium">Ingreso</th>
                     <th className="px-6 py-4 font-medium">Salida</th>
                     <th className="px-6 py-4 font-medium">Tiempo</th>
+                    <th className="px-6 py-4 font-medium">Tarifa</th>
                     <th className="px-6 py-4 font-medium text-right">Valor Pagado</th>
                     <th className="px-6 py-4 font-medium text-center">Estado</th>
                     <th className="px-6 py-4 font-medium text-center">Acciones</th>
@@ -766,8 +843,8 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
                           <td className="px-6 py-4 font-mono font-bold text-slate-800">{session.license_plate}</td>
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2 text-slate-600">
-                              {session.vehicle_type === 'car' ? <Car className="w-4 h-4 text-blue-500" /> : <Bike className="w-4 h-4 text-orange-500" />}
-                              <span className="capitalize text-sm">{session.vehicle_type === 'car' ? 'Carro' : 'Moto'}</span>
+                              {session.vehicle_type === 'car' ? <Car className="w-4 h-4 text-blue-500" /> : session.vehicle_type === 'motorcycle' ? <Motorbike className="w-4 h-4 text-orange-500" /> : <Bike className="w-4 h-4 text-green-500" />}
+                              <span className="capitalize text-sm">{session.vehicle_type === 'car' ? 'Carro' : session.vehicle_type === 'motorcycle' ? 'Moto' : 'Bicicleta'}</span>
                             </div>
                           </td>
                           <td className="px-6 py-4 text-xs text-slate-500 max-w-[200px] truncate">
@@ -789,6 +866,9 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
                           </td>
                           <td className="px-6 py-4 text-sm text-slate-600">
                             {mins} min
+                          </td>
+                          <td className="px-6 py-4 text-sm text-slate-600">
+                            {session.rate_name || '-'}
                           </td>
                           <td className="px-6 py-4 text-right font-medium text-slate-800">
                             {isCompleted ? formatCurrency(session.amount_paid) : '-'}
@@ -1001,8 +1081,8 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
                       <td className="px-6 py-4 font-medium text-slate-800">{r.name}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2 text-slate-600">
-                          {r.vehicle_type === 'car' ? <Car className="w-4 h-4 text-blue-500" /> : r.vehicle_type === 'motorcycle' ? <Bike className="w-4 h-4 text-orange-500" /> : <div className="flex"><Car className="w-4 h-4 text-blue-500" /><Bike className="w-4 h-4 text-orange-500" /></div>}
-                          <span className="capitalize text-sm">{r.vehicle_type === 'car' ? 'Carro' : r.vehicle_type === 'motorcycle' ? 'Moto' : 'Todos'}</span>
+                          {r.vehicle_type === 'car' ? <Car className="w-4 h-4 text-blue-500" /> : r.vehicle_type === 'motorcycle' ? <Motorbike className="w-4 h-4 text-orange-500" /> : r.vehicle_type === 'bicycle' ? <Bike className="w-4 h-4 text-green-500" /> : <div className="flex"><Car className="w-4 h-4 text-blue-500" /><Motorbike className="w-4 h-4 text-orange-500" /><Bike className="w-4 h-4 text-green-500" /></div>}
+                          <span className="capitalize text-sm">{r.vehicle_type === 'car' ? 'Carro' : r.vehicle_type === 'motorcycle' ? 'Moto' : r.vehicle_type === 'bicycle' ? 'Bicicleta' : 'Todos'}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-600">
@@ -1049,6 +1129,114 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'private_spots' && (
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+            <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+              <Car className="w-5 h-5 text-indigo-600" />
+              Gestión de Parqueaderos Privados
+            </h2>
+          </div>
+          <div className="p-6">
+            <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+              <h3 className="font-medium text-slate-800 mb-4">Asignar Nuevo Parqueadero</h3>
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  const newSpot = {
+                    id: Math.random().toString(36).substr(2, 9),
+                    spotNumber: formData.get('spotNumber'),
+                    ownerName: formData.get('ownerName'),
+                    licensePlate: formData.get('licensePlate')?.toString().toUpperCase(),
+                    vehicleType: formData.get('vehicleType'),
+                    notes: formData.get('notes')
+                  };
+                  savePrivateSpots([...privateSpots, newSpot]);
+                  e.currentTarget.reset();
+                }}
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+              >
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Número/ID del Espacio</label>
+                  <input type="text" name="spotNumber" required className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ej. A-12" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Nombre del Propietario</label>
+                  <input type="text" name="ownerName" required className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Nombre completo" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Placa del Vehículo</label>
+                  <input type="text" name="licensePlate" required className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none uppercase" placeholder="ABC-123" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Vehículo</label>
+                  <select name="vehicleType" required className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
+                    <option value="car">Carro</option>
+                    <option value="motorcycle">Moto</option>
+                    <option value="bicycle">Bicicleta</option>
+                  </select>
+                </div>
+                <div className="md:col-span-2 lg:col-span-2">
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Notas (Opcional)</label>
+                  <input type="text" name="notes" className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Información adicional" />
+                </div>
+                <div className="md:col-span-2 lg:col-span-3 flex justify-end mt-2">
+                  <button type="submit" className="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium transition-colors">
+                    Asignar Espacio
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
+                    <th className="px-4 py-3 font-medium">Espacio</th>
+                    <th className="px-4 py-3 font-medium">Propietario</th>
+                    <th className="px-4 py-3 font-medium">Placa</th>
+                    <th className="px-4 py-3 font-medium">Tipo</th>
+                    <th className="px-4 py-3 font-medium">Notas</th>
+                    <th className="px-4 py-3 font-medium text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {privateSpots.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                        No hay parqueaderos privados asignados
+                      </td>
+                    </tr>
+                  ) : (
+                    privateSpots.map((spot) => (
+                      <tr key={spot.id} className="border-b border-slate-100 hover:bg-slate-50">
+                        <td className="px-4 py-3 font-medium text-slate-800">{spot.spotNumber}</td>
+                        <td className="px-4 py-3 text-slate-600">{spot.ownerName}</td>
+                        <td className="px-4 py-3 font-mono text-slate-600">{spot.licensePlate}</td>
+                        <td className="px-4 py-3 text-slate-600">
+                          {spot.vehicleType === 'car' ? 'Carro' : spot.vehicleType === 'motorcycle' ? 'Moto' : 'Bicicleta'}
+                        </td>
+                        <td className="px-4 py-3 text-slate-500 text-sm">{spot.notes}</td>
+                        <td className="px-4 py-3 text-right">
+                          <button 
+                            onClick={() => savePrivateSpots(privateSpots.filter(s => s.id !== spot.id))}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Eliminar asignación"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
@@ -1181,7 +1369,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
                         className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
                       />
                       <label htmlFor="allow_motorcycles" className="font-medium text-slate-700 flex items-center gap-2">
-                        <Bike className="w-4 h-4" /> Permitir Motos
+                        <Motorbike className="w-4 h-4" /> Permitir Motos
                       </label>
                     </div>
                     {capacitySettings.allow_motorcycles && (
@@ -1225,6 +1413,60 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
                       </div>
                     )}
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Guard Permissions Settings */}
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <Users className="w-5 h-5 text-indigo-600" />
+                Permisos de Guardas
+              </h2>
+              <button
+                onClick={saveGuardPermissions}
+                disabled={savingSettings}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+              >
+                {savingSettings ? 'Guardando...' : 'Guardar Permisos'}
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="space-y-6 max-w-2xl">
+                <div className="p-6 border border-slate-200 rounded-xl bg-slate-50">
+                  <label className="flex items-center gap-3 mb-4 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={guardPermissions.show_history}
+                      onChange={(e) => setGuardPermissions({ ...guardPermissions, show_history: e.target.checked })}
+                      className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                    />
+                    <span className="font-medium text-slate-800">Permitir a los guardas ver el historial de vehículos (Minuta)</span>
+                  </label>
+                  
+                  {guardPermissions.show_history && (
+                    <div className="ml-8 mt-4 pt-4 border-t border-slate-200">
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Días de historial visibles
+                      </label>
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="number"
+                          min="1"
+                          max="365"
+                          value={guardPermissions.history_days}
+                          onChange={(e) => setGuardPermissions({ ...guardPermissions, history_days: parseInt(e.target.value) || 1 })}
+                          className="w-32 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                        />
+                        <span className="text-slate-500 text-sm">días hacia atrás</span>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-2">
+                        Define cuántos días de historial pueden consultar los guardas en su panel.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1589,6 +1831,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId 
                       <option value="all">Todos</option>
                       <option value="car">Carro</option>
                       <option value="motorcycle">Moto</option>
+                      <option value="bicycle">Bicicleta</option>
                     </select>
                   </div>
                   <div>

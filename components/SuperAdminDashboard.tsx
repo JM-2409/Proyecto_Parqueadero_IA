@@ -49,8 +49,12 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
     
     if (rolesData) {
       // We need to fetch the actual emails for these users via our API
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
       try {
-        const res = await fetch('/api/users');
+        const res = await fetch('/api/users', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
         if (res.ok) {
           const authUsers = await res.json();
           
@@ -117,17 +121,25 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
       const cleanUsername = username.trim().toLowerCase();
       const email = cleanUsername.includes('@') ? cleanUsername : `${cleanUsername}@parqueadero.local`;
 
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
       let res;
       if (editingUser) {
         res = await fetch(`/api/users/${editingUser.user_id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify({ password: password || undefined, role: userRole, parking_lot_id: userLotId })
         });
       } else {
         res = await fetch('/api/users', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
           body: JSON.stringify({ username: email, password, role: userRole, parking_lot_id: userLotId })
         });
       }
@@ -151,8 +163,13 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
     try {
       // First, we need to delete all users associated with this lot via API
       const usersInLot = users.filter(u => u.parking_lot_id === deletingLot.id);
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
       for (const u of usersInLot) {
-        await fetch(`/api/users/${u.user_id}`, { method: 'DELETE' });
+        await fetch(`/api/users/${u.user_id}`, { 
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
       }
       
       // Then delete the lot (cascade will handle rates, sessions, settings, user_roles)
@@ -172,7 +189,12 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
     if (!deletingUser) return;
     setFormLoading(true);
     try {
-      const res = await fetch(`/api/users/${deletingUser.user_id}`, { method: 'DELETE' });
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const res = await fetch(`/api/users/${deletingUser.user_id}`, { 
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       

@@ -10,6 +10,7 @@ import { Car, User, Lock, Loader2 } from 'lucide-react';
 export default function Home() {
   const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState<'superadmin' | 'admin' | 'guard' | null>(null);
+  const [viewMode, setViewMode] = useState<'superadmin' | 'admin' | 'guard' | null>(null);
   const [parkingLotId, setParkingLotId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   
@@ -43,6 +44,7 @@ export default function Home() {
         // First user becomes superadmin
         await supabase.from('user_roles').insert({ user_id: currentUser.id, role: 'superadmin' });
         setRole('superadmin');
+        setViewMode('superadmin');
         setParkingLotId(null);
       } else {
         const { data: myRole } = await supabase.from('user_roles').select('role, parking_lot_id').eq('user_id', currentUser.id).single();
@@ -52,14 +54,17 @@ export default function Home() {
           const lotId = firstLot?.id || null;
           await supabase.from('user_roles').insert({ user_id: currentUser.id, role: 'guard', parking_lot_id: lotId });
           setRole('guard');
+          setViewMode('guard');
           setParkingLotId(lotId);
         } else {
           setRole(myRole.role as 'superadmin' | 'admin' | 'guard');
+          setViewMode(myRole.role as 'superadmin' | 'admin' | 'guard');
           setParkingLotId(myRole.parking_lot_id);
         }
       }
     } else {
       setRole(null);
+      setViewMode(null);
       setParkingLotId(null);
     }
     setLoading(false);
@@ -198,12 +203,25 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-slate-50 pb-12 pt-6">
-      {role === 'superadmin' ? (
+      {viewMode === 'superadmin' ? (
         <SuperAdminDashboard user={user} onLogout={handleLogout} />
-      ) : role === 'admin' ? (
-        <AdminDashboard user={user} onLogout={handleLogout} userRole={role} parkingLotId={parkingLotId} />
+      ) : viewMode === 'admin' ? (
+        <AdminDashboard 
+          user={user} 
+          onLogout={handleLogout} 
+          userRole={role as 'admin'} 
+          parkingLotId={parkingLotId} 
+          onSwitchView={role === 'admin' ? setViewMode : undefined}
+          currentView={viewMode}
+        />
       ) : (
-        <GuardDashboard user={user} onLogout={handleLogout} parkingLotId={parkingLotId} />
+        <GuardDashboard 
+          user={user} 
+          onLogout={handleLogout} 
+          parkingLotId={parkingLotId} 
+          onSwitchView={role === 'admin' ? setViewMode : undefined}
+          currentView={viewMode as 'admin' | 'guard'}
+        />
       )}
     </main>
   );
