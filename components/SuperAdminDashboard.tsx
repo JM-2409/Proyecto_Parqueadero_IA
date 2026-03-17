@@ -218,9 +218,15 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">Panel Super Administrador</h1>
-          <p className="text-slate-500">Gestión global de parqueaderos y administradores</p>
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center overflow-hidden shadow-sm">
+            <img src="/logo.png" alt="ParqueoPro" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
+            <Shield className="w-6 h-6 text-indigo-600 hidden" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-800">Panel Super Administrador</h1>
+            <p className="text-slate-500">Gestión global de parqueaderos y administradores</p>
+          </div>
         </div>
         <button
           onClick={onLogout}

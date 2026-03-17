@@ -161,7 +161,8 @@ export default function Home() {
           <header className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-slate-100 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
+                <img src="/logo.png" alt="ParqueoPro" className="w-8 h-8 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
+                <div className="w-8 h-8 bg-indigo-600 rounded-lg hidden items-center justify-center">
                   <Car className="w-5 h-5 text-white" />
                 </div>
                 <span className="font-bold text-xl tracking-tight text-slate-800">ParqueoPro</span>
@@ -333,8 +334,9 @@ export default function Home() {
           <button onClick={() => setShowLogin(false)} className="absolute top-6 left-6 text-slate-400 hover:text-slate-600">
             <ArrowRight className="w-6 h-6 rotate-180" />
           </button>
-          <div className="w-20 h-20 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner mt-4">
-            <Car className="w-10 h-10 text-indigo-600" />
+          <div className="w-20 h-20 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner mt-4 overflow-hidden">
+            <img src="/logo.png" alt="ParqueoPro" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
+            <Car className="w-10 h-10 text-indigo-600 hidden" />
           </div>
           <h1 className="text-3xl font-bold text-slate-800 mb-2 text-center">ParqueoPro</h1>
           <p className="text-slate-500 mb-8 text-center leading-relaxed">
