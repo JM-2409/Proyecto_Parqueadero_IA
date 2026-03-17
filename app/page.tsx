@@ -267,7 +267,7 @@ export default function Home() {
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-400" /> <span>Soporte básico</span></li>
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-400" /> <span>Actualizaciones</span></li>
                   </ul>
-                  <a href="https://checkout.bold.co/payment/LNK_K28068U1KC" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors">
+                  <a href="https://checkout.bold.co/payment/LNK_IL54FGTSDC" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors">
                     Suscribirse
                   </a>
                 </div>
@@ -288,7 +288,7 @@ export default function Home() {
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-white" /> <span>Soporte prioritario</span></li>
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-white" /> <span>Actualizaciones</span></li>
                   </ul>
-                  <a href="https://checkout.bold.co/payment/LNK_K28068U1KC" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-white text-indigo-600 font-bold hover:bg-slate-50 transition-colors">
+                  <a href="https://checkout.bold.co/payment/LNK_8O3EX4CD1E" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-white text-indigo-600 font-bold hover:bg-slate-50 transition-colors">
                     Suscribirse
                   </a>
                 </div>
@@ -306,7 +306,7 @@ export default function Home() {
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-400" /> <span>Soporte 24/7</span></li>
                     <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-400" /> <span>Actualizaciones</span></li>
                   </ul>
-                  <a href="https://checkout.bold.co/payment/LNK_K28068U1KC" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors">
+                  <a href="https://checkout.bold.co/payment/LNK_HEOP6AYS3L" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors">
                     Suscribirse
                   </a>
                 </div>
@@ -314,7 +314,7 @@ export default function Home() {
               
               <div className="mt-12 bg-slate-800/50 rounded-2xl p-6 max-w-3xl mx-auto border border-slate-700 text-sm text-slate-300">
                 <h4 className="font-semibold text-white mb-3 flex items-center gap-2"><AlertCircle className="w-5 h-5 text-amber-400"/> Información de Pago Importante</h4>
-                <p className="mb-3">Vas a pagar a <strong className="text-white">Juan munar</strong>. Confirma que el método de pago que elijas:</p>
+                <p className="mb-3">Vas a pagar a <strong className="text-white">Park app</strong>. Confirma que el método de pago que elijas:</p>
                 <ul className="space-y-2 ml-2">
                   <li className="flex items-start gap-2"><span className="text-lg">💸</span> <span>Tenga dinero disponible.</span></li>
                   <li className="flex items-start gap-2"><span className="text-lg">✅</span> <span>No esté bloqueado ni restringido.</span></li>
@@ -413,7 +413,7 @@ export default function Home() {
             El tiempo de uso de la plataforma ha culminado. Para continuar utilizando ParqueoPro, por favor renueva tu suscripción.
           </p>
           
-          <a href="https://checkout.bold.co/payment/LNK_K28068U1KC" target="_blank" rel="noopener noreferrer" className="w-full block py-4 px-4 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors shadow-sm mb-4">
+          <a href="https://checkout.bold.co/payment/LNK_IL54FGTSDC" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-4 px-4 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors shadow-sm mb-4">
             Renovar Suscripción
           </a>
           

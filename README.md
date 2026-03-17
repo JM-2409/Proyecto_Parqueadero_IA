@@ -27,10 +27,15 @@ Un sistema web moderno y completo para la administración y control de estaciona
 * **Gestión de Turnos:** Registro del nombre del guarda en turno y entrega de turno.
 * **Recibos Personalizados:** Generación de recibos de pago con logo y datos del parqueadero, listos para imprimir o compartir.
 
+### Seguridad y Base de Datos (Supabase)
+* **Row Level Security (RLS):** Políticas de seguridad a nivel de fila estrictas para garantizar que los datos de cada parqueadero estén aislados y seguros.
+* **Secuencias Seguras:** Generación de números de ticket consecutivos por parqueadero utilizando funciones `SECURITY DEFINER` para evitar saltos y colisiones.
+* **Integridad Referencial:** Borrado en cascada (CASCADE) configurado para eliminar automáticamente tarifas, sesiones y configuraciones al eliminar un parqueadero.
+
 ### Landing Page y Pagos
 * **Presentación del Servicio:** Página de inicio moderna con información sobre características, visión y misión.
-* **Planes y Precios:** Integración con links de pago de Bold para suscripciones mensuales, semestrales y anuales.
-* **Portal de Renovación:** Pantalla dedicada para usuarios con suscripción vencida, facilitando la renovación directa.
+* **Planes y Precios:** Integración con links de pago de Bold para suscripciones (Mensual: $50.000, Semestral: $270.000, Anual: $480.000).
+* **Portal de Renovación:** Pantalla dedicada para usuarios con suscripción vencida, facilitando la renovación directa hacia la pasarela de pagos (Park app).
 
 ## 🛠️ Tecnologías Utilizadas
 
