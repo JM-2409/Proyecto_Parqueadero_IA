@@ -168,9 +168,10 @@ export default function Home() {
               </div>
               <button
                 onClick={() => setShowLogin(true)}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-full font-medium transition-colors shadow-sm"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 sm:px-5 py-2 rounded-full font-medium transition-colors shadow-sm text-sm sm:text-base"
               >
-                Ingresar a la Plataforma
+                <span className="sm:hidden">Login</span>
+                <span className="hidden sm:inline">Ingresar a la Plataforma</span>
               </button>
             </div>
           </header>

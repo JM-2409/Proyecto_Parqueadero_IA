@@ -93,6 +93,15 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
   const itemsPerPage = 10;
   const [searchHistory, setSearchHistory] = useState('');
 
+  // Chart state
+  const [chartStartDate, setChartStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 6);
+    return d.toISOString().split('T')[0];
+  });
+  const [chartEndDate, setChartEndDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [chartType, setChartType] = useState<'both' | 'revenue' | 'vehicles'>('both');
+
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -378,10 +387,23 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
   const chartData = useMemo(() => {
     if (!history.length) return [];
     
-    // Get last 7 days
-    const days = Array.from({ length: 7 }).map((_, i) => {
-      const d = subDays(new Date(), i);
-      return format(d, 'yyyy-MM-dd');
+    const start = new Date(chartStartDate);
+    const end = new Date(chartEndDate);
+    
+    // Ensure start is before or equal to end
+    if (start > end) return [];
+    
+    // Calculate difference in days
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    
+    // Limit to 31 days to prevent performance issues
+    const daysCount = Math.min(diffDays, 31);
+    
+    const days = Array.from({ length: daysCount }).map((_, i) => {
+      const d = new Date(end);
+      d.setDate(d.getDate() - i);
+      return d.toISOString().split('T')[0];
     }).reverse();
     
     return days.map(day => {
@@ -397,7 +419,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
         Vehículos: vehicles
       };
     });
-  }, [history]);
+  }, [history, chartStartDate, chartEndDate]);
 
   const handleAdminCheckout = async () => {
     if (!adminCheckoutSession || !adminCheckoutObservation.trim()) {
@@ -775,25 +797,66 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
 
           {/* Chart Section */}
           <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 mb-8">
-            <h2 className="text-lg font-semibold text-slate-800 mb-6 flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-slate-500" />
-              Comparativa Últimos 7 Días
-            </h2>
+            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-slate-500" />
+                Estadísticas
+              </h2>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <select 
+                  value={chartType} 
+                  onChange={(e) => setChartType(e.target.value as any)}
+                  className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                >
+                  <option value="both">Ingresos y Vehículos</option>
+                  <option value="revenue">Solo Ingresos</option>
+                  <option value="vehicles">Solo Vehículos</option>
+                </select>
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="date" 
+                    value={chartStartDate} 
+                    onChange={(e) => setChartStartDate(e.target.value)}
+                    className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                  <span className="text-slate-400">a</span>
+                  <input 
+                    type="date" 
+                    value={chartEndDate} 
+                    onChange={(e) => setChartEndDate(e.target.value)}
+                    className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+              </div>
+            </div>
             <div className="h-80 w-full">
               {chartData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                     <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dy={10} />
-                    <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dx={-10} tickFormatter={(value) => `$${value/1000}k`} />
-                    <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dx={10} />
+                    
+                    {(chartType === 'both' || chartType === 'revenue') && (
+                      <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dx={-10} tickFormatter={(value) => `$${value/1000}k`} />
+                    )}
+                    
+                    {(chartType === 'both' || chartType === 'vehicles') && (
+                      <YAxis yAxisId="right" orientation={chartType === 'both' ? 'right' : 'left'} axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 12 }} dx={chartType === 'both' ? 10 : -10} />
+                    )}
+                    
                     <Tooltip 
                       contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                       formatter={(value: any, name: any) => [name === 'Ingresos' ? formatCurrency(Number(value)) : value, name]}
                     />
                     <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                    <Bar yAxisId="left" dataKey="Ingresos" fill="#4f46e5" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                    <Line yAxisId="right" type="monotone" dataKey="Vehículos" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                    
+                    {(chartType === 'both' || chartType === 'revenue') && (
+                      <Bar yAxisId="left" dataKey="Ingresos" fill="#4f46e5" radius={[4, 4, 0, 0]} maxBarSize={40} />
+                    )}
+                    
+                    {(chartType === 'both' || chartType === 'vehicles') && (
+                      <Line yAxisId="right" type="monotone" dataKey="Vehículos" stroke="#10b981" strokeWidth={3} dot={{ r: 4, fill: '#10b981', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6 }} />
+                    )}
                   </ComposedChart>
                 </ResponsiveContainer>
               ) : (
@@ -1296,12 +1359,12 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
               ) : (
                 <div className="space-y-6 max-w-2xl">
                   <div className="flex items-center gap-6 mb-6">
-                    <div className="w-24 h-24 rounded-2xl bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden relative group">
+                    <div className="w-24 h-24 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden relative group shadow-sm">
                       {(newLogoFile || parkingLotLogo) ? (
                         <img 
                           src={newLogoFile ? URL.createObjectURL(newLogoFile) : parkingLotLogo!} 
                           alt="Logo" 
-                          className="w-full h-full object-contain"
+                          className="w-full h-full object-cover"
                         />
                       ) : (
                         <Building2 className="w-8 h-8 text-slate-400" />

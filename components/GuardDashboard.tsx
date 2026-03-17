@@ -1148,7 +1148,7 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
               <div id="receipt-content" className="bg-slate-50 rounded-2xl p-4 mb-6 text-left space-y-4">
                 <div className="text-center mb-4 border-b border-slate-200 pb-4">
                   {globalSettings.logo_url && (
-                    <img src={globalSettings.logo_url} alt="Logo" className="w-16 h-16 object-contain mx-auto mb-2" />
+                    <img src={globalSettings.logo_url} alt="Logo" className="w-16 h-16 object-cover rounded-full mx-auto mb-2 shadow-sm" />
                   )}
                   <h3 className="font-bold text-slate-800 text-lg">{globalSettings.name || 'Parqueadero'}</h3>
                   {globalSettings.nit && (
