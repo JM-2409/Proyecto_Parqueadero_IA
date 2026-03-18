@@ -17,14 +17,16 @@ Un sistema web moderno y completo para la administración y control de estaciona
 * **Límites de Capacidad:** Configuración de límites máximos de vehículos por tipo con opción de bloqueo automático.
 * **Control de Recaudo y Cierres de Caja:** Seguimiento del dinero recaudado y cierres de caja.
 * **Gestión de Usuarios:** Creación de cuentas para vigilantes del parqueadero.
+* **Gestión de Parqueaderos Privados:** Asignación de espacios, búsqueda, filtros, ordenamiento y limpieza masiva de columnas (ej. para sorteos de parqueaderos).
 * **Personalización:** Configuración de dirección, teléfono, email y logo del parqueadero (Nombre y NIT gestionados por Super Admin).
 * **Historial Completo:** Registro detallado de todas las entradas y salidas.
 
 ### Panel de Vigilante (Guarda)
-* **Ingreso Rápido:** Registro de entrada de vehículos con un solo clic y autocompletado inteligente.
+* **Ingreso Rápido:** Registro de entrada de vehículos con un solo clic y autocompletado inteligente (ocultando nombre del vigilante).
 * **Control en Tiempo Real:** Visualización de vehículos activos y disponibilidad de espacios.
 * **Salida Automatizada:** Cálculo automático del valor a cobrar basado en las tarifas configuradas.
 * **Gestión de Turnos:** Registro del nombre del guarda en turno y entrega de turno.
+* **Parqueaderos Privados:** Visualización, búsqueda, ordenamiento y edición de datos de parqueaderos privados.
 * **Recibos Personalizados:** Generación de recibos de pago con logo y datos del parqueadero, listos para imprimir o compartir.
 
 ### Seguridad y Base de Datos (Supabase)

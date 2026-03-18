@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Car, Bike, Motorbike, Clock, LogOut, CheckCircle, Search, DollarSign, Zap, History, Share2, Image as ImageIcon, UserCircle, Shield } from 'lucide-react';
+import { Car, Bike, Motorbike, Clock, LogOut, CheckCircle, Search, DollarSign, Zap, History, Share2, Image as ImageIcon, UserCircle, Shield, Edit2 } from 'lucide-react';
 import { format, differenceInMinutes, subDays } from 'date-fns';
 import html2canvas from 'html2canvas';
 
@@ -19,6 +19,9 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
   const [specialVehicles, setSpecialVehicles] = useState<any[]>([]);
   const [privateSpots, setPrivateSpots] = useState<any[]>([]);
   const [showPrivateSpots, setShowPrivateSpots] = useState(false);
+  const [privateSpotsSearch, setPrivateSpotsSearch] = useState('');
+  const [privateSpotsSort, setPrivateSpotsSort] = useState('spotNumber');
+  const [editingSpot, setEditingSpot] = useState<any | null>(null);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [globalSettings, setGlobalSettings] = useState<any>({});
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
@@ -148,6 +151,18 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
     }
   };
 
+  const savePrivateSpots = async (updatedSpots: any[]) => {
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ key: 'private_spots', value: updatedSpots, parking_lot_id: parkingLotId }, { onConflict: 'key,parking_lot_id' });
+    if (error) {
+      alert('Error al guardar parqueaderos privados: ' + error.message);
+    } else {
+      setPrivateSpots(updatedSpots);
+      setEditingSpot(null);
+    }
+  };
+
   const fetchTotalRevenue = async (lastClosing: string | null) => {
     let query = supabase
       .from('parking_sessions')
@@ -233,7 +248,10 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
         if (data) {
           setType(data.vehicle_type);
           if (data.metadata && Object.keys(data.metadata).length > 0) {
-            setFieldValues(data.metadata);
+            const filteredMetadata = { ...data.metadata };
+            delete filteredMetadata.guard_name;
+            delete filteredMetadata.checkout_guard_name;
+            setFieldValues(filteredMetadata);
           }
           setAutoCompleted(true);
         }
@@ -994,7 +1012,9 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
                               </div>
                               {session.metadata && Object.keys(session.metadata).length > 0 && (
                                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 mt-1 mb-1">
-                                  {Object.entries(session.metadata).map(([key, value]) => (
+                                  {Object.entries(session.metadata)
+                                    .filter(([k]) => k !== 'guard_name' && k !== 'checkout_guard_name')
+                                    .map(([key, value]) => (
                                     <span key={key} className="bg-slate-100 px-2 py-0.5 rounded-md">
                                       <strong className="capitalize">{key}:</strong> {String(value)}
                                     </span>
@@ -1087,6 +1107,34 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
                 ✕
               </button>
             </div>
+            <div className="p-6 border-b border-slate-100 bg-white">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1 relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-slate-400" />
+                  </div>
+                  <input
+                    type="text"
+                    value={privateSpotsSearch}
+                    onChange={(e) => setPrivateSpotsSearch(e.target.value)}
+                    placeholder="Buscar por placa, propietario o espacio..."
+                    className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+                <div className="sm:w-48">
+                  <select
+                    value={privateSpotsSort}
+                    onChange={(e) => setPrivateSpotsSort(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                  >
+                    <option value="spotNumber">Por Espacio</option>
+                    <option value="ownerName">Por Propietario</option>
+                    <option value="licensePlate">Por Placa</option>
+                    <option value="notes">Por Notas</option>
+                  </select>
+                </div>
+              </div>
+            </div>
             <div className="p-6 overflow-y-auto">
               {privateSpots.length === 0 ? (
                 <div className="text-center py-12 text-slate-500">
@@ -1095,16 +1143,38 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {privateSpots.map(spot => {
+                  {privateSpots
+                    .filter(spot => 
+                      spot.spotNumber.toLowerCase().includes(privateSpotsSearch.toLowerCase()) ||
+                      spot.ownerName.toLowerCase().includes(privateSpotsSearch.toLowerCase()) ||
+                      spot.licensePlate.toLowerCase().includes(privateSpotsSearch.toLowerCase())
+                    )
+                    .sort((a, b) => {
+                      if (privateSpotsSort === 'spotNumber') return (a.spotNumber || '').localeCompare(b.spotNumber || '', undefined, { numeric: true });
+                      if (privateSpotsSort === 'ownerName') return (a.ownerName || '').localeCompare(b.ownerName || '');
+                      if (privateSpotsSort === 'licensePlate') return (a.licensePlate || '').localeCompare(b.licensePlate || '');
+                      if (privateSpotsSort === 'notes') return (a.notes || '').localeCompare(b.notes || '');
+                      return 0;
+                    })
+                    .map(spot => {
                     const activeSession = sessions.find(s => s.license_plate === spot.licensePlate);
                     return (
-                      <div key={spot.id} className="border border-slate-200 rounded-2xl p-4 relative overflow-hidden">
+                      <div key={spot.id} className="border border-slate-200 rounded-2xl p-4 relative overflow-hidden group">
                         <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-50 rounded-bl-full -z-10"></div>
                         <div className="flex justify-between items-start mb-3">
                           <span className="text-2xl font-bold text-indigo-900">{spot.spotNumber}</span>
-                          <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${activeSession ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
-                            {activeSession ? 'Ocupado' : 'Libre'}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => setEditingSpot(spot)}
+                              className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                              title="Editar"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${activeSession ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-600'}`}>
+                              {activeSession ? 'Ocupado' : 'Libre'}
+                            </span>
+                          </div>
                         </div>
                         <div className="space-y-2">
                           <p className="text-sm text-slate-600">
@@ -1128,6 +1198,60 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Edición de Parqueadero Privado */}
+      {editingSpot && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-[60]">
+          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h2 className="text-xl font-bold text-slate-800">Editar Parqueadero</h2>
+              <button onClick={() => setEditingSpot(null)} className="p-2 hover:bg-slate-200 rounded-full transition-colors">✕</button>
+            </div>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const updatedSpot = {
+                ...editingSpot,
+                spotNumber: formData.get('spotNumber'),
+                ownerName: formData.get('ownerName'),
+                licensePlate: formData.get('licensePlate')?.toString().toUpperCase(),
+                vehicleType: formData.get('vehicleType'),
+                notes: formData.get('notes')
+              };
+              savePrivateSpots(privateSpots.map(s => s.id === editingSpot.id ? updatedSpot : s));
+            }} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Espacio</label>
+                <input type="text" name="spotNumber" defaultValue={editingSpot.spotNumber} required className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Propietario</label>
+                <input type="text" name="ownerName" defaultValue={editingSpot.ownerName} required className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Placa</label>
+                <input type="text" name="licensePlate" defaultValue={editingSpot.licensePlate} required className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none uppercase" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
+                <select name="vehicleType" defaultValue={editingSpot.vehicleType} required className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
+                  <option value="car">Carro</option>
+                  <option value="motorcycle">Moto</option>
+                  <option value="bicycle">Bicicleta</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Notas</label>
+                <input type="text" name="notes" defaultValue={editingSpot.notes} className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" />
+              </div>
+              <div className="pt-4 flex justify-end gap-3">
+                <button type="button" onClick={() => setEditingSpot(null)} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition-colors">Cancelar</button>
+                <button type="submit" className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors">Guardar</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

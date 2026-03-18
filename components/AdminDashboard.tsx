@@ -41,6 +41,9 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
   });
   const [specialVehicles, setSpecialVehicles] = useState<any[]>([]);
   const [privateSpots, setPrivateSpots] = useState<any[]>([]);
+  const [privateSpotsSearch, setPrivateSpotsSearch] = useState('');
+  const [privateSpotsSort, setPrivateSpotsSort] = useState('spotNumber');
+  const [bulkClearColumn, setBulkClearColumn] = useState('');
   const [loadingSettings, setLoadingSettings] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
 
@@ -228,6 +231,18 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
       setSpecialVehicles(updatedVehicles);
     }
     setSavingSettings(false);
+  };
+
+  const handleBulkClear = () => {
+    if (!bulkClearColumn) return;
+    if (!confirm(`¿Estás seguro de que deseas vaciar la columna "${bulkClearColumn}" para TODOS los parqueaderos privados? Esta acción no se puede deshacer.`)) return;
+    
+    const updatedSpots = privateSpots.map(spot => ({
+      ...spot,
+      [bulkClearColumn]: ''
+    }));
+    savePrivateSpots(updatedSpots);
+    setBulkClearColumn('');
   };
 
   const savePrivateSpots = async (updatedSpots: any[]) => {
@@ -945,7 +960,9 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
                           <td className="px-6 py-4 text-xs text-slate-500 max-w-[200px] truncate">
                             {session.metadata && Object.keys(session.metadata).length > 0 ? (
                               <div className="flex flex-col gap-0.5">
-                                {Object.entries(session.metadata).map(([key, value]) => (
+                                {Object.entries(session.metadata)
+                                  .filter(([k]) => k !== 'guard_name' && k !== 'checkout_guard_name')
+                                  .map(([key, value]) => (
                                   <span key={key}><strong className="capitalize">{key}:</strong> {String(value)}</span>
                                 ))}
                               </div>
@@ -1238,7 +1255,29 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
           </div>
           <div className="p-6">
             <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
-              <h3 className="font-medium text-slate-800 mb-4">Asignar Nuevo Parqueadero</h3>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                <h3 className="font-medium text-slate-800">Asignar Nuevo Parqueadero</h3>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={bulkClearColumn}
+                    onChange={(e) => setBulkClearColumn(e.target.value)}
+                    className="px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-sm"
+                  >
+                    <option value="">Seleccionar columna a vaciar...</option>
+                    <option value="spotNumber">Espacio</option>
+                    <option value="ownerName">Propietario</option>
+                    <option value="licensePlate">Placa</option>
+                    <option value="notes">Notas</option>
+                  </select>
+                  <button
+                    onClick={handleBulkClear}
+                    disabled={!bulkClearColumn}
+                    className="px-4 py-2 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 font-medium transition-colors disabled:opacity-50 text-sm"
+                  >
+                    Vaciar Columna
+                  </button>
+                </div>
+              </div>
               <form 
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -1288,6 +1327,33 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
               </form>
             </div>
 
+            <div className="mb-4 flex flex-col sm:flex-row gap-4">
+              <div className="flex-1 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-slate-400" />
+                </div>
+                <input
+                  type="text"
+                  value={privateSpotsSearch}
+                  onChange={(e) => setPrivateSpotsSearch(e.target.value)}
+                  placeholder="Buscar por placa, propietario o espacio..."
+                  className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50"
+                />
+              </div>
+              <div className="sm:w-48">
+                <select
+                  value={privateSpotsSort}
+                  onChange={(e) => setPrivateSpotsSort(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50"
+                >
+                  <option value="spotNumber">Por Espacio</option>
+                  <option value="ownerName">Por Propietario</option>
+                  <option value="licensePlate">Por Placa</option>
+                  <option value="notes">Por Notas</option>
+                </select>
+              </div>
+            </div>
+
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -1308,7 +1374,20 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
                       </td>
                     </tr>
                   ) : (
-                    privateSpots.map((spot) => (
+                    privateSpots
+                      .filter(spot => 
+                        (spot.spotNumber || '').toLowerCase().includes(privateSpotsSearch.toLowerCase()) ||
+                        (spot.ownerName || '').toLowerCase().includes(privateSpotsSearch.toLowerCase()) ||
+                        (spot.licensePlate || '').toLowerCase().includes(privateSpotsSearch.toLowerCase())
+                      )
+                      .sort((a, b) => {
+                        if (privateSpotsSort === 'spotNumber') return (a.spotNumber || '').localeCompare(b.spotNumber || '', undefined, { numeric: true });
+                        if (privateSpotsSort === 'ownerName') return (a.ownerName || '').localeCompare(b.ownerName || '');
+                        if (privateSpotsSort === 'licensePlate') return (a.licensePlate || '').localeCompare(b.licensePlate || '');
+                        if (privateSpotsSort === 'notes') return (a.notes || '').localeCompare(b.notes || '');
+                        return 0;
+                      })
+                      .map((spot) => (
                       <tr key={spot.id} className="border-b border-slate-100 hover:bg-slate-50">
                         <td className="px-4 py-3 font-medium text-slate-800">{spot.spotNumber}</td>
                         <td className="px-4 py-3 text-slate-600">{spot.ownerName}</td>
