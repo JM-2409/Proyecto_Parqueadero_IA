@@ -278,49 +278,49 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-6">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center overflow-hidden shadow-md border border-slate-100 shrink-0">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 sm:mb-8 gap-4 sm:gap-6">
+        <div className="flex items-center gap-3 sm:gap-4 w-full md:w-auto">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white rounded-xl sm:rounded-full flex items-center justify-center overflow-hidden shadow-md border border-slate-100 shrink-0">
             <img src={globalLogoUrl || "/logo.png"} alt={globalAppName} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
-            <Shield className="w-7 h-7 text-indigo-600 hidden" />
+            <Shield className="w-6 h-6 sm:w-7 sm:h-7 text-indigo-600 hidden" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-800 truncate">Panel Super Administrador</h1>
-            <p className="text-sm text-slate-500 truncate">Gestión global de parqueaderos</p>
+            <h1 className="text-lg sm:text-2xl font-bold text-slate-800 truncate leading-tight">Panel Super Administrador</h1>
+            <p className="text-xs sm:text-sm text-slate-500 truncate">Gestión global de parqueaderos</p>
           </div>
         </div>
         <button
           onClick={onLogout}
-          className="flex items-center gap-2 px-4 py-2.5 text-slate-600 hover:bg-slate-200 rounded-xl transition-colors font-medium bg-white border border-slate-200 shadow-sm self-end sm:self-auto"
+          className="flex items-center gap-2 px-4 py-2 sm:py-2.5 text-slate-600 hover:bg-slate-200 rounded-xl transition-colors font-medium bg-white border border-slate-200 shadow-sm min-h-[44px] sm:min-h-0 self-end md:self-auto"
         >
           <LogOut className="w-5 h-5" />
-          <span>Cerrar Sesión</span>
+          <span className="text-sm">Salir</span>
         </button>
       </div>
 
-      <div className="flex flex-col lg:flex-row gap-4 mb-8 justify-between items-start lg:items-center">
-        <div className="flex gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 w-full overflow-x-auto no-scrollbar">
+      <div className="flex flex-col lg:flex-row gap-4 mb-6 sm:mb-8 justify-between items-start lg:items-center">
+        <div className="flex gap-1.5 sm:gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 w-full overflow-x-auto no-scrollbar sticky top-0 z-30">
           <button
             onClick={() => { setActiveTab('parking_lots'); setSearchTerm(''); }}
-            className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'parking_lots' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
+            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === 'parking_lots' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
           >
             <Building2 className="w-4 h-4" />
             Parqueaderos
           </button>
           <button
             onClick={() => { setActiveTab('users'); setSearchTerm(''); }}
-            className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'users' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
+            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === 'users' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
           >
             <Users className="w-4 h-4" />
             Usuarios
           </button>
           <button
             onClick={() => { setActiveTab('settings'); setSearchTerm(''); }}
-            className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'settings' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
+            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === 'settings' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
           >
             <Settings className="w-4 h-4" />
-            Configuración Global
+            App Global
           </button>
         </div>
 
@@ -332,7 +332,7 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white shadow-sm text-sm"
+            className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white shadow-sm text-sm min-h-[48px] lg:min-h-0"
             placeholder={`Buscar ${activeTab === 'parking_lots' ? 'parqueaderos' : 'usuarios'}...`}
           />
         </div>
@@ -375,7 +375,7 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
                 </button>
               </div>
               
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-slate-100 overflow-x-auto">
                 {parkingLots
                   .filter(lot => lot.name.toLowerCase().includes(searchTerm.toLowerCase()) || (lot.nit && lot.nit.includes(searchTerm)))
                   .map(lot => (

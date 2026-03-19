@@ -743,33 +743,33 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 pb-20">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-6 bg-slate-900 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 sm:mb-8 gap-4 sm:gap-6 bg-slate-900 text-white p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-lg relative overflow-hidden">
         <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-        <div className="relative z-10 flex items-center gap-4">
-          <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/20 shrink-0 overflow-hidden">
-            <img src={parkingLotLogo || "/logo.png"} alt="Logo" className="w-full h-full object-cover rounded-full" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
+        <div className="relative z-10 flex items-center gap-3 sm:gap-4 w-full md:w-auto">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white/10 rounded-xl sm:rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/20 shrink-0 overflow-hidden">
+            <img src={parkingLotLogo || "/logo.png"} alt="Logo" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
             <Shield className="w-8 h-8 text-indigo-400 hidden" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold truncate">
+            <h1 className="text-lg sm:text-2xl font-bold truncate leading-tight">
               {parkingLotName || 'Panel Administrativo'}
             </h1>
-            <p className="text-sm text-slate-400 truncate">{parkingLotAddress || 'Gestión de Parqueadero'}</p>
+            <p className="text-xs sm:text-sm text-slate-400 truncate">{parkingLotAddress || 'Gestión de Parqueadero'}</p>
           </div>
         </div>
         
-        <div className="relative z-10 flex items-center gap-4 w-full sm:w-auto self-end sm:self-auto">
+        <div className="relative z-10 flex flex-wrap items-center gap-2 sm:gap-4 w-full md:w-auto justify-start md:justify-end">
           {onSwitchView && (
-            <div className="bg-slate-800 rounded-xl p-1 flex border border-slate-700">
+            <div className="bg-slate-800 rounded-xl p-1 flex border border-slate-700 order-1 md:order-none">
               <button
                 onClick={() => onSwitchView('admin')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${currentView === 'admin' ? 'bg-indigo-500 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors min-h-[40px] md:min-h-0 ${currentView === 'admin' ? 'bg-indigo-500 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
               >
                 Admin
               </button>
               <button
                 onClick={() => onSwitchView('guard')}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${currentView === 'guard' ? 'bg-emerald-500 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors min-h-[40px] md:min-h-0 ${currentView === 'guard' ? 'bg-emerald-500 text-white' : 'text-slate-400 hover:text-white hover:bg-slate-700'}`}
               >
                 Vigilancia
               </button>
@@ -777,47 +777,47 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
           )}
           <button
             onClick={onLogout}
-            className="px-5 py-2.5 rounded-xl flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors font-medium"
+            className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition-colors font-medium text-xs sm:text-sm min-h-[44px] sm:min-h-0 ml-auto md:ml-0"
           >
             <LogOut className="w-4 h-4" />
-            <span>Cerrar Sesión</span>
+            <span>Salir</span>
           </button>
         </div>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex gap-2 mb-8 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 w-full overflow-x-auto no-scrollbar scroll-smooth">
+      <div className="flex gap-1.5 sm:gap-2 mb-6 sm:mb-8 bg-white p-1.5 sm:p-2 rounded-2xl shadow-sm border border-slate-200 w-full overflow-x-auto no-scrollbar scroll-smooth sticky top-0 z-30">
         <button
           onClick={() => setActiveTab('dashboard')}
-          className={`px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'dashboard' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === 'dashboard' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
         >
           <BarChart3 className="w-4 h-4" />
           Resumen
         </button>
         <button
           onClick={() => setActiveTab('users')}
-          className={`px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'users' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === 'users' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
         >
           <Users className="w-4 h-4" />
           Usuarios
         </button>
         <button
           onClick={() => setActiveTab('rates')}
-          className={`px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'rates' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === 'rates' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
         >
           <DollarSign className="w-4 h-4" />
           Tarifas
         </button>
         <button
           onClick={() => setActiveTab('private_spots')}
-          className={`px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'private_spots' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === 'private_spots' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
         >
           <Car className="w-4 h-4" />
           Privados
         </button>
         <button
           onClick={() => setActiveTab('settings')}
-          className={`px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'settings' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === 'settings' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
         >
           <Settings className="w-4 h-4" />
           Ajustes
@@ -939,13 +939,13 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
           </div>
 
           {/* Historial Table */}
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-4 sm:p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50">
               <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                 <History className="w-5 h-5 text-slate-500" />
                 Historial General
               </h2>
-              <div className="flex items-center gap-4 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto">
                 <div className="relative w-full sm:w-64">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Search className="h-4 w-4 text-slate-400" />
@@ -958,16 +958,16 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
                       setCurrentPage(1);
                     }}
                     placeholder="Buscar placa o recibo..."
-                    className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white text-sm"
+                    className="block w-full pl-10 pr-3 py-2.5 sm:py-2 border border-slate-200 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white text-sm"
                   />
                 </div>
-                <button onClick={() => { setCurrentPage(1); fetchData(); }} className="text-sm font-medium text-indigo-600 hover:text-indigo-700 whitespace-nowrap">
+                <button onClick={() => { setCurrentPage(1); fetchData(); }} className="text-sm font-medium text-indigo-600 hover:text-indigo-700 whitespace-nowrap min-h-[40px]">
                   Actualizar
                 </button>
               </div>
             </div>
             
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto -mx-px">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
@@ -1015,14 +1015,25 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
                           </td>
                           <td className="px-6 py-4 text-xs text-slate-500 max-w-[200px] truncate">
                             {session.metadata && Object.keys(session.metadata).length > 0 ? (
-                              <div className="flex flex-col gap-0.5">
+                              <div className="flex flex-col gap-1">
                                 {Object.entries(session.metadata)
-                                  .filter(([k]) => k !== 'guard_name' && k !== 'checkout_guard_name')
+                                  .filter(([k]) => k !== 'guard_name' && k !== 'checkout_guard_name' && k !== 'admin_checkout_observation' && k !== 'admin_checkout_by' && k !== 'admin_checkout_time')
+                                  .sort(([keyA], [keyB]) => {
+                                    const labelA = entryFields.find(f => f.id === keyA)?.label?.toLowerCase() || '';
+                                    const labelB = entryFields.find(f => f.id === keyB)?.label?.toLowerCase() || '';
+                                    if (labelA.includes('nombre')) return -1;
+                                    if (labelB.includes('nombre')) return 1;
+                                    return 0;
+                                  })
                                   .map(([key, value]) => {
                                     const fieldDef = entryFields.find(f => f.id === key);
-                                    const displayKey = fieldDef ? fieldDef.label : key;
+                                    const displayLabel = fieldDef ? fieldDef.label : key;
+                                    const isNameField = displayLabel.toLowerCase().includes('nombre');
+
                                     return (
-                                      <span key={key} className="text-slate-700 font-medium">{String(value)}</span>
+                                      <span key={key} className={`${isNameField ? 'text-indigo-700 font-bold' : 'text-slate-700 font-medium'}`}>
+                                        {isNameField ? String(value) : `${displayLabel}: ${value}`}
+                                      </span>
                                     );
                                   })}
                               </div>

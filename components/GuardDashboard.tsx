@@ -769,33 +769,33 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
   const filteredSessions = sessions.filter(s => s.license_plate.includes(searchQuery.toUpperCase()));
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-6 pb-20">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-6 bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center overflow-hidden shadow-inner shrink-0 border border-indigo-100">
-            <img src={globalSettings.logo_url || "/logo.png"} alt="Logo" className="w-full h-full object-cover rounded-full" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
-            <Car className="w-8 h-8 text-indigo-600 hidden" />
+    <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 pb-20">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 sm:mb-8 gap-4 sm:gap-6 bg-white p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200">
+        <div className="flex items-center gap-3 sm:gap-4 w-full md:w-auto">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 bg-indigo-50 rounded-xl sm:rounded-2xl flex items-center justify-center overflow-hidden shadow-inner shrink-0 border border-indigo-100">
+            <img src={globalSettings.logo_url || "/logo.png"} alt="Logo" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
+            <Car className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-600 hidden" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-800 truncate leading-tight">
+            <h1 className="text-lg sm:text-2xl font-bold text-slate-800 truncate leading-tight">
               {globalSettings.name || 'Control de Parqueadero'}
             </h1>
-            <p className="text-sm text-slate-500 truncate">{globalSettings.address || 'Panel de Vigilancia'}</p>
+            <p className="text-xs sm:text-sm text-slate-500 truncate">{globalSettings.address || 'Panel de Vigilancia'}</p>
           </div>
         </div>
         
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto self-end sm:self-auto justify-end">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full md:w-auto justify-start md:justify-end">
           {onSwitchView && (
-            <div className="bg-slate-100 rounded-xl p-1 flex border border-slate-200 shadow-sm">
+            <div className="bg-slate-100 rounded-xl p-1 flex border border-slate-200 shadow-sm order-1 md:order-none">
               <button
                 onClick={() => onSwitchView('admin')}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${currentView === 'admin' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200'}`}
+                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors min-h-[40px] md:min-h-0 ${currentView === 'admin' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200'}`}
               >
                 Admin
               </button>
               <button
                 onClick={() => onSwitchView('guard')}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${currentView === 'guard' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200'}`}
+                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors min-h-[40px] md:min-h-0 ${currentView === 'guard' ? 'bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200'}`}
               >
                 Vigilancia
               </button>
@@ -803,23 +803,23 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
           )}
           <button
             onClick={() => setShowPrivateSpots(true)}
-            className="px-4 py-2 rounded-xl flex items-center gap-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-100 transition-colors font-medium"
+            className="px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-100 transition-colors font-medium text-xs sm:text-sm min-h-[44px] sm:min-h-0 order-2 md:order-none"
           >
             <Car className="w-4 h-4" />
-            <span className="hidden sm:inline">Ver Privados</span>
+            <span>Privados</span>
           </button>
           {revenueSettings?.show_to_guards && (
-            <div className="bg-emerald-50 text-emerald-700 px-4 py-2 rounded-xl border border-emerald-100 flex items-center gap-2 font-medium">
-              <DollarSign className="w-4 h-4" />
+            <div className="bg-emerald-50 text-emerald-700 px-3 sm:px-4 py-2 rounded-xl border border-emerald-100 flex items-center gap-2 font-medium text-xs sm:text-sm min-h-[44px] sm:min-h-0 order-3 md:order-none">
+              <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
               <span>Recaudo: {formatCurrency(totalRevenue)}</span>
             </div>
           )}
           
-          <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
-            <span className="text-sm font-medium text-slate-700">Turno: {guardName || 'Sin asignar'}</span>
+          <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 order-last md:order-none ml-auto md:ml-0">
+            <span className="text-xs sm:text-sm font-medium text-slate-700">Turno: {guardName || 'Sin asignar'}</span>
             <button
               onClick={handleLockScreen}
-              className="p-1 rounded-md hover:bg-slate-200 text-slate-500 transition-colors"
+              className="p-1.5 rounded-md hover:bg-slate-200 text-slate-500 transition-colors min-h-[32px]"
               title="Entregar Turno / Bloquear"
             >
               <UserCircle className="w-4 h-4" />
@@ -828,10 +828,10 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
 
           <button
             onClick={onLogout}
-            className="px-4 py-2 rounded-xl flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 transition-colors font-medium"
+            className="px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 border border-red-100 transition-colors font-medium text-xs sm:text-sm min-h-[44px] sm:min-h-0"
           >
             <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Cerrar Sesión</span>
+            <span className="hidden sm:inline">Salir</span>
           </button>
         </div>
       </div>
@@ -1038,13 +1038,22 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
                               {session.metadata && Object.keys(session.metadata).length > 0 && (
                                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 mt-1 mb-1">
                                   {Object.entries(session.metadata)
-                                    .filter(([k]) => k !== 'guard_name' && k !== 'checkout_guard_name')
+                                    .filter(([k]) => k !== 'guard_name' && k !== 'checkout_guard_name' && k !== 'admin_checkout_observation' && k !== 'admin_checkout_by' && k !== 'admin_checkout_time')
+                                    .sort(([keyA], [keyB]) => {
+                                      const labelA = entryFields.find(f => f.id === keyA)?.label?.toLowerCase() || '';
+                                      const labelB = entryFields.find(f => f.id === keyB)?.label?.toLowerCase() || '';
+                                      if (labelA.includes('nombre')) return -1;
+                                      if (labelB.includes('nombre')) return 1;
+                                      return 0;
+                                    })
                                     .map(([key, value]) => {
                                       const fieldDef = entryFields.find(f => f.id === key);
-                                      const displayKey = fieldDef ? fieldDef.label : key;
+                                      const displayLabel = fieldDef ? fieldDef.label : key;
+                                      const isNameField = displayLabel.toLowerCase().includes('nombre');
+
                                       return (
-                                        <span key={key} className="bg-slate-100 px-2 py-0.5 rounded-md text-slate-700 font-medium">
-                                          {String(value)}
+                                        <span key={key} className={`${isNameField ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-700'} px-2 py-0.5 rounded-md font-medium`}>
+                                          {isNameField ? String(value) : `${displayLabel}: ${value}`}
                                         </span>
                                       );
                                     })}
@@ -1289,40 +1298,97 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
               </h2>
               <p className="text-slate-500 mb-6 font-mono text-lg">{completedSession.license_plate}</p>
               
-              <div id="receipt-content" className="bg-slate-50 rounded-2xl p-4 mb-6 text-left space-y-4">
-                <div className="text-center mb-4 border-b border-slate-200 pb-4">
-                  <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-2 shadow-sm border border-slate-100 bg-white">
-                    <img src={globalSettings.logo_url || "/logo.png"} alt="Logo" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
-                    <div className="w-full h-full bg-indigo-50 hidden items-center justify-center">
-                      <Car className="w-8 h-8 text-indigo-600" />
+              <div id="receipt-content" className="bg-white p-8 mb-6 text-left border border-slate-200 shadow-sm relative mx-auto w-full max-w-[320px] font-sans">
+                {/* Simulated Paper Edge */}
+                <div className="absolute top-0 left-0 w-full h-1 bg-slate-100"></div>
+
+                <div className="relative z-10">
+                  {/* Header */}
+                  <div className="text-center mb-6 border-b-2 border-dashed border-slate-300 pb-6">
+                    <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-4 shadow-sm border-2 border-slate-100 bg-white">
+                      <img src={globalSettings.logo_url || "/logo.png"} alt="Logo" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
+                      <div className="w-full h-full bg-slate-50 hidden items-center justify-center">
+                        <Car className="w-12 h-12 text-slate-400" />
+                      </div>
+                    </div>
+                    <h3 className="font-black text-slate-900 text-xl uppercase tracking-tighter leading-none mb-1">{globalSettings.name || 'Parqueadero'}</h3>
+                    {globalSettings.nit && (
+                      <p className="text-[11px] font-bold text-slate-500 font-mono">NIT: {globalSettings.nit}</p>
+                    )}
+                    {globalSettings.address && (
+                      <p className="text-[10px] font-medium text-slate-400 mt-1 uppercase leading-tight px-4">{globalSettings.address}</p>
+                    )}
+                    {globalSettings.phone && (
+                      <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">TEL: {globalSettings.phone}</p>
+                    )}
+
+                    <div className="mt-5 border-t border-b border-slate-200 py-1 inline-block px-4">
+                      <p className="text-[10px] font-black text-slate-900 tracking-[0.3em] uppercase">Recibo No: {completedSession.ticket_number}</p>
                     </div>
                   </div>
-                  <h3 className="font-bold text-slate-800 text-lg">{globalSettings.name || 'Parqueadero'}</h3>
-                  {globalSettings.nit && (
-                    <p className="text-xs text-slate-500 font-mono mt-1">NIT: {globalSettings.nit}</p>
-                  )}
-                  <p className="text-sm text-slate-500 mt-2">Recibo No: {completedSession.ticket_number}</p>
+
+                  {/* Main Content */}
+                  <div className="space-y-6">
+                    {/* Plate Section */}
+                    <div className="text-center bg-slate-900 text-white py-3 rounded-lg shadow-inner">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Placa del Vehículo</p>
+                      <p className="text-4xl font-black font-mono tracking-[0.1em]">{completedSession.license_plate}</p>
+                    </div>
+
+                    {/* Times & Info Grid */}
+                    <div className="grid grid-cols-2 gap-y-5 gap-x-4 border-b-2 border-dashed border-slate-200 pb-6">
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ingreso</p>
+                        <p className="text-xs font-bold text-slate-800 leading-tight">
+                          {format(new Date(completedSession.entry_time), 'dd/MM/yyyy')}<br/>
+                          <span className="text-base tracking-tight">{format(new Date(completedSession.entry_time), 'h:mm a')}</span>
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Salida</p>
+                        <p className="text-xs font-bold text-slate-800 leading-tight">
+                          {format(new Date(completedSession.exit_time), 'dd/MM/yyyy')}<br/>
+                          <span className="text-base tracking-tight">{format(new Date(completedSession.exit_time), 'h:mm a')}</span>
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tiempo Total</p>
+                        <p className="text-sm font-black text-slate-900">{Math.max(1, differenceInMinutes(new Date(completedSession.exit_time), new Date(completedSession.entry_time)))} Minutos</p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tipo Tarifa</p>
+                        <p className="text-xs font-bold text-slate-800 truncate" title={completedSession.rate?.name}>{completedSession.rate?.name || 'N/A'}</p>
+                      </div>
+                    </div>
+
+                    {/* Total Section */}
+                    <div className="pt-2">
+                      <div className="flex justify-between items-baseline mb-1">
+                        <span className="text-sm font-black text-slate-900 uppercase tracking-widest">Total Cobrado</span>
+                        <span className="text-xs font-bold text-slate-400 uppercase">COP</span>
+                      </div>
+                      <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-center">
+                        <span className="text-4xl font-black text-emerald-600 leading-none">{formatCurrency(completedSession.amount_paid)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="mt-10 text-center space-y-4">
+                    <p className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em] italic">¡Gracias por preferirnos!</p>
+                    <div className="flex justify-center items-center gap-1 opacity-20 grayscale">
+                      <div className="h-[1px] w-8 bg-black"></div>
+                      <Car className="w-3 h-3" />
+                      <div className="h-[1px] w-8 bg-black"></div>
+                    </div>
+                  </div>
                 </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-500">Ingreso:</span>
-                  <span className="font-medium text-slate-800">{format(new Date(completedSession.entry_time), 'dd/MM/yy h:mm a')}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-500">Salida:</span>
-                  <span className="font-medium text-slate-800">{format(new Date(completedSession.exit_time), 'dd/MM/yy h:mm a')}</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-500">Tiempo Total:</span>
-                  <span className="font-medium text-slate-800">{Math.max(1, differenceInMinutes(new Date(completedSession.exit_time), new Date(completedSession.entry_time)))} min</span>
-                </div>
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-slate-500">Tarifa:</span>
-                  <span className="font-medium text-slate-800">{completedSession.rate?.name || 'N/A'}</span>
-                </div>
-                <div className="pt-4 border-t border-slate-200 flex justify-between items-center">
-                  <span className="font-semibold text-slate-800">Total Pagado:</span>
-                  <span className="text-xl font-bold text-emerald-600">{formatCurrency(completedSession.amount_paid)}</span>
-                </div>
+
+                {/* Simulated Paper Bottom */}
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-100"></div>
               </div>
 
               <div className="space-y-4 mb-6">
