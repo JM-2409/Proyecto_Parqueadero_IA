@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Car, Bike, Motorbike, Clock, LogOut, CheckCircle, Search, DollarSign, Zap, History, Share2, Image as ImageIcon, UserCircle, Shield, Edit2 } from 'lucide-react';
+import { Car, Bike, Motorbike, Clock, LogOut, CheckCircle, Search, DollarSign, Zap, History, Share2, Image as ImageIcon, UserCircle, Shield, Edit2, Plus } from 'lucide-react';
 import { format, differenceInMinutes, subDays } from 'date-fns';
 import html2canvas from 'html2canvas';
 
@@ -246,21 +246,25 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
 
     if (val.length >= 5) {
       searchTimeoutRef.current = setTimeout(async () => {
-        const { data } = await supabase
+        // Buscamos la sesión más reciente para esta placa en este parqueadero
+        const { data, error } = await supabase
           .from('parking_sessions')
           .select('vehicle_type, metadata')
           .eq('parking_lot_id', parkingLotId)
           .eq('license_plate', val)
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
+          .order('entry_time', { ascending: false })
+          .limit(1);
 
-        if (data) {
-          setType(data.vehicle_type);
-          if (data.metadata && Object.keys(data.metadata).length > 0) {
-            const filteredMetadata = { ...data.metadata };
-            delete filteredMetadata.guard_name;
-            delete filteredMetadata.checkout_guard_name;
+        if (!error && data && data.length > 0) {
+          const lastSession = data[0];
+          setType(lastSession.vehicle_type);
+
+          if (lastSession.metadata && typeof lastSession.metadata === 'object') {
+            const filteredMetadata = { ...lastSession.metadata };
+            // Limpiamos campos internos que no queremos autocompletar
+            const internalFields = ['guard_name', 'checkout_guard_name', 'admin_checkout_observation', 'admin_checkout_by', 'admin_checkout_time'];
+            internalFields.forEach(field => delete filteredMetadata[field]);
+
             setFieldValues(filteredMetadata);
           }
           setAutoCompleted(true);
@@ -765,15 +769,24 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
   const filteredSessions = sessions.filter(s => s.license_plate.includes(searchQuery.toUpperCase()));
 
   return (
-    <div className="max-w-5xl mx-auto p-4 md:p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-800">{globalSettings.name || 'Control de Parqueadero'}</h1>
+    <div className="max-w-7xl mx-auto p-4 md:p-6 pb-20">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-6 bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center overflow-hidden shadow-inner shrink-0 border border-indigo-100">
+            <img src={globalSettings.logo_url || "/logo.png"} alt="Logo" className="w-full h-full object-cover rounded-full" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
+            <Car className="w-8 h-8 text-indigo-600 hidden" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-800 truncate leading-tight">
+              {globalSettings.name || 'Control de Parqueadero'}
+            </h1>
+            <p className="text-sm text-slate-500 truncate">{globalSettings.address || 'Panel de Vigilancia'}</p>
+          </div>
         </div>
         
-        <div className="flex flex-wrap items-center justify-center gap-4">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto self-end sm:self-auto justify-end">
           {onSwitchView && (
-            <div className="bg-slate-100 rounded-xl p-1 flex border border-slate-200">
+            <div className="bg-slate-100 rounded-xl p-1 flex border border-slate-200 shadow-sm">
               <button
                 onClick={() => onSwitchView('admin')}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${currentView === 'admin' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200'}`}
@@ -824,17 +837,19 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
       </div>
 
       {/* Mobile View Toggle */}
-      <div className="lg:hidden mb-6 bg-white rounded-xl p-1 flex border border-slate-200 shadow-sm">
+      <div className="lg:hidden mb-8 bg-white rounded-2xl p-1.5 flex border border-slate-200 shadow-sm">
         <button
           onClick={() => setMobileView('entry')}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${mobileView === 'entry' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
+          className={`flex-1 py-3.5 rounded-xl text-sm font-semibold transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === 'entry' ? 'bg-indigo-600 text-white shadow-md transform scale-[1.02]' : 'text-slate-500 hover:bg-slate-50'}`}
         >
+          <Plus className="w-4 h-4" />
           Registrar Ingreso
         </button>
         <button
           onClick={() => setMobileView('list')}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${mobileView === 'list' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
+          className={`flex-1 py-3.5 rounded-xl text-sm font-semibold transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === 'list' ? 'bg-indigo-600 text-white shadow-md transform scale-[1.02]' : 'text-slate-500 hover:bg-slate-50'}`}
         >
+          <Car className="w-4 h-4" />
           Vehículos Activos
         </button>
       </div>
@@ -1013,7 +1028,7 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
-                                <h3 className="text-xl font-bold text-slate-800 font-mono tracking-wider">{session.license_plate}</h3>
+                                <h3 className="text-lg sm:text-xl font-bold text-slate-800 font-mono tracking-wider">{session.license_plate}</h3>
                                 {session.ticket_number && (
                                   <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs font-medium">
                                     #{session.ticket_number}
@@ -1276,9 +1291,12 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
               
               <div id="receipt-content" className="bg-slate-50 rounded-2xl p-4 mb-6 text-left space-y-4">
                 <div className="text-center mb-4 border-b border-slate-200 pb-4">
-                  {globalSettings.logo_url && (
-                    <img src={globalSettings.logo_url} alt="Logo" className="w-16 h-16 object-cover rounded-full mx-auto mb-2 shadow-sm" />
-                  )}
+                  <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-2 shadow-sm border border-slate-100 bg-white">
+                    <img src={globalSettings.logo_url || "/logo.png"} alt="Logo" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
+                    <div className="w-full h-full bg-indigo-50 hidden items-center justify-center">
+                      <Car className="w-8 h-8 text-indigo-600" />
+                    </div>
+                  </div>
                   <h3 className="font-bold text-slate-800 text-lg">{globalSettings.name || 'Parqueadero'}</h3>
                   {globalSettings.nit && (
                     <p className="text-xs text-slate-500 font-mono mt-1">NIT: {globalSettings.nit}</p>
