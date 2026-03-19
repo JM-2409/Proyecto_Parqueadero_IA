@@ -862,76 +862,96 @@ export default function GuardDashboard({
 
   return (
     <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 pb-20">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 sm:mb-8 gap-4 sm:gap-6 bg-white/90 backdrop-blur-xl border-b border-slate-200/50 p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm relative overflow-hidden transition-all duration-300">
-        <div className="relative z-10 flex items-center gap-3 sm:gap-4 w-full md:w-auto">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center border border-slate-200 shadow-sm shrink-0 aspect-square">
-            <img
-              src="/logo.png"
-              alt="Logo"
-              className="w-full h-full object-cover"
-            />
+      {/* Header Rediseñado */}
+      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-white/80 backdrop-blur-xl border border-slate-200/60 p-4 sm:p-5 rounded-[2rem] shadow-sm relative overflow-hidden transition-all duration-300">
+        {/* Lado Izquierdo: Branding */}
+        <div className="flex items-center gap-4 group">
+          <div className="relative">
+            <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-indigo-300 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-300"></div>
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square">
+              <img
+                src="/logo.png"
+                alt="Logo"
+                className="w-full h-full object-cover transform transition duration-500 group-hover:scale-110"
+              />
+            </div>
           </div>
           <div className="min-w-0">
-            <h1 className="text-lg sm:text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 truncate leading-tight">
-              {globalSettings.name || "Control de Parqueadero"}
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 truncate leading-none mb-1">
+              {globalSettings.name || "NexoPark"}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium truncate">
-              {globalSettings.address || "Panel de Vigilancia"}
-            </p>
+            <div className="flex items-center gap-1.5 text-slate-500">
+              <Shield className="w-3.5 h-3.5 text-indigo-500" />
+              <p className="text-xs sm:text-sm font-semibold truncate uppercase tracking-wider opacity-80">
+                Punto de Control
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="relative z-10 flex flex-wrap items-center gap-2 sm:gap-3 w-full md:w-auto justify-start md:justify-end">
-          {onSwitchView && (
-            <div className="bg-slate-100 rounded-xl p-1 flex border border-slate-200 shadow-inner order-1 md:order-none">
-              <button
-                onClick={() => onSwitchView("admin")}
-                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-sm min-h-[40px] md:min-h-0 ${currentView === "admin" ? "bg-white text-indigo-600 ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"}`}
-              >
-                Admin
-              </button>
-              <button
-                onClick={() => onSwitchView("guard")}
-                className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-sm min-h-[40px] md:min-h-0 ${currentView === "guard" ? "bg-white text-emerald-600 ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"}`}
-              >
-                Vigilancia
-              </button>
-            </div>
-          )}
-          <button
-            onClick={() => setShowPrivateSpots(true)}
-            className="px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border border-indigo-100 transition-colors font-semibold text-xs sm:text-sm min-h-[44px] sm:min-h-0 order-2 md:order-none shadow-sm"
-          >
-            <Car className="w-4 h-4" />
-            <span>Privados</span>
-          </button>
-          {revenueSettings?.show_to_guards && (
-            <div className="bg-emerald-50 text-emerald-700 px-3 sm:px-4 py-2 rounded-xl border border-emerald-100 flex items-center gap-2 font-semibold text-xs sm:text-sm min-h-[44px] sm:min-h-0 order-3 md:order-none shadow-sm">
-              <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span>Recaudo: {formatCurrency(totalRevenue)}</span>
-            </div>
-          )}
-
-          <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200 order-last md:order-none ml-auto md:ml-0 shadow-sm">
-            <span className="text-xs sm:text-sm font-semibold text-slate-700">
-              Turno: {guardName || "Sin asignar"}
-            </span>
+        {/* Lado Derecho: Acciones y Usuario */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 lg:gap-4">
+          {/* Centro de Acciones Rápidas */}
+          <div className="flex items-center gap-2 bg-slate-50/50 p-1.5 rounded-2xl border border-slate-100 w-full sm:w-auto overflow-x-auto no-scrollbar shadow-inner">
+            {onSwitchView && (
+              <div className="bg-white rounded-xl p-1 flex border border-slate-200 shadow-sm shrink-0">
+                <button
+                  onClick={() => onSwitchView("admin")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentView === "admin" ? "bg-indigo-600 text-white shadow-md" : "text-slate-500 hover:text-slate-800"}`}
+                >
+                  Admin
+                </button>
+                <button
+                  onClick={() => onSwitchView("guard")}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentView === "guard" ? "bg-indigo-600 text-white shadow-md" : "text-slate-500 hover:text-slate-800"}`}
+                >
+                  Vigilancia
+                </button>
+              </div>
+            )}
             <button
-              onClick={handleLockScreen}
-              className="p-1.5 rounded-md hover:bg-slate-200 text-slate-500 transition-colors min-h-[32px]"
-              title="Entregar Turno / Bloquear"
+              onClick={() => setShowPrivateSpots(true)}
+              className="px-4 py-2 rounded-xl flex items-center gap-2 bg-white text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 transition-all font-bold text-xs shadow-sm shrink-0"
             >
-              <UserCircle className="w-4 h-4" />
+              <Car className="w-3.5 h-3.5" />
+              <span>Privados</span>
             </button>
+            {revenueSettings?.show_to_guards && (
+              <div className="bg-emerald-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-xs shadow-md shrink-0">
+                <DollarSign className="w-3.5 h-3.5" />
+                <span>{formatCurrency(totalRevenue)}</span>
+              </div>
+            )}
           </div>
 
-          <button
-            onClick={onLogout}
-            className="px-3 sm:px-4 py-2 rounded-xl flex items-center gap-2 bg-slate-900 hover:bg-indigo-600 text-white transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 font-semibold text-xs sm:text-sm min-h-[44px] sm:min-h-0"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Salir</span>
-          </button>
+          {/* Perfil de Usuario y Logout */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex-1 sm:flex-none flex items-center gap-3 bg-white pl-4 pr-2 py-1.5 rounded-2xl border border-slate-200 shadow-sm group">
+              <div className="flex flex-col items-start min-w-0">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">
+                  Operador en turno
+                </span>
+                <span className="text-sm font-bold text-slate-800 truncate max-w-[120px]">
+                  {guardName || "Sin Asignar"}
+                </span>
+              </div>
+              <button
+                onClick={handleLockScreen}
+                className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-all shadow-sm border border-slate-100 bg-slate-50/50"
+                title="Cambiar Turno / Bloquear"
+              >
+                <UserCircle className="w-5 h-5" />
+              </button>
+            </div>
+
+            <button
+              onClick={onLogout}
+              className="p-3.5 rounded-2xl bg-slate-900 hover:bg-red-600 text-white transition-all duration-300 shadow-lg hover:shadow-red-200 group relative"
+              title="Cerrar Sesión"
+            >
+              <LogOut className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
         </div>
       </div>
 
