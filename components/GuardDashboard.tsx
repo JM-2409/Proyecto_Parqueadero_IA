@@ -1038,13 +1038,22 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
                               {session.metadata && Object.keys(session.metadata).length > 0 && (
                                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500 mt-1 mb-1">
                                   {Object.entries(session.metadata)
-                                    .filter(([k]) => k !== 'guard_name' && k !== 'checkout_guard_name')
+                                    .filter(([k]) => k !== 'guard_name' && k !== 'checkout_guard_name' && k !== 'admin_checkout_observation' && k !== 'admin_checkout_by' && k !== 'admin_checkout_time')
+                                    .sort(([keyA], [keyB]) => {
+                                      const labelA = entryFields.find(f => f.id === keyA)?.label?.toLowerCase() || '';
+                                      const labelB = entryFields.find(f => f.id === keyB)?.label?.toLowerCase() || '';
+                                      if (labelA.includes('nombre')) return -1;
+                                      if (labelB.includes('nombre')) return 1;
+                                      return 0;
+                                    })
                                     .map(([key, value]) => {
                                       const fieldDef = entryFields.find(f => f.id === key);
-                                      const displayKey = fieldDef ? fieldDef.label : key;
+                                      const displayLabel = fieldDef ? fieldDef.label : key;
+                                      const isNameField = displayLabel.toLowerCase().includes('nombre');
+
                                       return (
-                                        <span key={key} className="bg-slate-100 px-2 py-0.5 rounded-md text-slate-700 font-medium">
-                                          {String(value)}
+                                        <span key={key} className={`${isNameField ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-100 text-slate-700'} px-2 py-0.5 rounded-md font-medium`}>
+                                          {isNameField ? String(value) : `${displayLabel}: ${value}`}
                                         </span>
                                       );
                                     })}

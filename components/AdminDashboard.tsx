@@ -1015,14 +1015,25 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
                           </td>
                           <td className="px-6 py-4 text-xs text-slate-500 max-w-[200px] truncate">
                             {session.metadata && Object.keys(session.metadata).length > 0 ? (
-                              <div className="flex flex-col gap-0.5">
+                              <div className="flex flex-col gap-1">
                                 {Object.entries(session.metadata)
-                                  .filter(([k]) => k !== 'guard_name' && k !== 'checkout_guard_name')
+                                  .filter(([k]) => k !== 'guard_name' && k !== 'checkout_guard_name' && k !== 'admin_checkout_observation' && k !== 'admin_checkout_by' && k !== 'admin_checkout_time')
+                                  .sort(([keyA], [keyB]) => {
+                                    const labelA = entryFields.find(f => f.id === keyA)?.label?.toLowerCase() || '';
+                                    const labelB = entryFields.find(f => f.id === keyB)?.label?.toLowerCase() || '';
+                                    if (labelA.includes('nombre')) return -1;
+                                    if (labelB.includes('nombre')) return 1;
+                                    return 0;
+                                  })
                                   .map(([key, value]) => {
                                     const fieldDef = entryFields.find(f => f.id === key);
-                                    const displayKey = fieldDef ? fieldDef.label : key;
+                                    const displayLabel = fieldDef ? fieldDef.label : key;
+                                    const isNameField = displayLabel.toLowerCase().includes('nombre');
+
                                     return (
-                                      <span key={key} className="text-slate-700 font-medium">{String(value)}</span>
+                                      <span key={key} className={`${isNameField ? 'text-indigo-700 font-bold' : 'text-slate-700 font-medium'}`}>
+                                        {isNameField ? String(value) : `${displayLabel}: ${value}`}
+                                      </span>
                                     );
                                   })}
                               </div>
