@@ -742,16 +742,23 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
   const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-6">
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 bg-slate-900 text-white p-6 rounded-3xl shadow-lg">
-        <div>
-          <h1 className="text-2xl font-bold flex items-center gap-3">
-            <Shield className="w-6 h-6 text-indigo-400" />
-            {parkingLotName || 'Control de Parqueadero'}
-          </h1>
+    <div className="max-w-7xl mx-auto p-4 md:p-6 pb-20">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-6 bg-slate-900 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+        <div className="relative z-10 flex items-center gap-4">
+          <div className="w-14 h-14 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/20 shrink-0 overflow-hidden">
+            <img src={parkingLotLogo || "/logo.png"} alt="Logo" className="w-full h-full object-cover rounded-full" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
+            <Shield className="w-8 h-8 text-indigo-400 hidden" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold truncate">
+              {parkingLotName || 'Panel Administrativo'}
+            </h1>
+            <p className="text-sm text-slate-400 truncate">{parkingLotAddress || 'Gestión de Parqueadero'}</p>
+          </div>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="relative z-10 flex items-center gap-4 w-full sm:w-auto self-end sm:self-auto">
           {onSwitchView && (
             <div className="bg-slate-800 rounded-xl p-1 flex border border-slate-700">
               <button
@@ -779,41 +786,41 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex flex-wrap gap-2 mb-8 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 w-fit">
+      <div className="flex gap-2 mb-8 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 w-full overflow-x-auto no-scrollbar scroll-smooth">
         <button
           onClick={() => setActiveTab('dashboard')}
-          className={`px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all ${activeTab === 'dashboard' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}
+          className={`px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'dashboard' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
         >
           <BarChart3 className="w-4 h-4" />
-          Dashboard
+          Resumen
         </button>
         <button
           onClick={() => setActiveTab('users')}
-          className={`px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all ${activeTab === 'users' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}
+          className={`px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'users' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
         >
           <Users className="w-4 h-4" />
           Usuarios
         </button>
         <button
           onClick={() => setActiveTab('rates')}
-          className={`px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all ${activeTab === 'rates' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}
+          className={`px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'rates' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
         >
-          <Settings className="w-4 h-4" />
+          <DollarSign className="w-4 h-4" />
           Tarifas
         </button>
         <button
           onClick={() => setActiveTab('private_spots')}
-          className={`px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all ${activeTab === 'private_spots' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}
+          className={`px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'private_spots' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
         >
           <Car className="w-4 h-4" />
           Privados
         </button>
         <button
           onClick={() => setActiveTab('settings')}
-          className={`px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all ${activeTab === 'settings' ? 'bg-indigo-50 text-indigo-700' : 'text-slate-600 hover:bg-slate-50'}`}
+          className={`px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === 'settings' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-600 hover:bg-slate-50'}`}
         >
           <Settings className="w-4 h-4" />
-          Configuración
+          Ajustes
         </button>
       </div>
 
