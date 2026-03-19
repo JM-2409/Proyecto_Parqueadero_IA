@@ -1298,69 +1298,97 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
               </h2>
               <p className="text-slate-500 mb-6 font-mono text-lg">{completedSession.license_plate}</p>
               
-              <div id="receipt-content" className="bg-white rounded-2xl p-6 mb-6 text-left border-2 border-slate-100 shadow-sm relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-indigo-50/50 rounded-bl-full -z-0"></div>
+              <div id="receipt-content" className="bg-white p-8 mb-6 text-left border border-slate-200 shadow-sm relative mx-auto w-full max-w-[320px] font-sans">
+                {/* Simulated Paper Edge */}
+                <div className="absolute top-0 left-0 w-full h-1 bg-slate-100"></div>
+
                 <div className="relative z-10">
-                  <div className="text-center mb-6 border-b-2 border-dashed border-slate-200 pb-6">
-                    <div className="w-20 h-20 rounded-2xl overflow-hidden mx-auto mb-3 shadow-md border-2 border-white bg-white">
+                  {/* Header */}
+                  <div className="text-center mb-6 border-b-2 border-dashed border-slate-300 pb-6">
+                    <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-4 shadow-sm border-2 border-slate-100 bg-white">
                       <img src={globalSettings.logo_url || "/logo.png"} alt="Logo" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
-                      <div className="w-full h-full bg-indigo-50 hidden items-center justify-center">
-                        <Car className="w-10 h-10 text-indigo-600" />
+                      <div className="w-full h-full bg-slate-50 hidden items-center justify-center">
+                        <Car className="w-12 h-12 text-slate-400" />
                       </div>
                     </div>
-                    <h3 className="font-black text-slate-800 text-xl uppercase tracking-tight leading-tight">{globalSettings.name || 'Parqueadero'}</h3>
+                    <h3 className="font-black text-slate-900 text-xl uppercase tracking-tighter leading-none mb-1">{globalSettings.name || 'Parqueadero'}</h3>
                     {globalSettings.nit && (
-                      <p className="text-xs font-bold text-slate-400 font-mono mt-1">NIT: {globalSettings.nit}</p>
+                      <p className="text-[11px] font-bold text-slate-500 font-mono">NIT: {globalSettings.nit}</p>
                     )}
-                    <div className="mt-4 inline-block bg-slate-800 text-white px-3 py-1 rounded-full text-xs font-bold tracking-widest">
-                      RECIBO NO: {completedSession.ticket_number}
+                    {globalSettings.address && (
+                      <p className="text-[10px] font-medium text-slate-400 mt-1 uppercase leading-tight px-4">{globalSettings.address}</p>
+                    )}
+                    {globalSettings.phone && (
+                      <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">TEL: {globalSettings.phone}</p>
+                    )}
+
+                    <div className="mt-5 border-t border-b border-slate-200 py-1 inline-block px-4">
+                      <p className="text-[10px] font-black text-slate-900 tracking-[0.3em] uppercase">Recibo No: {completedSession.ticket_number}</p>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-y-4 gap-x-2">
-                    <div className="col-span-2">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Placa</p>
-                      <p className="text-2xl font-black text-slate-900 font-mono tracking-[0.2em]">{completedSession.license_plate}</p>
+                  {/* Main Content */}
+                  <div className="space-y-6">
+                    {/* Plate Section */}
+                    <div className="text-center bg-slate-900 text-white py-3 rounded-lg shadow-inner">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Placa del Vehículo</p>
+                      <p className="text-4xl font-black font-mono tracking-[0.1em]">{completedSession.license_plate}</p>
                     </div>
 
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Ingreso</p>
-                      <p className="text-xs font-bold text-slate-800 leading-tight">
-                        {format(new Date(completedSession.entry_time), 'dd/MM/yy')}<br/>
-                        {format(new Date(completedSession.entry_time), 'h:mm a')}
-                      </p>
+                    {/* Times & Info Grid */}
+                    <div className="grid grid-cols-2 gap-y-5 gap-x-4 border-b-2 border-dashed border-slate-200 pb-6">
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ingreso</p>
+                        <p className="text-xs font-bold text-slate-800 leading-tight">
+                          {format(new Date(completedSession.entry_time), 'dd/MM/yyyy')}<br/>
+                          <span className="text-base tracking-tight">{format(new Date(completedSession.entry_time), 'h:mm a')}</span>
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Salida</p>
+                        <p className="text-xs font-bold text-slate-800 leading-tight">
+                          {format(new Date(completedSession.exit_time), 'dd/MM/yyyy')}<br/>
+                          <span className="text-base tracking-tight">{format(new Date(completedSession.exit_time), 'h:mm a')}</span>
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tiempo Total</p>
+                        <p className="text-sm font-black text-slate-900">{Math.max(1, differenceInMinutes(new Date(completedSession.exit_time), new Date(completedSession.entry_time)))} Minutos</p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tipo Tarifa</p>
+                        <p className="text-xs font-bold text-slate-800 truncate" title={completedSession.rate?.name}>{completedSession.rate?.name || 'N/A'}</p>
+                      </div>
                     </div>
 
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Salida</p>
-                      <p className="text-xs font-bold text-slate-800 leading-tight">
-                        {format(new Date(completedSession.exit_time), 'dd/MM/yy')}<br/>
-                        {format(new Date(completedSession.exit_time), 'h:mm a')}
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tiempo</p>
-                      <p className="text-sm font-bold text-slate-800">{Math.max(1, differenceInMinutes(new Date(completedSession.exit_time), new Date(completedSession.entry_time)))} min</p>
-                    </div>
-
-                    <div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Tarifa</p>
-                      <p className="text-sm font-bold text-slate-800 truncate" title={completedSession.rate?.name}>{completedSession.rate?.name || 'N/A'}</p>
+                    {/* Total Section */}
+                    <div className="pt-2">
+                      <div className="flex justify-between items-baseline mb-1">
+                        <span className="text-sm font-black text-slate-900 uppercase tracking-widest">Total Cobrado</span>
+                        <span className="text-xs font-bold text-slate-400 uppercase">COP</span>
+                      </div>
+                      <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-center">
+                        <span className="text-4xl font-black text-emerald-600 leading-none">{formatCurrency(completedSession.amount_paid)}</span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="mt-8 pt-6 border-t-2 border-dashed border-slate-200">
-                    <div className="flex justify-between items-end">
-                      <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Total Pagado</span>
-                      <span className="text-3xl font-black text-emerald-600 leading-none">{formatCurrency(completedSession.amount_paid)}</span>
+                  {/* Footer */}
+                  <div className="mt-10 text-center space-y-4">
+                    <p className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em] italic">¡Gracias por preferirnos!</p>
+                    <div className="flex justify-center items-center gap-1 opacity-20 grayscale">
+                      <div className="h-[1px] w-8 bg-black"></div>
+                      <Car className="w-3 h-3" />
+                      <div className="h-[1px] w-8 bg-black"></div>
                     </div>
-                  </div>
-
-                  <div className="mt-6 text-center">
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.2em]">¡Gracias por su visita!</p>
                   </div>
                 </div>
+
+                {/* Simulated Paper Bottom */}
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-100"></div>
               </div>
 
               <div className="space-y-4 mb-6">
