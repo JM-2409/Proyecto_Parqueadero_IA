@@ -19,6 +19,8 @@ import {
   Shield,
   Edit2,
   Plus,
+  X,
+  Printer,
 } from "lucide-react";
 import { format, differenceInMinutes, subDays } from "date-fns";
 import { es } from "date-fns/locale";
@@ -862,11 +864,11 @@ export default function GuardDashboard({
     <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 sm:mb-8 gap-4 sm:gap-6 bg-white/90 backdrop-blur-xl border-b border-slate-200/50 p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="relative z-10 flex items-center gap-3 sm:gap-4 w-full md:w-auto">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden flex items-center justify-center border border-slate-200 shadow-sm bg-white shrink-0">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center border border-slate-200 shadow-sm bg-white shrink-0 aspect-square">
             <img
-              src={globalSettings.logo_url || "/logo.png"}
+              src="/logo.png"
               alt="Logo"
-              className="w-full h-full object-contain p-1"
+              className="w-full h-full object-cover"
               onError={(e) => {
                 e.currentTarget.style.display = "none";
                 (
@@ -1612,7 +1614,16 @@ export default function GuardDashboard({
       {/* Modal de Recibo (Completed Session) */}
       {completedSession && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full max-h-[95vh] overflow-y-auto animate-in fade-in zoom-in duration-200 relative">
+            <button
+              onClick={() => {
+                setCompletedSession(null);
+                setWhatsappNumber("");
+              }}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors z-10"
+            >
+              <X className="w-6 h-6" />
+            </button>
             <div className="p-6 text-center">
               <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-emerald-50">
                 <CheckCircle className="w-8 h-8 text-emerald-600" />
@@ -1620,12 +1631,12 @@ export default function GuardDashboard({
               <h2 className="text-2xl font-bold text-slate-800 mb-1">
                 Pago Exitoso
               </h2>
-              <p className="text-slate-500 mb-6 font-mono text-lg">
+              <p className="text-slate-500 mb-4 font-mono text-lg">
                 {completedSession.license_plate}
               </p>
 
               <div
-                className="bg-white p-6 mb-6 text-left border border-slate-200 shadow-sm relative mx-auto w-full max-w-[320px] font-mono text-sm text-slate-800 max-h-[60vh] overflow-y-auto"
+                className="bg-white p-4 mb-6 text-left border border-slate-200 shadow-sm relative mx-auto w-full max-w-[300px] font-mono text-xs text-slate-800"
                 id="receipt-content"
               >
                 {/* Header */}
@@ -1770,7 +1781,14 @@ export default function GuardDashboard({
                 </div>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={handlePrintReceipt}
+                  className="flex-1 py-3 px-4 rounded-xl font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                >
+                  <Printer className="w-4 h-4" />
+                  Imprimir
+                </button>
                 <button
                   onClick={() => {
                     setCompletedSession(null);
@@ -1779,12 +1797,6 @@ export default function GuardDashboard({
                   className="flex-1 py-3 px-4 rounded-xl font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
                 >
                   Cerrar
-                </button>
-                <button
-                  onClick={handlePrintReceipt}
-                  className="flex-1 py-3 px-4 rounded-xl font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors"
-                >
-                  Imprimir
                 </button>
               </div>
             </div>
