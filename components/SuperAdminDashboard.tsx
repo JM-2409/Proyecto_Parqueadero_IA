@@ -360,16 +360,7 @@ export default function SuperAdminDashboard({
               src="/logo.png"
               alt="Logo"
               className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-                (
-                  e.currentTarget.nextElementSibling as HTMLElement
-                ).style.display = "flex";
-              }}
             />
-            <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-indigo-700 hidden items-center justify-center">
-              <Car className="w-7 h-7 text-white" />
-            </div>
           </div>
           <div className="min-w-0">
             <h1 className="text-lg sm:text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 truncate leading-tight">

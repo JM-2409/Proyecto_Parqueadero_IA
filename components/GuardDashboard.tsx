@@ -869,16 +869,7 @@ export default function GuardDashboard({
               src="/logo.png"
               alt="Logo"
               className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-                (
-                  e.currentTarget.nextElementSibling as HTMLElement
-                ).style.display = "flex";
-              }}
             />
-            <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-indigo-700 hidden items-center justify-center">
-              <Car className="w-7 h-7 text-white" />
-            </div>
           </div>
           <div className="min-w-0">
             <h1 className="text-lg sm:text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 truncate leading-tight">
@@ -1643,19 +1634,10 @@ export default function GuardDashboard({
                 <div className="text-center mb-4 border-b border-slate-200 pb-4">
                   <div className="w-12 h-12 mx-auto mb-2">
                     <img
-                      src={globalSettings.logo_url || "/logo.png"}
+                      src="/logo.png"
                       alt="Logo"
                       className="w-full h-full object-contain"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                        (
-                          e.currentTarget.nextElementSibling as HTMLElement
-                        ).style.display = "flex";
-                      }}
                     />
-                    <div className="w-full h-full hidden items-center justify-center">
-                      <Car className="w-6 h-6 text-slate-400" />
-                    </div>
                   </div>
                   <h3 className="font-bold text-lg">
                     {globalSettings.app_name || "Parqueadero"}
@@ -1807,8 +1789,17 @@ export default function GuardDashboard({
       {/* Modal de Checkout */}
       {checkoutSession && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6 text-center">
+          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200 relative">
+            <button
+              onClick={() => {
+                setCheckoutSession(null);
+                setConfirmAmount(false);
+              }}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors z-10"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <div className="p-6 text-center overflow-y-auto">
               <div
                 className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${confirmAmount ? "bg-emerald-50" : "bg-indigo-50"}`}
               >

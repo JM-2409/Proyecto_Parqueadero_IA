@@ -980,16 +980,7 @@ export default function AdminDashboard({
               src="/logo.png"
               alt="Logo"
               className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-                (
-                  e.currentTarget.nextElementSibling as HTMLElement
-                ).style.display = "flex";
-              }}
             />
-            <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-indigo-700 hidden items-center justify-center">
-              <Car className="w-7 h-7 text-white" />
-            </div>
           </div>
           <div className="min-w-0">
             <h1 className="text-lg sm:text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 truncate leading-tight">
@@ -3322,21 +3313,21 @@ export default function AdminDashboard({
       {/* Admin Checkout Modal */}
       {adminCheckoutSession && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-slate-800">
-                  Forzar Salida de Vehículo
-                </h2>
-                <button
-                  onClick={() => setAdminCheckoutSession(null)}
-                  className="text-slate-400 hover:text-slate-600 transition-colors"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
+          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+              <h2 className="text-xl font-bold text-slate-800">
+                Forzar Salida de Vehículo
+              </h2>
+              <button
+                onClick={() => setAdminCheckoutSession(null)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
 
-              <div className="mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="p-6 space-y-4 overflow-y-auto">
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                 <p className="text-sm text-slate-500 mb-1">Placa</p>
                 <p className="text-xl font-mono font-bold text-slate-800">
                   {adminCheckoutSession.license_plate}

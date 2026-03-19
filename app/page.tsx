@@ -169,11 +169,8 @@ export default function Home() {
           <header className="fixed top-0 w-full bg-white/90 backdrop-blur-xl border-b border-slate-200/50 z-50 transition-all duration-300 shadow-sm">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
               <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                <div className="w-12 h-12 rounded-2xl overflow-hidden flex items-center justify-center border border-slate-200 shadow-sm bg-white">
-                  <img src={globalSettings.logo_url || "/logo.png"} alt={globalSettings.app_name} className="w-full h-full object-contain p-1" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
-                  <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-indigo-700 hidden items-center justify-center">
-                    <Car className="w-7 h-7 text-white" />
-                  </div>
+                <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center border border-slate-200 shadow-sm bg-white">
+                  <img src="/logo.png" alt={globalSettings.app_name} className="w-full h-full object-contain p-1" />
                 </div>
                 <span className="font-extrabold text-2xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">{globalSettings.app_name}</span>
               </div>
@@ -377,10 +374,7 @@ export default function Home() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-slate-700 bg-white">
-                  <img src={globalSettings.logo_url || "/logo.png"} alt={globalSettings.app_name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
-                  <div className="w-full h-full bg-indigo-600 hidden items-center justify-center">
-                    <Car className="w-4 h-4 text-white" />
-                  </div>
+                  <img src="/logo.png" alt={globalSettings.app_name} className="w-full h-full object-cover" />
                 </div>
                 <span className="font-bold text-lg text-white">{globalSettings.app_name}</span>
               </div>
@@ -404,8 +398,7 @@ export default function Home() {
             <ArrowRight className="w-6 h-6 rotate-180" />
           </button>
           <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-md mt-4 overflow-hidden border-2 border-slate-100 p-1">
-            <img src={globalSettings.logo_url || "/logo.png"} alt={globalSettings.app_name} className="w-full h-full object-cover rounded-full" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
-            <Car className="w-12 h-12 text-indigo-600 hidden" />
+            <img src="/logo.png" alt={globalSettings.app_name} className="w-full h-full object-cover rounded-full" />
           </div>
           <h1 className="text-3xl font-bold text-slate-800 mb-2 text-center">{globalSettings.app_name}</h1>
           <p className="text-slate-500 mb-8 text-center leading-relaxed">
