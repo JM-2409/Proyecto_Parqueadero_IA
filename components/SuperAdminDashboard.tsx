@@ -278,53 +278,53 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div className="flex justify-between items-center mb-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-6">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center overflow-hidden shadow-sm">
+          <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center overflow-hidden shadow-md border border-slate-100 shrink-0">
             <img src={globalLogoUrl || "/logo.png"} alt={globalAppName} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
-            <Shield className="w-6 h-6 text-indigo-600 hidden" />
+            <Shield className="w-7 h-7 text-indigo-600 hidden" />
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-800">Panel Super Administrador</h1>
-            <p className="text-slate-500">Gestión global de parqueaderos y administradores</p>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-800 truncate">Panel Super Administrador</h1>
+            <p className="text-sm text-slate-500 truncate">Gestión global de parqueaderos</p>
           </div>
         </div>
         <button
           onClick={onLogout}
-          className="flex items-center gap-2 px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-xl transition-colors font-medium"
+          className="flex items-center gap-2 px-4 py-2.5 text-slate-600 hover:bg-slate-200 rounded-xl transition-colors font-medium bg-white border border-slate-200 shadow-sm self-end sm:self-auto"
         >
           <LogOut className="w-5 h-5" />
-          <span className="hidden sm:inline">Cerrar Sesión</span>
+          <span>Cerrar Sesión</span>
         </button>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-between items-start sm:items-center">
-        <div className="flex gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 w-fit">
+      <div className="flex flex-col lg:flex-row gap-4 mb-8 justify-between items-start lg:items-center">
+        <div className="flex gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 w-full overflow-x-auto no-scrollbar">
           <button
             onClick={() => { setActiveTab('parking_lots'); setSearchTerm(''); }}
-            className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 ${activeTab === 'parking_lots' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
+            className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'parking_lots' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
           >
             <Building2 className="w-4 h-4" />
             Parqueaderos
           </button>
           <button
             onClick={() => { setActiveTab('users'); setSearchTerm(''); }}
-            className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 ${activeTab === 'users' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
+            className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'users' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
           >
             <Users className="w-4 h-4" />
             Usuarios
           </button>
           <button
             onClick={() => { setActiveTab('settings'); setSearchTerm(''); }}
-            className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 ${activeTab === 'settings' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
+            className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 whitespace-nowrap ${activeTab === 'settings' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
           >
             <Settings className="w-4 h-4" />
             Configuración Global
           </button>
         </div>
 
-        <div className="relative w-full sm:w-72">
+        <div className="relative w-full lg:w-72">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search className="h-5 w-5 text-slate-400" />
           </div>
@@ -379,14 +379,14 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
                 {parkingLots
                   .filter(lot => lot.name.toLowerCase().includes(searchTerm.toLowerCase()) || (lot.nit && lot.nit.includes(searchTerm)))
                   .map(lot => (
-                  <div key={lot.id} className={`p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-slate-50 transition-colors ${lot.status === 'suspended' ? 'opacity-60' : ''}`}>
+                  <div key={lot.id} className={`p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 transition-colors ${lot.status === 'suspended' ? 'opacity-60' : ''}`}>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold text-slate-800 text-lg truncate">{lot.name}</h3>
-                      <div className="text-sm text-slate-500 mt-1 flex flex-wrap gap-x-4 gap-y-1">
-                        <span>NIT: {lot.nit || 'N/A'}</span>
-                        <span>Dir: {lot.address || 'N/A'}</span>
-                        <span className="capitalize">Plan: {lot.subscription_plan || 'trial'}</span>
-                        <span>Vence: {lot.subscription_end_date ? new Date(lot.subscription_end_date).toLocaleDateString() : 'N/A'}</span>
+                      <div className="text-sm text-slate-500 mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                        <span className="truncate">NIT: {lot.nit || 'N/A'}</span>
+                        <span className="truncate">Dir: {lot.address || 'N/A'}</span>
+                        <span className="capitalize truncate">Plan: {lot.subscription_plan === 'trial' ? 'Prueba' : lot.subscription_plan}</span>
+                        <span className="truncate">Vence: {lot.subscription_end_date ? new Date(lot.subscription_end_date).toLocaleDateString() : 'N/A'}</span>
                       </div>
                       {lot.status === 'suspended' && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 mt-2">
@@ -532,13 +532,13 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
               
               <div className="p-6">
                 <div className="space-y-6 max-w-2xl">
-                  <div className="flex items-center gap-6 mb-6">
-                    <div className="w-24 h-24 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden relative group shadow-sm">
+                  <div className="flex flex-col sm:flex-row items-center gap-6 mb-6 text-center sm:text-left">
+                    <div className="w-24 h-24 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center overflow-hidden relative group shadow-md p-1 shrink-0">
                       {(newGlobalLogoFile || globalLogoUrl) ? (
                         <img 
                           src={newGlobalLogoFile ? URL.createObjectURL(newGlobalLogoFile) : globalLogoUrl!} 
                           alt="Logo Global" 
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover rounded-full"
                         />
                       ) : (
                         <Building2 className="w-8 h-8 text-slate-400" />
@@ -602,7 +602,7 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
                 <label className="block text-sm font-medium text-slate-700 mb-1">Dirección</label>
                 <input type="text" value={lotAddress} onChange={e => setLotAddress(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Teléfono</label>
                   <input type="text" value={lotPhone} onChange={e => setLotPhone(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" />
@@ -612,7 +612,7 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
                   <input type="email" value={lotEmail} onChange={e => setLotEmail(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">Plan de Suscripción</label>
                   <select value={lotSubscriptionPlan} onChange={e => setLotSubscriptionPlan(e.target.value)} className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
@@ -666,7 +666,7 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">Rol</label>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button type="button" onClick={() => setUserRole('admin')} className={`py-2 px-3 rounded-xl border flex items-center justify-center gap-2 ${userRole === 'admin' ? 'border-purple-600 bg-purple-50 text-purple-700' : 'border-slate-200 bg-white text-slate-600'}`}>
                     <Key className="w-4 h-4" /> Admin
                   </button>

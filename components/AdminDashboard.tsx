@@ -1493,13 +1493,13 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
                 <div className="py-12 text-center text-slate-500">Cargando información...</div>
               ) : (
                 <div className="space-y-6 max-w-2xl">
-                  <div className="flex items-center gap-6 mb-6">
-                    <div className="w-24 h-24 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden relative group shadow-sm">
+                  <div className="flex flex-col sm:flex-row items-center gap-6 mb-6 text-center sm:text-left">
+                  <div className="w-24 h-24 rounded-full bg-slate-50 border-2 border-slate-200 flex items-center justify-center overflow-hidden relative group shadow-md p-1">
                       {(newLogoFile || parkingLotLogo) ? (
                         <img 
                           src={newLogoFile ? URL.createObjectURL(newLogoFile) : parkingLotLogo!} 
                           alt="Logo" 
-                          className="w-full h-full object-cover"
+                        className="w-full h-full object-cover rounded-full"
                         />
                       ) : (
                         <Building2 className="w-8 h-8 text-slate-400" />
@@ -1532,7 +1532,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-slate-700 mb-2">Nombre del Parqueadero</label>
                       <input
@@ -1567,7 +1567,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4 mt-6 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
                     <div>
                       <label className="block text-sm font-medium text-indigo-900 mb-1">Plan de Suscripción</label>
                       <div className="font-semibold text-indigo-700 capitalize">
@@ -2208,7 +2208,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
 
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2">Rol del Sistema</label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setRole('guard')}
@@ -2261,7 +2261,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
               </h2>
 
               <form onSubmit={handleSaveRate} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Vehículo</label>
                     <select

@@ -773,7 +773,7 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
         
         <div className="flex flex-wrap items-center justify-center gap-4">
           {onSwitchView && (
-            <div className="bg-slate-100 rounded-xl p-1 flex border border-slate-200">
+            <div className="bg-slate-100 rounded-xl p-1 flex border border-slate-200 shadow-sm">
               <button
                 onClick={() => onSwitchView('admin')}
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${currentView === 'admin' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200'}`}
@@ -1276,9 +1276,11 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
               
               <div id="receipt-content" className="bg-slate-50 rounded-2xl p-4 mb-6 text-left space-y-4">
                 <div className="text-center mb-4 border-b border-slate-200 pb-4">
-                  <img src={globalSettings.logo_url || "/logo.png"} alt="Logo" className="w-16 h-16 object-cover rounded-full mx-auto mb-2 shadow-sm" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
-                  <div className="w-16 h-16 bg-indigo-50 rounded-full hidden items-center justify-center mx-auto mb-2">
-                    <Car className="w-8 h-8 text-indigo-600" />
+                  <div className="w-16 h-16 rounded-full overflow-hidden mx-auto mb-2 shadow-sm border border-slate-100 bg-white">
+                    <img src={globalSettings.logo_url || "/logo.png"} alt="Logo" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
+                    <div className="w-full h-full bg-indigo-50 hidden items-center justify-center">
+                      <Car className="w-8 h-8 text-indigo-600" />
+                    </div>
                   </div>
                   <h3 className="font-bold text-slate-800 text-lg">{globalSettings.name || 'Parqueadero'}</h3>
                   {globalSettings.nit && (

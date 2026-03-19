@@ -169,9 +169,11 @@ export default function Home() {
           <header className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-slate-100 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <img src={globalSettings.logo_url || "/logo.png"} alt={globalSettings.app_name} className="w-8 h-8 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
-                <div className="w-8 h-8 bg-indigo-600 rounded-lg hidden items-center justify-center">
-                  <Car className="w-5 h-5 text-white" />
+                <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border border-slate-200">
+                  <img src={globalSettings.logo_url || "/logo.png"} alt={globalSettings.app_name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
+                  <div className="w-full h-full bg-indigo-600 hidden items-center justify-center">
+                    <Car className="w-6 h-6 text-white" />
+                  </div>
                 </div>
                 <span className="font-bold text-xl tracking-tight text-slate-800">{globalSettings.app_name}</span>
               </div>
@@ -342,9 +344,9 @@ export default function Home() {
           <button onClick={() => setShowLogin(false)} className="absolute top-6 left-6 text-slate-400 hover:text-slate-600">
             <ArrowRight className="w-6 h-6 rotate-180" />
           </button>
-          <div className="w-20 h-20 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner mt-4 overflow-hidden">
-            <img src={globalSettings.logo_url || "/logo.png"} alt={globalSettings.app_name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
-            <Car className="w-10 h-10 text-indigo-600 hidden" />
+          <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-md mt-4 overflow-hidden border-2 border-slate-100 p-1">
+            <img src={globalSettings.logo_url || "/logo.png"} alt={globalSettings.app_name} className="w-full h-full object-cover rounded-full" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
+            <Car className="w-12 h-12 text-indigo-600 hidden" />
           </div>
           <h1 className="text-3xl font-bold text-slate-800 mb-2 text-center">{globalSettings.app_name}</h1>
           <p className="text-slate-500 mb-8 text-center leading-relaxed">
