@@ -820,7 +820,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
       {activeTab === 'dashboard' && (
         <>
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-5">
               <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center">
                 <DollarSign className="w-7 h-7 text-emerald-600" />
@@ -893,7 +893,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
                 </div>
               </div>
             </div>
-            <div className="h-80 w-full">
+            <div className="h-64 sm:h-80 w-full">
               {chartData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <ComposedChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>

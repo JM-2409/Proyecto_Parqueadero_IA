@@ -186,11 +186,11 @@ export default function Home() {
           </header>
 
           {/* Hero Section */}
-          <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-            <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 mb-6">
+          <section className="pt-24 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 mb-6">
               El control total de tu <span className="text-indigo-600">parqueadero</span>
             </h1>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto mb-10 leading-relaxed">
+            <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-10 leading-relaxed">
               Software en la nube diseñado para administrar estacionamientos de manera eficiente. Controla ingresos, salidas, tarifas, mensualidades y cierres de caja en tiempo real.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">

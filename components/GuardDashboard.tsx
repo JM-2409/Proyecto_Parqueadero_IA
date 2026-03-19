@@ -827,13 +827,13 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
       <div className="lg:hidden mb-6 bg-white rounded-xl p-1 flex border border-slate-200 shadow-sm">
         <button
           onClick={() => setMobileView('entry')}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${mobileView === 'entry' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
+          className={`flex-1 py-3 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${mobileView === 'entry' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
         >
           Registrar Ingreso
         </button>
         <button
           onClick={() => setMobileView('list')}
-          className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${mobileView === 'list' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
+          className={`flex-1 py-3 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${mobileView === 'list' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
         >
           Vehículos Activos
         </button>
@@ -1013,7 +1013,7 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
-                                <h3 className="text-xl font-bold text-slate-800 font-mono tracking-wider">{session.license_plate}</h3>
+                                <h3 className="text-lg sm:text-xl font-bold text-slate-800 font-mono tracking-wider">{session.license_plate}</h3>
                                 {session.ticket_number && (
                                   <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs font-medium">
                                     #{session.ticket_number}
@@ -1276,9 +1276,10 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
               
               <div id="receipt-content" className="bg-slate-50 rounded-2xl p-4 mb-6 text-left space-y-4">
                 <div className="text-center mb-4 border-b border-slate-200 pb-4">
-                  {globalSettings.logo_url && (
-                    <img src={globalSettings.logo_url} alt="Logo" className="w-16 h-16 object-cover rounded-full mx-auto mb-2 shadow-sm" />
-                  )}
+                  <img src={globalSettings.logo_url || "/logo.png"} alt="Logo" className="w-16 h-16 object-cover rounded-full mx-auto mb-2 shadow-sm" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
+                  <div className="w-16 h-16 bg-indigo-50 rounded-full hidden items-center justify-center mx-auto mb-2">
+                    <Car className="w-8 h-8 text-indigo-600" />
+                  </div>
                   <h3 className="font-bold text-slate-800 text-lg">{globalSettings.name || 'Parqueadero'}</h3>
                   {globalSettings.nit && (
                     <p className="text-xs text-slate-500 font-mono mt-1">NIT: {globalSettings.nit}</p>

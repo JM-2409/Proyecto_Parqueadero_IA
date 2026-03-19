@@ -379,9 +379,9 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
                 {parkingLots
                   .filter(lot => lot.name.toLowerCase().includes(searchTerm.toLowerCase()) || (lot.nit && lot.nit.includes(searchTerm)))
                   .map(lot => (
-                  <div key={lot.id} className={`p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 transition-colors ${lot.status === 'suspended' ? 'opacity-60' : ''}`}>
-                    <div>
-                      <h3 className="font-semibold text-slate-800 text-lg">{lot.name}</h3>
+                  <div key={lot.id} className={`p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-slate-50 transition-colors ${lot.status === 'suspended' ? 'opacity-60' : ''}`}>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-semibold text-slate-800 text-lg truncate">{lot.name}</h3>
                       <div className="text-sm text-slate-500 mt-1 flex flex-wrap gap-x-4 gap-y-1">
                         <span>NIT: {lot.nit || 'N/A'}</span>
                         <span>Dir: {lot.address || 'N/A'}</span>
@@ -464,13 +464,13 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
                 {users
                   .filter(u => u.email.toLowerCase().includes(searchTerm.toLowerCase()) || (u.parking_lot_name && u.parking_lot_name.toLowerCase().includes(searchTerm.toLowerCase())))
                   .map(u => (
-                  <div key={u.user_id} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
-                    <div className="flex items-center gap-4">
+                  <div key={u.user_id} className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-slate-50 transition-colors">
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${u.role === 'admin' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
                         {u.role === 'admin' ? <Key className="w-5 h-5" /> : <Shield className="w-5 h-5" />}
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-slate-800 break-all">{u.email.split('@')[0]}</h3>
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-slate-800 truncate">{u.email.split('@')[0]}</h3>
                         <div className="text-sm text-slate-500 mt-0.5 flex flex-wrap items-center gap-2">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${u.role === 'admin' ? 'bg-purple-50 text-purple-700' : 'bg-blue-50 text-blue-700'}`}>
                             {u.role === 'admin' ? 'Administrador' : 'Vigilante'}
