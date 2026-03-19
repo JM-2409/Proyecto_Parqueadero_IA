@@ -23,11 +23,12 @@ Un sistema web moderno y completo para la administración y control de estaciona
 
 ### Panel de Vigilante (Guarda)
 * **Ingreso Rápido:** Registro de entrada de vehículos con un solo clic y autocompletado inteligente (ocultando nombre del vigilante).
+* **Autocompletado Mejorado:** Búsqueda robusta de placas recurrentes para autocompletar tipo de vehículo y campos personalizados.
 * **Control en Tiempo Real:** Visualización de vehículos activos y disponibilidad de espacios.
 * **Salida Automatizada:** Cálculo automático del valor a cobrar basado en las tarifas configuradas.
 * **Gestión de Turnos:** Registro del nombre del guarda en turno y entrega de turno.
 * **Parqueaderos Privados:** Visualización, búsqueda, ordenamiento y edición de datos de parqueaderos privados.
-* **Recibos Personalizados:** Generación de recibos de pago con logo y datos del parqueadero, listos para imprimir o compartir.
+* **Recibos Personalizados:** Generación de recibos de pago con formato de "ticket térmico", logo y datos del parqueadero, listos para descargar como imagen o compartir por WhatsApp.
 
 ### Seguridad y Base de Datos (Supabase)
 * **Row Level Security (RLS):** Políticas de seguridad a nivel de fila estrictas para garantizar que los datos de cada parqueadero estén aislados y seguros.
@@ -47,6 +48,8 @@ Un sistema web moderno y completo para la administración y control de estaciona
 * **Gráficos:** Recharts
 * **Backend & Base de Datos:** Supabase (PostgreSQL)
 * **Autenticación:** Supabase Auth
+* **Generación de Recibos:** html2canvas
+* **Manejo de Fechas:** date-fns (con soporte para español)
 
 ## ⚙️ Instalación y Configuración Local
 

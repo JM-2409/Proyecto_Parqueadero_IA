@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Car, Bike, Motorbike, Clock, LogOut, CheckCircle, Search, DollarSign, Zap, History, Share2, Image as ImageIcon, UserCircle, Shield, Edit2, Plus } from 'lucide-react';
 import { format, differenceInMinutes, subDays } from 'date-fns';
-import { es } from 'date-fns/locale';
 import html2canvas from 'html2canvas';
 
 export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchView, currentView }: { user: any, onLogout: () => void, parkingLotId: string | null, onSwitchView?: (view: 'admin' | 'guard') => void, currentView?: 'admin' | 'guard' }) {
@@ -247,37 +246,28 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
 
     if (val.length >= 5) {
       searchTimeoutRef.current = setTimeout(async () => {
-        try {
-          // Buscamos la sesión más reciente para esta placa en este parqueadero
-          const { data, error } = await supabase
-            .from('parking_sessions')
-            .select('vehicle_type, metadata')
-            .eq('parking_lot_id', parkingLotId)
-            .eq('license_plate', val)
-            .order('entry_time', { ascending: false })
-            .limit(1)
-            .maybeSingle();
+        // Buscamos la sesión más reciente para esta placa en este parqueadero
+        const { data, error } = await supabase
+          .from('parking_sessions')
+          .select('vehicle_type, metadata')
+          .eq('parking_lot_id', parkingLotId)
+          .eq('license_plate', val)
+          .order('entry_time', { ascending: false })
+          .limit(1);
 
-          if (error) {
-            console.error('Error fetching previous session for autocomplete:', error);
-            return;
+        if (!error && data && data.length > 0) {
+          const lastSession = data[0];
+          setType(lastSession.vehicle_type);
+
+          if (lastSession.metadata && typeof lastSession.metadata === 'object') {
+            const filteredMetadata = { ...lastSession.metadata };
+            // Limpiamos campos internos que no queremos autocompletar
+            const internalFields = ['guard_name', 'checkout_guard_name', 'admin_checkout_observation', 'admin_checkout_by', 'admin_checkout_time'];
+            internalFields.forEach(field => delete filteredMetadata[field]);
+
+            setFieldValues(filteredMetadata);
           }
-
-          if (data) {
-            setType(data.vehicle_type);
-
-            if (data.metadata && typeof data.metadata === 'object') {
-              const filteredMetadata = { ...data.metadata };
-              // Limpiamos campos internos que no queremos autocompletar
-              const internalFields = ['guard_name', 'checkout_guard_name', 'admin_checkout_observation', 'admin_checkout_by', 'admin_checkout_time'];
-              internalFields.forEach(field => delete filteredMetadata[field]);
-
-              setFieldValues(filteredMetadata);
-            }
-            setAutoCompleted(true);
-          }
-        } catch (err) {
-          console.error('Unexpected error during autocomplete:', err);
+          setAutoCompleted(true);
         }
       }, 400); // debounce 400ms
     }
@@ -1308,75 +1298,97 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
               </h2>
               <p className="text-slate-500 mb-6 font-mono text-lg">{completedSession.license_plate}</p>
               
-              <div id="receipt-content" className="bg-white p-6 mb-6 text-left border border-slate-200 shadow-sm relative mx-auto w-full max-w-[320px] font-mono text-sm text-slate-800">
-                {/* Header */}
-                <div className="text-center mb-4 border-b border-dashed border-slate-400 pb-4">
-                  <div className="w-16 h-16 mx-auto mb-2">
-                    <img src={globalSettings.logo_url || "/logo.png"} alt="Logo" className="w-full h-full object-contain grayscale" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
-                    <div className="w-full h-full hidden items-center justify-center">
-                      <Car className="w-8 h-8 text-slate-800" />
+              <div id="receipt-content" className="bg-white p-8 mb-6 text-left border border-slate-200 shadow-sm relative mx-auto w-full max-w-[320px] font-sans">
+                {/* Simulated Paper Edge */}
+                <div className="absolute top-0 left-0 w-full h-1 bg-slate-100"></div>
+
+                <div className="relative z-10">
+                  {/* Header */}
+                  <div className="text-center mb-6 border-b-2 border-dashed border-slate-300 pb-6">
+                    <div className="w-24 h-24 rounded-full overflow-hidden mx-auto mb-4 shadow-sm border-2 border-slate-100 bg-white">
+                      <img src={globalSettings.logo_url || "/logo.png"} alt="Logo" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
+                      <div className="w-full h-full bg-slate-50 hidden items-center justify-center">
+                        <Car className="w-12 h-12 text-slate-400" />
+                      </div>
+                    </div>
+                    <h3 className="font-black text-slate-900 text-xl uppercase tracking-tighter leading-none mb-1">{globalSettings.name || 'Parqueadero'}</h3>
+                    {globalSettings.nit && (
+                      <p className="text-[11px] font-bold text-slate-500 font-mono">NIT: {globalSettings.nit}</p>
+                    )}
+                    {globalSettings.address && (
+                      <p className="text-[10px] font-medium text-slate-400 mt-1 uppercase leading-tight px-4">{globalSettings.address}</p>
+                    )}
+                    {globalSettings.phone && (
+                      <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">TEL: {globalSettings.phone}</p>
+                    )}
+
+                    <div className="mt-5 border-t border-b border-slate-200 py-1 inline-block px-4">
+                      <p className="text-[10px] font-black text-slate-900 tracking-[0.3em] uppercase">Recibo No: {completedSession.ticket_number}</p>
                     </div>
                   </div>
-                  <h3 className="font-bold text-lg uppercase leading-tight">{globalSettings.name || 'PARQUEADERO'}</h3>
-                  {globalSettings.nit && (
-                    <p className="text-xs">NIT: {globalSettings.nit}</p>
-                  )}
-                  <p className="text-xs mt-1 font-bold">RECIBO DE PARQUEO</p>
-                </div>
 
-                {/* Details */}
-                <div className="space-y-2 mb-4 border-b border-dashed border-slate-400 pb-4 text-xs">
-                  <div className="flex justify-between">
-                    <span>No. Recibo:</span>
-                    <span className="font-bold">{completedSession.ticket_number}</span>
-                  </div>
-                  {completedSession.metadata && Object.keys(completedSession.metadata).length > 0 && (
-                    <div className="flex justify-between">
-                      <span>Cliente:</span>
-                      <span className="font-bold text-right truncate max-w-[150px]">
-                        {Object.values(completedSession.metadata)[0] as string}
-                      </span>
+                  {/* Main Content */}
+                  <div className="space-y-6">
+                    {/* Plate Section */}
+                    <div className="text-center bg-slate-900 text-white py-3 rounded-lg shadow-inner">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mb-1">Placa del Vehículo</p>
+                      <p className="text-4xl font-black font-mono tracking-[0.1em]">{completedSession.license_plate}</p>
                     </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span>Placa:</span>
-                    <span className="font-bold text-lg">{completedSession.license_plate}</span>
+
+                    {/* Times & Info Grid */}
+                    <div className="grid grid-cols-2 gap-y-5 gap-x-4 border-b-2 border-dashed border-slate-200 pb-6">
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ingreso</p>
+                        <p className="text-xs font-bold text-slate-800 leading-tight">
+                          {format(new Date(completedSession.entry_time), 'dd/MM/yyyy')}<br/>
+                          <span className="text-base tracking-tight">{format(new Date(completedSession.entry_time), 'h:mm a')}</span>
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Salida</p>
+                        <p className="text-xs font-bold text-slate-800 leading-tight">
+                          {format(new Date(completedSession.exit_time), 'dd/MM/yyyy')}<br/>
+                          <span className="text-base tracking-tight">{format(new Date(completedSession.exit_time), 'h:mm a')}</span>
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tiempo Total</p>
+                        <p className="text-sm font-black text-slate-900">{Math.max(1, differenceInMinutes(new Date(completedSession.exit_time), new Date(completedSession.entry_time)))} Minutos</p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Tipo Tarifa</p>
+                        <p className="text-xs font-bold text-slate-800 truncate" title={completedSession.rate?.name}>{completedSession.rate?.name || 'N/A'}</p>
+                      </div>
+                    </div>
+
+                    {/* Total Section */}
+                    <div className="pt-2">
+                      <div className="flex justify-between items-baseline mb-1">
+                        <span className="text-sm font-black text-slate-900 uppercase tracking-widest">Total Cobrado</span>
+                        <span className="text-xs font-bold text-slate-400 uppercase">COP</span>
+                      </div>
+                      <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-4 text-center">
+                        <span className="text-4xl font-black text-emerald-600 leading-none">{formatCurrency(completedSession.amount_paid)}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Ingreso:</span>
-                    <span className="text-right">
-                      {format(new Date(completedSession.entry_time), 'dd/MM/yyyy HH:mm', { locale: es })}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Salida:</span>
-                    <span className="text-right">
-                      {format(new Date(completedSession.exit_time), 'dd/MM/yyyy HH:mm', { locale: es })}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Tiempo:</span>
-                    <span>
-                      {Math.floor(differenceInMinutes(new Date(completedSession.exit_time), new Date(completedSession.entry_time)) / 60)}h {differenceInMinutes(new Date(completedSession.exit_time), new Date(completedSession.entry_time)) % 60}m
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Tarifa:</span>
-                    <span className="truncate max-w-[150px] text-right">{completedSession.rate?.name || 'N/A'}</span>
+
+                  {/* Footer */}
+                  <div className="mt-10 text-center space-y-4">
+                    <p className="text-[11px] font-black text-slate-900 uppercase tracking-[0.2em] italic">¡Gracias por preferirnos!</p>
+                    <div className="flex justify-center items-center gap-1 opacity-20 grayscale">
+                      <div className="h-[1px] w-8 bg-black"></div>
+                      <Car className="w-3 h-3" />
+                      <div className="h-[1px] w-8 bg-black"></div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Total */}
-                <div className="text-center mb-4">
-                  <p className="text-sm mb-1">VALOR A PAGAR</p>
-                  <p className="text-2xl font-bold">{formatCurrency(completedSession.amount_paid)}</p>
-                </div>
-
-                {/* Footer */}
-                <div className="text-center text-xs space-y-1">
-                  <p>¡Gracias por su visita!</p>
-                  <p>Conserve este recibo</p>
-                </div>
+                {/* Simulated Paper Bottom */}
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-slate-100"></div>
               </div>
 
               <div className="space-y-4 mb-6">
