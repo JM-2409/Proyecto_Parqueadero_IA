@@ -975,11 +975,11 @@ export default function AdminDashboard({
     <div className="max-w-7xl mx-auto p-4 md:p-6 pb-20">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 sm:mb-8 gap-4 sm:gap-6 bg-white/90 backdrop-blur-xl border-b border-slate-200/50 p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="relative z-10 flex items-center gap-3 sm:gap-4 w-full md:w-auto">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden flex items-center justify-center border border-slate-200 shadow-sm bg-white shrink-0">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center border border-slate-200 shadow-sm bg-white shrink-0 aspect-square">
             <img
-              src={parkingLotLogo || "/logo.png"}
+              src="/logo.png"
               alt="Logo"
-              className="w-full h-full object-contain p-1"
+              className="w-full h-full object-cover"
               onError={(e) => {
                 e.currentTarget.style.display = "none";
                 (
@@ -988,7 +988,7 @@ export default function AdminDashboard({
               }}
             />
             <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-indigo-700 hidden items-center justify-center">
-              <Shield className="w-7 h-7 text-white" />
+              <Car className="w-7 h-7 text-white" />
             </div>
           </div>
           <div className="min-w-0">
@@ -2072,55 +2072,6 @@ export default function AdminDashboard({
                 </div>
               ) : (
                 <div className="space-y-6 max-w-2xl">
-                  <div className="flex flex-col sm:flex-row items-center gap-6 mb-6 text-center sm:text-left">
-                    <div className="w-24 h-24 rounded-full bg-slate-50 border-2 border-slate-200 flex items-center justify-center overflow-hidden relative group shadow-md p-1">
-                      {newLogoFile || parkingLotLogo ? (
-                        <img
-                          src={
-                            newLogoFile
-                              ? URL.createObjectURL(newLogoFile)
-                              : parkingLotLogo!
-                          }
-                          alt="Logo"
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                      ) : (
-                        <Building2 className="w-8 h-8 text-slate-400" />
-                      )}
-                      <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                        <span className="text-white text-xs font-medium">
-                          Cambiar
-                        </span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={(e) => {
-                            if (e.target.files && e.target.files[0]) {
-                              setNewLogoFile(e.target.files[0]);
-                            }
-                          }}
-                        />
-                      </label>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-slate-800">
-                        Logo del Parqueadero
-                      </h3>
-                      <p className="text-xs text-slate-500 mt-1">
-                        Sube una imagen para mostrar en los recibos y en el
-                        panel. Recomendado: PNG o JPG, máx 2MB.
-                      </p>
-                      {newLogoFile && (
-                        <button
-                          onClick={() => setNewLogoFile(null)}
-                          className="text-xs text-red-600 mt-2 font-medium hover:underline"
-                        >
-                          Cancelar cambio de logo
-                        </button>
-                      )}
-                    </div>
-                  </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -2913,37 +2864,47 @@ export default function AdminDashboard({
       {/* Private Spot Edit Modal */}
       {showEditModal && editingSpot && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6">
-              <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <Edit2 className="w-5 h-5 text-indigo-600" />
                 Editar Parqueadero Privado
               </h2>
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  const formData = new FormData(e.currentTarget);
-                  const updatedSpot: any = { id: editingSpot.id };
-                  privateSpotFields.forEach((field) => {
-                    if (field.enabled) {
-                      updatedSpot[field.id] =
-                        formData.get(field.id)?.toString() || "";
-                      if (field.id === "licensePlate") {
-                        updatedSpot[field.id] =
-                          updatedSpot[field.id].toUpperCase();
-                      }
-                    }
-                  });
-                  savePrivateSpots(
-                    privateSpots.map((s) =>
-                      s.id === editingSpot.id ? updatedSpot : s,
-                    ),
-                  );
+              <button
+                onClick={() => {
                   setShowEditModal(false);
                   setEditingSpot(null);
                 }}
-                className="space-y-4"
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
               >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const updatedSpot: any = { id: editingSpot.id };
+                privateSpotFields.forEach((field) => {
+                  if (field.enabled) {
+                    updatedSpot[field.id] =
+                      formData.get(field.id)?.toString() || "";
+                    if (field.id === "licensePlate") {
+                      updatedSpot[field.id] =
+                        updatedSpot[field.id].toUpperCase();
+                    }
+                  }
+                });
+                savePrivateSpots(
+                  privateSpots.map((s) =>
+                    s.id === editingSpot.id ? updatedSpot : s,
+                  ),
+                );
+                setShowEditModal(false);
+                setEditingSpot(null);
+              }}
+              className="p-6 space-y-4 overflow-y-auto"
+            >
                 {privateSpotFields
                   .filter((f) => f.enabled)
                   .map((field) => (
@@ -2994,15 +2955,14 @@ export default function AdminDashboard({
               </form>
             </div>
           </div>
-        </div>
       )}
 
       {/* User Form Modal */}
       {showUserForm && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6">
-              <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 {editingUser ? (
                   <Edit2 className="w-5 h-5 text-indigo-600" />
                 ) : (
@@ -3010,7 +2970,15 @@ export default function AdminDashboard({
                 )}
                 {editingUser ? "Editar Usuario" : "Nuevo Usuario"}
               </h2>
+              <button
+                onClick={() => setShowUserForm(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
 
+            <div className="flex-1 overflow-y-auto p-6">
               {formError && (
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
                   {formError}
@@ -3107,9 +3075,9 @@ export default function AdminDashboard({
       {/* Rate Form Modal */}
       {showRateForm && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 {editingRate ? (
                   <Edit2 className="w-5 h-5 text-indigo-600" />
                 ) : (
@@ -3117,8 +3085,18 @@ export default function AdminDashboard({
                 )}
                 {editingRate ? "Editar Tarifa" : "Nueva Tarifa"}
               </h2>
+              <button
+                onClick={() => setShowRateForm(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
 
-              <form onSubmit={handleSaveRate} className="space-y-4">
+            <form
+              onSubmit={handleSaveRate}
+              className="p-6 space-y-4 overflow-y-auto"
+            >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -3271,7 +3249,6 @@ export default function AdminDashboard({
               </form>
             </div>
           </div>
-        </div>
       )}
 
       {/* Delete User Confirmation Modal */}

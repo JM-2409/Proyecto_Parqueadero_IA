@@ -16,6 +16,8 @@ import {
   Power,
   PowerOff,
   Settings,
+  X,
+  Car,
 } from "lucide-react";
 
 export default function SuperAdminDashboard({
@@ -353,11 +355,11 @@ export default function SuperAdminDashboard({
     <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 sm:mb-8 gap-4 sm:gap-6 bg-white/90 backdrop-blur-xl border-b border-slate-200/50 p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm relative overflow-hidden transition-all duration-300">
         <div className="relative z-10 flex items-center gap-3 sm:gap-4 w-full md:w-auto">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl overflow-hidden flex items-center justify-center border border-slate-200 shadow-sm bg-white shrink-0">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center border border-slate-200 shadow-sm bg-white shrink-0 aspect-square">
             <img
-              src={globalLogoUrl || "/logo.png"}
-              alt={globalAppName}
-              className="w-full h-full object-contain p-1"
+              src="/logo.png"
+              alt="Logo"
+              className="w-full h-full object-cover"
               onError={(e) => {
                 e.currentTarget.style.display = "none";
                 (
@@ -366,7 +368,7 @@ export default function SuperAdminDashboard({
               }}
             />
             <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-indigo-700 hidden items-center justify-center">
-              <Shield className="w-7 h-7 text-white" />
+              <Car className="w-7 h-7 text-white" />
             </div>
           </div>
           <div className="min-w-0">
@@ -410,16 +412,6 @@ export default function SuperAdminDashboard({
           >
             <Users className="w-4 h-4" />
             Usuarios
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("settings");
-              setSearchTerm("");
-            }}
-            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}
-          >
-            <Settings className="w-4 h-4" />
-            App Global
           </button>
         </div>
 
@@ -683,98 +675,28 @@ export default function SuperAdminDashboard({
             </div>
           )}
 
-          {activeTab === "settings" && (
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-indigo-600" />
-                  Configuración Global de la Aplicación
-                </h2>
-                <button
-                  onClick={handleSaveGlobalSettings}
-                  disabled={savingGlobalSettings}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
-                >
-                  {savingGlobalSettings ? "Guardando..." : "Guardar Cambios"}
-                </button>
-              </div>
-
-              <div className="p-6">
-                <div className="space-y-6 max-w-2xl">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Nombre de la Aplicación
-                    </label>
-                    <input
-                      type="text"
-                      value={globalAppName}
-                      onChange={(e) => setGlobalAppName(e.target.value)}
-                      className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
-                      placeholder="Ej. NexoPark"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Logo de la Aplicación
-                    </label>
-                    <div className="flex items-center gap-6 p-4 border border-slate-200 rounded-xl bg-slate-50">
-                      <div className="w-20 h-20 bg-white rounded-xl border border-slate-200 flex items-center justify-center overflow-hidden shadow-sm">
-                        {newGlobalLogoFile ? (
-                          <img
-                            src={URL.createObjectURL(newGlobalLogoFile)}
-                            alt="New Logo"
-                            className="w-full h-full object-contain p-2"
-                          />
-                        ) : globalLogoUrl ? (
-                          <img
-                            src={globalLogoUrl}
-                            alt="Current Logo"
-                            className="w-full h-full object-contain p-2"
-                          />
-                        ) : (
-                          <Building2 className="w-8 h-8 text-slate-400" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            if (e.target.files && e.target.files[0]) {
-                              setNewGlobalLogoFile(e.target.files[0]);
-                            }
-                          }}
-                          className="block w-full text-sm text-slate-500
-                            file:mr-4 file:py-2.5 file:px-4
-                            file:rounded-xl file:border-0
-                            file:text-sm file:font-semibold
-                            file:bg-indigo-50 file:text-indigo-700
-                            hover:file:bg-indigo-100 transition-colors cursor-pointer"
-                        />
-                        <p className="mt-2 text-xs text-slate-500">
-                          Recomendado: PNG o SVG transparente, max 2MB.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
         </>
       )}
 
       {/* Lot Form Modal */}
       {showLotForm && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden">
-            <div className="p-6 border-b border-slate-100">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
               <h3 className="text-xl font-bold text-slate-800">
                 {editingLot ? "Editar Parqueadero" : "Nuevo Parqueadero"}
               </h3>
+              <button
+                onClick={() => setShowLotForm(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
             </div>
-            <form onSubmit={handleSaveLot} className="p-6 space-y-4">
+            <form
+              onSubmit={handleSaveLot}
+              className="p-6 space-y-4 overflow-y-auto"
+            >
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Nombre *
@@ -886,13 +808,22 @@ export default function SuperAdminDashboard({
       {/* User Form Modal */}
       {showUserForm && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden">
-            <div className="p-6 border-b border-slate-100">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
               <h3 className="text-xl font-bold text-slate-800">
                 {editingUser ? "Editar Usuario" : "Nuevo Usuario"}
               </h3>
+              <button
+                onClick={() => setShowUserForm(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
             </div>
-            <form onSubmit={handleSaveUser} className="p-6 space-y-4">
+            <form
+              onSubmit={handleSaveUser}
+              className="p-6 space-y-4 overflow-y-auto"
+            >
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   Usuario
