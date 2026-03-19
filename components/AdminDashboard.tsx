@@ -202,20 +202,24 @@ export default function AdminDashboard({
   };
 
   useEffect(() => {
-    fetchData();
+    if (parkingLotId) {
+      fetchData();
+      fetchSettings();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [parkingLotId]);
 
   useEffect(() => {
+    if (!parkingLotId) return;
+
     if (activeTab === "users") {
       fetchUsers();
     } else if (activeTab === "rates") {
       fetchRates();
-    } else if (activeTab === "settings" || activeTab === "private_spots") {
-      fetchSettings();
     }
+    // fetchSettings is now called on mount and when parkingLotId changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+  }, [activeTab, parkingLotId]);
 
   const fetchSettings = async () => {
     setLoadingSettings(true);
@@ -1629,11 +1633,17 @@ export default function AdminDashboard({
                                   })
                                   .map(([key, value]) => {
                                     const fieldDef = entryFields.find(
-                                      (f) => f.id === key,
+                                      (f) => f.id === key || f.label === key,
                                     );
-                                    const displayLabel = fieldDef
-                                      ? fieldDef.label
-                                      : key;
+
+                                    // If we can't find a label and it looks like a technical ID, we use a generic label
+                                    // or just show the value if it's the only metadata
+                                    let displayLabel = fieldDef ? fieldDef.label : key;
+
+                                    if (!fieldDef && key.startsWith("campo_")) {
+                                      displayLabel = "Dato";
+                                    }
+
                                     const isNameField = displayLabel
                                       .toLowerCase()
                                       .includes("nombre");

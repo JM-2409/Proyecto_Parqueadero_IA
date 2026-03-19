@@ -1270,11 +1270,16 @@ export default function GuardDashboard({
                                       })
                                       .map(([key, value]) => {
                                         const fieldDef = entryFields.find(
-                                          (f) => f.id === key,
+                                          (f) => f.id === key || f.label === key,
                                         );
-                                        const displayLabel = fieldDef
+                                        let displayLabel = fieldDef
                                           ? fieldDef.label
                                           : key;
+
+                                        if (!fieldDef && key.startsWith("campo_")) {
+                                          displayLabel = "Dato";
+                                        }
+
                                         const isNameField = displayLabel
                                           .toLowerCase()
                                           .includes("nombre");
@@ -1717,15 +1722,33 @@ export default function GuardDashboard({
                   </div>
                   {completedSession.metadata &&
                     Object.keys(completedSession.metadata).length > 0 && (
-                      <div className="flex justify-between">
-                        <span>Cliente:</span>
-                        <span className="font-bold text-right truncate max-w-[150px]">
-                          {
-                            Object.values(
-                              completedSession.metadata,
-                            )[0] as string
-                          }
-                        </span>
+                      <div className="space-y-1">
+                        {Object.entries(completedSession.metadata)
+                          .filter(
+                            ([k]) =>
+                              k !== "guard_name" &&
+                              k !== "checkout_guard_name" &&
+                              k !== "admin_checkout_observation" &&
+                              k !== "admin_checkout_by" &&
+                              k !== "admin_checkout_time",
+                          )
+                          .map(([key, value]) => {
+                            const fieldDef = entryFields.find(
+                              (f) => f.id === key || f.label === key,
+                            );
+                            let displayLabel = fieldDef ? fieldDef.label : key;
+                            if (!fieldDef && key.startsWith("campo_")) {
+                              displayLabel = "Dato";
+                            }
+                            return (
+                              <div key={key} className="flex justify-between">
+                                <span>{displayLabel}:</span>
+                                <span className="font-bold text-right truncate max-w-[150px]">
+                                  {String(value)}
+                                </span>
+                              </div>
+                            );
+                          })}
                       </div>
                     )}
                   <div className="flex justify-between">
