@@ -24,18 +24,17 @@ import {
   Building2,
   X,
   Search,
+  UserCircle,
 } from "lucide-react";
 import { format, differenceInMinutes, subDays, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import {
-  ComposedChart,
-  Line,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 
@@ -134,6 +133,10 @@ export default function AdminDashboard({
   const [showUserForm, setShowUserForm] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
 
+  // Global settings state
+  const [globalAppName, setGlobalAppName] = useState("NexoPark");
+  const [globalLogoUrl, setGlobalLogoUrl] = useState<string | null>(null);
+
   // User form state
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -187,9 +190,16 @@ export default function AdminDashboard({
   const [chartEndDate, setChartEndDate] = useState(
     () => new Date().toISOString().split("T")[0],
   );
-  const [chartType, setChartType] = useState<"both" | "revenue" | "vehicles">(
-    "both",
-  );
+
+  const setQuickFilter = (days: number) => {
+    const end = new Date();
+    const start = new Date();
+    if (days > 0) {
+      start.setDate(end.getDate() - (days - 1));
+    }
+    setChartEndDate(end.toISOString().split("T")[0]);
+    setChartStartDate(start.toISOString().split("T")[0]);
+  };
 
   useEffect(() => {
     fetchData();
@@ -582,6 +592,18 @@ export default function AdminDashboard({
   const fetchData = async () => {
     setLoading(true);
 
+    // Fetch global app settings
+    const { data: globalData } = await supabase
+      .from("global_app_settings")
+      .select("*")
+      .limit(1)
+      .single();
+
+    if (globalData) {
+      setGlobalAppName(globalData.app_name);
+      setGlobalLogoUrl(globalData.logo_url);
+    }
+
     // Fetch revenue settings to get last closing time
     const { data: revSettings } = await supabase
       .from("settings")
@@ -642,17 +664,50 @@ export default function AdminDashboard({
   const chartData = useMemo(() => {
     if (!history.length) return [];
 
-    const start = new Date(chartStartDate);
-    const end = new Date(chartEndDate);
+    const start = parseISO(chartStartDate);
+    const end = parseISO(chartEndDate);
 
-    // Ensure start is before or equal to end
     if (start > end) return [];
+
+    const isSameDay = chartStartDate === chartEndDate;
+
+    if (isSameDay) {
+      // Group by hour
+      const day = chartStartDate;
+      const hours = Array.from({ length: 24 }).map((_, i) => {
+        const hourStr = String(i).padStart(2, "0");
+        return `${day}T${hourStr}`;
+      });
+
+      return hours.map((hourPrefix) => {
+        const hourSessions = history.filter((s) =>
+          s.entry_time.startsWith(hourPrefix),
+        );
+        const hourCompleted = history.filter(
+          (s) =>
+            s.status === "completed" &&
+            s.exit_time &&
+            s.exit_time.startsWith(hourPrefix),
+        );
+
+        const revenue = hourCompleted.reduce(
+          (sum, s) => sum + Number(s.amount_paid || 0),
+          0,
+        );
+        const vehicles = hourSessions.length;
+
+        return {
+          label: `${hourPrefix.split("T")[1]}:00`,
+          Ingresos: revenue,
+          Vehículos: vehicles,
+        };
+      });
+    }
 
     // Calculate difference in days
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
-    // Limit to 31 days to prevent performance issues
     const daysCount = Math.min(diffDays, 31);
 
     const days = Array.from({ length: daysCount })
@@ -666,7 +721,10 @@ export default function AdminDashboard({
     return days.map((day) => {
       const daySessions = history.filter((s) => s.entry_time.startsWith(day));
       const dayCompleted = history.filter(
-        (s) => s.status === "completed" && s.exit_time?.startsWith(day),
+        (s) =>
+          s.status === "completed" &&
+          s.exit_time &&
+          s.exit_time.startsWith(day),
       );
 
       const revenue = dayCompleted.reduce(
@@ -676,7 +734,7 @@ export default function AdminDashboard({
       const vehicles = daySessions.length;
 
       return {
-        date: format(parseISO(day), "EEE dd", { locale: es }),
+        label: format(parseISO(day), "EEE dd", { locale: es }),
         Ingresos: revenue,
         Vehículos: vehicles,
       };
@@ -973,58 +1031,80 @@ export default function AdminDashboard({
 
   return (
     <div className="max-w-7xl mx-auto p-4 md:p-6 pb-20">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 sm:mb-8 gap-4 sm:gap-6 bg-white/90 backdrop-blur-xl border-b border-slate-200/50 p-5 sm:p-6 rounded-2xl sm:rounded-3xl shadow-sm relative overflow-hidden transition-all duration-300">
-        <div className="relative z-10 flex items-center gap-3 sm:gap-4 w-full md:w-auto">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center border border-slate-200 shadow-sm bg-white shrink-0 aspect-square">
-            <img
-              src="/logo.png"
-              alt="Logo"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-                (
-                  e.currentTarget.nextElementSibling as HTMLElement
-                ).style.display = "flex";
-              }}
-            />
-            <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-indigo-700 hidden items-center justify-center">
-              <Car className="w-7 h-7 text-white" />
+      {/* Header Rediseñado */}
+      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-white/80 backdrop-blur-2xl border border-white shadow-xl relative overflow-hidden transition-all duration-300 p-4 sm:p-5 rounded-[2.5rem]">
+        {/* Lado Izquierdo: Branding */}
+        <div className="flex items-center gap-4 group">
+          <div className="relative">
+            <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-600 to-purple-400 rounded-full blur opacity-20 group-hover:opacity-35 transition duration-300"></div>
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square bg-white">
+              <img
+                src={globalLogoUrl || "/logo.png"}
+                alt="Logo"
+                className="w-full h-full object-cover transform transition duration-500 group-hover:scale-110"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/logo.png";
+                }}
+              />
             </div>
           </div>
           <div className="min-w-0">
-            <h1 className="text-lg sm:text-2xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 truncate leading-tight">
-              {parkingLotName || "Panel Administrativo"}
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 truncate leading-none mb-1">
+              {parkingLotName || globalAppName}
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500 font-medium truncate">
-              {parkingLotAddress || "Gestión de Parqueadero"}
-            </p>
+            <div className="flex items-center gap-1.5 text-slate-500">
+              <Key className="w-3.5 h-3.5 text-indigo-600" />
+              <p className="text-xs sm:text-sm font-semibold truncate uppercase tracking-wider opacity-80">
+                Gestión Administrativa
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="relative z-10 flex flex-wrap items-center gap-2 sm:gap-4 w-full md:w-auto justify-start md:justify-end">
+        {/* Lado Derecho: Acciones y Usuario */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 lg:gap-4">
+          {/* Selector de Vista (Si aplica) */}
           {onSwitchView && (
-            <div className="bg-slate-100 rounded-xl p-1 flex border border-slate-200 order-1 md:order-none shadow-inner">
+            <div className="bg-slate-50/50 p-1 rounded-2xl border border-slate-100 flex shadow-inner w-full sm:w-auto">
               <button
                 onClick={() => onSwitchView("admin")}
-                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-sm min-h-[40px] md:min-h-0 ${currentView === "admin" ? "bg-white text-indigo-600 ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"}`}
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all ${currentView === "admin" ? "bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700"}`}
               >
                 Admin
               </button>
               <button
                 onClick={() => onSwitchView("guard")}
-                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all shadow-sm min-h-[40px] md:min-h-0 ${currentView === "guard" ? "bg-white text-emerald-600 ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"}`}
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all ${currentView === "guard" ? "bg-white text-emerald-600 shadow-sm ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700"}`}
               >
                 Vigilancia
               </button>
             </div>
           )}
-          <button
-            onClick={onLogout}
-            className="px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl flex items-center gap-2 bg-slate-900 hover:bg-indigo-600 text-white transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 font-semibold text-xs sm:text-sm min-h-[44px] sm:min-h-0 ml-auto md:ml-0"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Salir</span>
-          </button>
+
+          {/* Perfil de Admin y Logout */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex-1 sm:flex-none flex items-center gap-3 bg-white pl-4 pr-2 py-1.5 rounded-2xl border border-slate-200 shadow-sm">
+              <div className="flex flex-col items-start min-w-0">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">
+                  Sesión Iniciada
+                </span>
+                <span className="text-sm font-bold text-slate-800 truncate max-w-[120px]">
+                  {user.email.split("@")[0]}
+                </span>
+              </div>
+              <div className="p-2 rounded-xl bg-slate-50 text-indigo-600 border border-slate-100">
+                <UserCircle className="w-5 h-5" />
+              </div>
+            </div>
+
+            <button
+              onClick={onLogout}
+              className="p-3.5 rounded-2xl bg-slate-900 hover:bg-red-600 text-white transition-all duration-300 shadow-lg hover:shadow-red-200 group"
+              title="Cerrar Sesión"
+            >
+              <LogOut className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1133,130 +1213,267 @@ export default function AdminDashboard({
             </div>
           </div>
 
-          {/* Chart Section */}
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 mb-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-slate-500" />
-                Estadísticas
-              </h2>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <select
-                  value={chartType}
-                  onChange={(e) => setChartType(e.target.value as any)}
-                  className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                >
-                  <option value="both">Ingresos y Vehículos</option>
-                  <option value="revenue">Solo Ingresos</option>
-                  <option value="vehicles">Solo Vehículos</option>
-                </select>
+          {/* Dashboard Charts & Filters Section */}
+          <div className="mb-8 space-y-6">
+            {/* Improved Filter Bar */}
+            <div className="bg-white/80 backdrop-blur-2xl rounded-3xl p-5 border border-white shadow-xl flex flex-col lg:flex-row justify-between items-center gap-6">
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {[
+                  { label: "Hoy", val: 1 },
+                  { label: "7 Días", val: 7 },
+                  { label: "30 Días", val: 30 },
+                ].map((f) => (
+                  <button
+                    key={f.label}
+                    onClick={() => setQuickFilter(f.val)}
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-50 text-slate-600 border border-slate-100 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-sm"
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-3 bg-slate-50/50 p-2 rounded-2xl border border-slate-100 shadow-inner">
                 <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter ml-2">
+                    Desde
+                  </span>
                   <input
                     type="date"
                     value={chartStartDate}
                     onChange={(e) => setChartStartDate(e.target.value)}
-                    className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="bg-transparent border-none text-xs font-bold text-slate-700 focus:ring-0 outline-none p-1 cursor-pointer"
                   />
-                  <span className="text-slate-400">a</span>
+                </div>
+                <div className="w-px h-4 bg-slate-200"></div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                    Hasta
+                  </span>
                   <input
                     type="date"
                     value={chartEndDate}
                     onChange={(e) => setChartEndDate(e.target.value)}
-                    className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="bg-transparent border-none text-xs font-bold text-slate-700 focus:ring-0 outline-none p-1 cursor-pointer"
                   />
                 </div>
               </div>
             </div>
-            <div className="h-64 sm:h-80 w-full">
-              {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart
-                    data={chartData}
-                    margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                      stroke="#f1f5f9"
-                    />
-                    <XAxis
-                      dataKey="date"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: "#64748b", fontSize: 12 }}
-                      dy={10}
-                    />
 
-                    {(chartType === "both" || chartType === "revenue") && (
-                      <YAxis
-                        yAxisId="left"
+            {/* Split Charts Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Revenue Chart */}
+              <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] p-6 border border-white shadow-2xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <DollarSign className="w-24 h-24 text-indigo-600" />
+                </div>
+                <div className="relative z-10 mb-6">
+                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                    Flujo de Caja
+                  </h3>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-black text-slate-900">
+                        Ingresos
+                      </span>
+                      <span className="text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
+                        COP
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Total Periodo</p>
+                      <p className="text-lg font-black text-indigo-600">
+                        {formatCurrency(chartData.reduce((acc, curr) => acc + curr.Ingresos, 0))}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="h-64 sm:h-72 w-full flex items-center justify-center">
+                  {chartData.some(d => d.Ingresos > 0) ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData}>
+                      <defs>
+                        <linearGradient
+                          id="colorRev"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="#6366f1"
+                            stopOpacity={0.3}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#6366f1"
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="#f1f5f9"
+                      />
+                      <XAxis
+                        dataKey="label"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: "#64748b", fontSize: 12 }}
-                        dx={-10}
+                        tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 600 }}
+                        dy={10}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 600 }}
                         tickFormatter={(value) => `$${value / 1000}k`}
+                        dx={-10}
                       />
-                    )}
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "20px",
+                          border: "none",
+                          boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)",
+                          background: "rgba(255, 255, 255, 0.9)",
+                          backdropFilter: "blur(10px)",
+                          padding: "12px",
+                        }}
+                        itemStyle={{
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                          color: "#4f46e5",
+                        }}
+                        formatter={(value: any) => [
+                          formatCurrency(Number(value)),
+                          "Ingresos",
+                        ]}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="Ingresos"
+                        stroke="#6366f1"
+                        strokeWidth={4}
+                        fillOpacity={1}
+                        fill="url(#colorRev)"
+                        animationDuration={1500}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 opacity-20">
+                      <DollarSign className="w-12 h-12" />
+                      <p className="text-xs font-bold uppercase tracking-widest">Sin ingresos en el periodo</p>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-                    {(chartType === "both" || chartType === "vehicles") && (
-                      <YAxis
-                        yAxisId="right"
-                        orientation={chartType === "both" ? "right" : "left"}
+              {/* Traffic Chart */}
+              <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] p-6 border border-white shadow-2xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <History className="w-24 h-24 text-emerald-600" />
+                </div>
+                <div className="relative z-10 mb-6">
+                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                    Tráfico Diario
+                  </h3>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-black text-slate-900">
+                        Vehículos
+                      </span>
+                      <span className="text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
+                        Entradas
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Total Visitas</p>
+                      <p className="text-lg font-black text-emerald-600">
+                        {chartData.reduce((acc, curr) => acc + curr.Vehículos, 0)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="h-64 sm:h-72 w-full flex items-center justify-center">
+                  {chartData.some(d => d.Vehículos > 0) ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData}>
+                      <defs>
+                        <linearGradient
+                          id="colorVeh"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="#10b981"
+                            stopOpacity={0.3}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#10b981"
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="#f1f5f9"
+                      />
+                      <XAxis
+                        dataKey="label"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: "#64748b", fontSize: 12 }}
-                        dx={chartType === "both" ? 10 : -10}
+                        tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 600 }}
+                        dy={10}
                       />
-                    )}
-
-                    <Tooltip
-                      contentStyle={{
-                        borderRadius: "12px",
-                        border: "none",
-                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                      }}
-                      formatter={(value: any, name: any) => [
-                        name === "Ingresos"
-                          ? formatCurrency(Number(value))
-                          : value,
-                        name,
-                      ]}
-                    />
-                    <Legend wrapperStyle={{ paddingTop: "20px" }} />
-
-                    {(chartType === "both" || chartType === "revenue") && (
-                      <Bar
-                        yAxisId="left"
-                        dataKey="Ingresos"
-                        fill="#4f46e5"
-                        radius={[4, 4, 0, 0]}
-                        maxBarSize={40}
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 600 }}
+                        dx={-10}
                       />
-                    )}
-
-                    {(chartType === "both" || chartType === "vehicles") && (
-                      <Line
-                        yAxisId="right"
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "20px",
+                          border: "none",
+                          boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)",
+                          background: "rgba(255, 255, 255, 0.9)",
+                          backdropFilter: "blur(10px)",
+                          padding: "12px",
+                        }}
+                        itemStyle={{
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                          color: "#059669",
+                        }}
+                      />
+                      <Area
                         type="monotone"
                         dataKey="Vehículos"
                         stroke="#10b981"
-                        strokeWidth={3}
-                        dot={{
-                          r: 4,
-                          fill: "#10b981",
-                          strokeWidth: 2,
-                          stroke: "#fff",
-                        }}
-                        activeDot={{ r: 6 }}
+                        strokeWidth={4}
+                        fillOpacity={1}
+                        fill="url(#colorVeh)"
+                        animationDuration={1500}
                       />
-                    )}
-                  </ComposedChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-slate-500">
-                  No hay datos suficientes para mostrar la gráfica.
+                    </AreaChart>
+                  </ResponsiveContainer>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 opacity-20">
+                      <History className="w-12 h-12" />
+                      <p className="text-xs font-bold uppercase tracking-widest">Sin tráfico en el periodo</p>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
 
@@ -3322,21 +3539,21 @@ export default function AdminDashboard({
       {/* Admin Checkout Modal */}
       {adminCheckoutSession && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-slate-800">
-                  Forzar Salida de Vehículo
-                </h2>
-                <button
-                  onClick={() => setAdminCheckoutSession(null)}
-                  className="text-slate-400 hover:text-slate-600 transition-colors"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
+          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+              <h2 className="text-xl font-bold text-slate-800">
+                Forzar Salida de Vehículo
+              </h2>
+              <button
+                onClick={() => setAdminCheckoutSession(null)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
 
-              <div className="mb-6 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <div className="p-6 space-y-4 overflow-y-auto">
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
                 <p className="text-sm text-slate-500 mb-1">Placa</p>
                 <p className="text-xl font-mono font-bold text-slate-800">
                   {adminCheckoutSession.license_plate}

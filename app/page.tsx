@@ -165,32 +165,38 @@ export default function Home() {
     if (!showLogin) {
       return (
         <div className="min-h-screen bg-white text-slate-900 font-sans">
-          {/* Header */}
-          <header className="fixed top-0 w-full bg-white/90 backdrop-blur-xl border-b border-slate-200/50 z-50 transition-all duration-300 shadow-sm">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-              <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-                <div className="w-12 h-12 rounded-2xl overflow-hidden flex items-center justify-center border border-slate-200 shadow-sm bg-white">
-                  <img src={globalSettings.logo_url || "/logo.png"} alt={globalSettings.app_name} className="w-full h-full object-contain p-1" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
-                  <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-indigo-700 hidden items-center justify-center">
-                    <Car className="w-7 h-7 text-white" />
+          {/* Header Rediseñado */}
+          <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl bg-white/80 backdrop-blur-xl border border-slate-200/60 z-50 rounded-[2rem] shadow-lg transition-all duration-300">
+            <div className="px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+              <div className="flex items-center gap-4 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                <div className="relative">
+                  <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-indigo-300 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
+                  <div className="relative w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md bg-white">
+                    <img
+                      src={globalSettings.logo_url || "/logo.png"}
+                      alt={globalSettings.app_name}
+                      className="w-full h-full object-cover transform transition duration-500 group-hover:scale-110"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/logo.png";
+                      }}
+                    />
                   </div>
                 </div>
-                <span className="font-extrabold text-2xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">{globalSettings.app_name}</span>
+                <span className="font-black text-xl sm:text-2xl tracking-tighter text-slate-900">{globalSettings.app_name}</span>
               </div>
               
-              <nav className="hidden md:flex items-center gap-8">
-                <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Características</button>
-                <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Precios</button>
-                <button onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Contacto</button>
+              <nav className="hidden md:flex items-center gap-1 bg-slate-100/50 p-1 rounded-2xl border border-slate-200/50">
+                <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-indigo-600 hover:bg-white rounded-xl transition-all">Características</button>
+                <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-indigo-600 hover:bg-white rounded-xl transition-all">Precios</button>
+                <button onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-indigo-600 hover:bg-white rounded-xl transition-all">Contacto</button>
               </nav>
 
               <button
                 onClick={() => setShowLogin(true)}
-                className="bg-slate-900 hover:bg-indigo-600 text-white px-6 py-2.5 rounded-full font-semibold transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 text-sm sm:text-base flex items-center gap-2"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 sm:px-8 py-2.5 sm:py-3 rounded-2xl font-black transition-all duration-300 shadow-lg shadow-indigo-200 hover:scale-[1.02] active:scale-95 text-xs sm:text-sm flex items-center gap-2 uppercase tracking-widest"
               >
-                <span className="sm:hidden">Login</span>
-                <span className="hidden sm:inline">Ingresar a la Plataforma</span>
-                <ArrowRight className="w-4 h-4 hidden sm:inline" />
+                <span>Acceso</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </header>
@@ -377,10 +383,14 @@ export default function Home() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-slate-700 bg-white">
-                  <img src={globalSettings.logo_url || "/logo.png"} alt={globalSettings.app_name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
-                  <div className="w-full h-full bg-indigo-600 hidden items-center justify-center">
-                    <Car className="w-4 h-4 text-white" />
-                  </div>
+                  <img
+                    src={globalSettings.logo_url || "/logo.png"}
+                    alt={globalSettings.app_name}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "/logo.png";
+                    }}
+                  />
                 </div>
                 <span className="font-bold text-lg text-white">{globalSettings.app_name}</span>
               </div>
@@ -398,56 +408,79 @@ export default function Home() {
     }
 
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-slate-100 p-8 relative">
-          <button onClick={() => setShowLogin(false)} className="absolute top-6 left-6 text-slate-400 hover:text-slate-600">
-            <ArrowRight className="w-6 h-6 rotate-180" />
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        {/* Decoración de fondo */}
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
+          <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-200 rounded-full blur-[100px] opacity-30"></div>
+          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-purple-200 rounded-full blur-[100px] opacity-30"></div>
+        </div>
+
+        <div className="max-w-md w-full bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-2xl border border-white p-8 sm:p-10 relative z-10 animate-in fade-in zoom-in duration-500">
+          <button
+            onClick={() => setShowLogin(false)}
+            className="absolute top-8 left-8 p-2 rounded-xl bg-slate-100 text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm transition-all active:scale-95"
+            title="Volver"
+          >
+            <ArrowRight className="w-5 h-5 rotate-180" />
           </button>
-          <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-md mt-4 overflow-hidden border-2 border-slate-100 p-1">
-            <img src={globalSettings.logo_url || "/logo.png"} alt={globalSettings.app_name} className="w-full h-full object-cover rounded-full" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
-            <Car className="w-12 h-12 text-indigo-600 hidden" />
+
+          <div className="text-center mb-10">
+            <div className="relative inline-block group">
+              <div className="absolute -inset-2 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
+              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center mx-auto shadow-xl border-4 border-white overflow-hidden bg-white">
+                <img
+                  src={globalSettings.logo_url || "/logo.png"}
+                  alt={globalSettings.app_name}
+                  className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = "/logo.png";
+                  }}
+                />
+              </div>
+            </div>
+            <h1 className="mt-6 text-3xl sm:text-4xl font-black text-slate-900 tracking-tighter">{globalSettings.app_name}</h1>
+            <p className="text-slate-500 font-medium mt-2">Acceso a la plataforma administrativa</p>
           </div>
-          <h1 className="text-3xl font-bold text-slate-800 mb-2 text-center">{globalSettings.app_name}</h1>
-          <p className="text-slate-500 mb-8 text-center leading-relaxed">
-            Inicia sesión para continuar
-          </p>
           
           {authError && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
-              {authError}
+            <div className="mb-8 p-4 bg-red-50 border-l-4 border-red-500 rounded-xl text-red-700 text-sm font-bold animate-shake">
+              <div className="flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" />
+                {authError}
+              </div>
             </div>
           )}
 
-          <form onSubmit={handleAuth} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Usuario</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-slate-400" />
+          <form onSubmit={handleAuth} className="space-y-6">
+            <div className="space-y-2">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre de Usuario</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <User className="h-5 w-5 text-slate-300 group-focus-within:text-indigo-500 transition-colors" />
                 </div>
                 <input
                   type="text"
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                  className="block w-full pl-12 pr-4 py-4 bg-slate-100/50 border border-slate-200/50 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all font-bold text-slate-800 placeholder:text-slate-400"
                   placeholder="ej. guard1"
                 />
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-slate-400" />
+            <div className="space-y-2">
+              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Contraseña Segura</label>
+              <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                  <Lock className="h-5 w-5 text-slate-300 group-focus-within:text-indigo-500 transition-colors" />
                 </div>
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                  className="block w-full pl-12 pr-4 py-4 bg-slate-100/50 border border-slate-200/50 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all font-bold text-slate-800 placeholder:text-slate-400"
                   placeholder="••••••••"
                 />
               </div>
@@ -456,15 +489,22 @@ export default function Home() {
             <button
               type="submit"
               disabled={authLoading}
-              className="w-full py-3 px-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2 shadow-sm mt-6"
+              className="w-full py-4 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black transition-all duration-300 shadow-xl shadow-indigo-200 hover:shadow-indigo-300 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed uppercase tracking-widest text-sm"
             >
               {authLoading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
+                <Loader2 className="w-6 h-6 animate-spin" />
               ) : (
-                'Iniciar Sesión'
+                <>
+                  <span>Ingresar</span>
+                  <ArrowRight className="w-5 h-5" />
+                </>
               )}
             </button>
           </form>
+
+          <p className="mt-10 text-center text-xs text-slate-400 font-bold uppercase tracking-widest">
+            &copy; {new Date().getFullYear()} {globalSettings.app_name} cloud v2.0
+          </p>
         </div>
       </div>
     );
@@ -472,23 +512,37 @@ export default function Home() {
 
   if (subscriptionExpired && role !== 'superadmin') {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white rounded-3xl shadow-xl border border-slate-100 p-8 text-center">
-          <div className="w-20 h-20 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 relative overflow-hidden text-center">
+        <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
+          <div className="absolute -top-24 -left-24 w-96 h-96 bg-red-100 rounded-full blur-[100px] opacity-30"></div>
+        </div>
+
+        <div className="max-w-md w-full bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-2xl border border-white p-8 sm:p-10 relative z-10 animate-in fade-in zoom-in duration-500">
+          <div className="w-20 h-20 bg-red-50 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-inner border border-red-100">
             <AlertCircle className="w-10 h-10 text-red-600" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">Suscripción Expirada</h1>
-          <p className="text-slate-500 mb-8 leading-relaxed">
-            El tiempo de uso de la plataforma ha culminado. Para continuar utilizando {globalSettings.app_name}, por favor renueva tu suscripción.
+          <h1 className="text-3xl font-black text-slate-900 mb-4 tracking-tighter uppercase">Suscripción Expirada</h1>
+          <p className="text-slate-500 mb-10 leading-relaxed font-medium">
+            El tiempo de uso de la plataforma ha culminado. Para continuar utilizando <strong className="text-indigo-600 font-black">{globalSettings.app_name}</strong>, por favor renueva tu suscripción.
           </p>
           
-          <a href="https://checkout.bold.co/payment/LNK_IL54FGTSDC" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-4 px-4 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors shadow-sm mb-4">
-            Renovar Suscripción
-          </a>
-          
-          <button onClick={handleLogout} className="text-slate-500 hover:text-slate-700 font-medium">
-            Cerrar Sesión
-          </button>
+          <div className="space-y-4">
+            <a
+              href="https://checkout.bold.co/payment/LNK_IL54FGTSDC"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full block text-center py-4 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black transition-all duration-300 shadow-xl shadow-indigo-200 hover:shadow-indigo-300 hover:scale-[1.02] active:scale-95 uppercase tracking-widest text-sm"
+            >
+              Renovar Suscripción
+            </a>
+
+            <button
+              onClick={handleLogout}
+              className="w-full py-4 text-slate-400 hover:text-slate-900 font-bold uppercase tracking-widest text-xs transition-colors"
+            >
+              Cerrar Sesión actual
+            </button>
+          </div>
         </div>
       </div>
     );
