@@ -166,23 +166,31 @@ export default function Home() {
       return (
         <div className="min-h-screen bg-white text-slate-900 font-sans">
           {/* Header */}
-          <header className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-slate-100 z-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border border-slate-200">
-                  <img src={globalSettings.logo_url || "/logo.png"} alt={globalSettings.app_name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
-                  <div className="w-full h-full bg-indigo-600 hidden items-center justify-center">
-                    <Car className="w-6 h-6 text-white" />
+          <header className="fixed top-0 w-full bg-white/90 backdrop-blur-xl border-b border-slate-200/50 z-50 transition-all duration-300 shadow-sm">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+              <div className="flex items-center gap-3 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                <div className="w-12 h-12 rounded-2xl overflow-hidden flex items-center justify-center border border-slate-200 shadow-sm bg-white">
+                  <img src={globalSettings.logo_url || "/logo.png"} alt={globalSettings.app_name} className="w-full h-full object-contain p-1" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
+                  <div className="w-full h-full bg-gradient-to-br from-indigo-500 to-indigo-700 hidden items-center justify-center">
+                    <Car className="w-7 h-7 text-white" />
                   </div>
                 </div>
-                <span className="font-bold text-xl tracking-tight text-slate-800">{globalSettings.app_name}</span>
+                <span className="font-extrabold text-2xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">{globalSettings.app_name}</span>
               </div>
+              
+              <nav className="hidden md:flex items-center gap-8">
+                <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Características</button>
+                <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Precios</button>
+                <button onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })} className="text-sm font-medium text-slate-600 hover:text-indigo-600 transition-colors">Contacto</button>
+              </nav>
+
               <button
                 onClick={() => setShowLogin(true)}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 sm:px-5 py-2 rounded-full font-medium transition-colors shadow-sm text-sm sm:text-base"
+                className="bg-slate-900 hover:bg-indigo-600 text-white px-6 py-2.5 rounded-full font-semibold transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-0.5 text-sm sm:text-base flex items-center gap-2"
               >
                 <span className="sm:hidden">Login</span>
                 <span className="hidden sm:inline">Ingresar a la Plataforma</span>
+                <ArrowRight className="w-4 h-4 hidden sm:inline" />
               </button>
             </div>
           </header>
@@ -334,6 +342,57 @@ export default function Home() {
               </div>
             </div>
           </section>
+
+          {/* Contact Form */}
+          <section className="py-20 bg-white">
+            <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl font-bold text-slate-900 mb-4">Contáctanos</h2>
+                <p className="text-lg text-slate-600">¿Tienes dudas o necesitas un plan personalizado? Escríbenos.</p>
+              </div>
+              <form action="https://formspree.io/f/xyzpjjdy" method="POST" className="space-y-6 bg-slate-50 p-8 rounded-3xl border border-slate-100 shadow-sm">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
+                    <input type="text" name="name" id="name" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                  </div>
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">Email</label>
+                    <input type="email" name="email" id="email" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                  </div>
+                </div>
+                <div>
+                  <label htmlFor="message" className="block text-sm font-medium text-slate-700 mb-1">Mensaje</label>
+                  <textarea name="message" id="message" rows={4} required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none"></textarea>
+                </div>
+                <button type="submit" className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-sm">
+                  Enviar Mensaje
+                </button>
+              </form>
+            </div>
+          </section>
+
+          {/* Footer */}
+          <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-slate-700 bg-white">
+                  <img src={globalSettings.logo_url || "/logo.png"} alt={globalSettings.app_name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
+                  <div className="w-full h-full bg-indigo-600 hidden items-center justify-center">
+                    <Car className="w-4 h-4 text-white" />
+                  </div>
+                </div>
+                <span className="font-bold text-lg text-white">{globalSettings.app_name}</span>
+              </div>
+              <p className="text-sm text-center md:text-left">
+                &copy; {new Date().getFullYear()} {globalSettings.app_name}. Todos los derechos reservados.
+              </p>
+              <div className="flex gap-4">
+                <a href="#" className="hover:text-white transition-colors">Términos</a>
+                <a href="#" className="hover:text-white transition-colors">Privacidad</a>
+              </div>
+            </div>
+          </footer>
         </div>
       );
     }
