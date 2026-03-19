@@ -863,7 +863,7 @@ export default function GuardDashboard({
   return (
     <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 pb-20">
       {/* Header Rediseñado */}
-      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-white/80 backdrop-blur-xl border border-slate-200/60 p-4 sm:p-5 rounded-[2rem] shadow-sm relative overflow-hidden transition-all duration-300">
+      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-white/80 backdrop-blur-2xl border border-white shadow-xl relative overflow-hidden transition-all duration-300 p-4 sm:p-5 rounded-[2.5rem]">
         {/* Lado Izquierdo: Branding */}
         <div className="flex items-center gap-4 group">
           <div className="relative">
