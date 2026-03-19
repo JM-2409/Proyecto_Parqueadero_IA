@@ -2,7 +2,7 @@ import type {Metadata} from 'next';
 import './globals.css'; // Global styles
 
 export const metadata: Metadata = {
-  title: 'ParqueoPro - Sistema de Gestión de Parqueaderos',
+  title: 'Sistema de Gestión de Parqueaderos',
   description: 'Sistema web moderno y completo para la administración y control de estacionamientos.',
 };
 

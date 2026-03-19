@@ -81,19 +81,29 @@ export async function POST(request: Request) {
     const cleanUsername = username.trim().toLowerCase();
     const email = cleanUsername.includes('@') ? cleanUsername : `${cleanUsername}@parqueadero.local`;
 
-    // Create user in auth
+    let userId = null;
+
+    // Try to create user in auth
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
       email_confirm: true
     });
 
-    if (authError) throw authError;
+    if (authError) {
+      if (authError.message.includes('already registered') || authError.status === 422) {
+        return NextResponse.json({ error: 'El nombre de usuario ya está en uso en el sistema. Por favor, elija otro.' }, { status: 400 });
+      } else {
+        throw authError;
+      }
+    } else {
+      userId = authData.user.id;
+    }
 
-    if (authData.user) {
+    if (userId) {
       // Set role
       const { error: roleError } = await supabaseAdmin.from('user_roles').insert({
-        user_id: authData.user.id,
+        user_id: userId,
         role: role || 'guard',
         parking_lot_id: parking_lot_id || null
       });
@@ -101,7 +111,7 @@ export async function POST(request: Request) {
       if (roleError) throw roleError;
     }
 
-    return NextResponse.json({ success: true, user: authData.user });
+    return NextResponse.json({ success: true, user: { id: userId, email } });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

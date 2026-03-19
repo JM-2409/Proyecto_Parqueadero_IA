@@ -1,4 +1,4 @@
-# ParqueoPro - Sistema de Gestión de Parqueaderos
+# NexoPark - Sistema de Gestión de Parqueaderos
 
 Un sistema web moderno y completo para la administración y control de estacionamientos, construido con Next.js, React, Tailwind CSS y Supabase.
 

@@ -21,8 +21,16 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [globalSettings, setGlobalSettings] = useState<{ app_name: string, logo_url: string | null }>({ app_name: 'NexoPark', logo_url: null });
 
   useEffect(() => {
+    // Fetch global settings
+    supabase.from('global_app_settings').select('*').limit(1).single().then(({ data }) => {
+      if (data) {
+        setGlobalSettings({ app_name: data.app_name, logo_url: data.logo_url });
+      }
+    });
+
     // Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
       handleUserSession(session?.user ?? null);
@@ -51,7 +59,7 @@ export default function Home() {
         setViewMode('superadmin');
         setParkingLotId(null);
       } else {
-        const { data: myRole } = await supabase.from('user_roles').select('role, parking_lot_id').eq('user_id', currentUser.id).single();
+        const { data: myRole } = await supabase.from('user_roles').select('role, parking_lot_id').eq('user_id', currentUser.id).limit(1).single();
         
         let currentLotId = myRole?.parking_lot_id;
         let currentRole = myRole?.role as 'superadmin' | 'admin' | 'guard';
@@ -161,11 +169,11 @@ export default function Home() {
           <header className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-slate-100 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <img src="/logo.png" alt="ParqueoPro" className="w-8 h-8 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
+                <img src={globalSettings.logo_url || "/logo.png"} alt={globalSettings.app_name} className="w-8 h-8 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'flex'; }} />
                 <div className="w-8 h-8 bg-indigo-600 rounded-lg hidden items-center justify-center">
                   <Car className="w-5 h-5 text-white" />
                 </div>
-                <span className="font-bold text-xl tracking-tight text-slate-800">ParqueoPro</span>
+                <span className="font-bold text-xl tracking-tight text-slate-800">{globalSettings.app_name}</span>
               </div>
               <button
                 onClick={() => setShowLogin(true)}
@@ -222,7 +230,7 @@ export default function Home() {
           <section className="py-20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="text-center mb-16">
-                <h2 className="text-3xl font-bold text-slate-900 mb-4">¿Para qué sirve ParqueoPro?</h2>
+                <h2 className="text-3xl font-bold text-slate-900 mb-4">¿Para qué sirve {globalSettings.app_name}?</h2>
                 <p className="text-lg text-slate-600 max-w-2xl mx-auto">Todo lo que necesitas para operar tu negocio sin complicaciones.</p>
               </div>
               <div className="grid md:grid-cols-3 gap-8">
@@ -335,10 +343,10 @@ export default function Home() {
             <ArrowRight className="w-6 h-6 rotate-180" />
           </button>
           <div className="w-20 h-20 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner mt-4 overflow-hidden">
-            <img src="/logo.png" alt="ParqueoPro" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
+            <img src={globalSettings.logo_url || "/logo.png"} alt={globalSettings.app_name} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
             <Car className="w-10 h-10 text-indigo-600 hidden" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-800 mb-2 text-center">ParqueoPro</h1>
+          <h1 className="text-3xl font-bold text-slate-800 mb-2 text-center">{globalSettings.app_name}</h1>
           <p className="text-slate-500 mb-8 text-center leading-relaxed">
             Inicia sesión para continuar
           </p>
@@ -410,7 +418,7 @@ export default function Home() {
           </div>
           <h1 className="text-3xl font-bold text-slate-800 mb-2">Suscripción Expirada</h1>
           <p className="text-slate-500 mb-8 leading-relaxed">
-            El tiempo de uso de la plataforma ha culminado. Para continuar utilizando ParqueoPro, por favor renueva tu suscripción.
+            El tiempo de uso de la plataforma ha culminado. Para continuar utilizando {globalSettings.app_name}, por favor renueva tu suscripción.
           </p>
           
           <a href="https://checkout.bold.co/payment/LNK_IL54FGTSDC" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-4 px-4 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors shadow-sm mb-4">

@@ -22,6 +22,13 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
   
   // Settings state
   const [entryFields, setEntryFields] = useState<any[]>([]);
+  const [privateSpotFields, setPrivateSpotFields] = useState<any[]>([
+    { id: 'spotNumber', label: 'Espacio', required: true, enabled: true },
+    { id: 'ownerName', label: 'Propietario', required: true, enabled: true },
+    { id: 'licensePlate', label: 'Placa', required: true, enabled: true },
+    { id: 'vehicleType', label: 'Tipo', required: true, enabled: true },
+    { id: 'notes', label: 'Notas', required: false, enabled: true }
+  ]);
   const [capacitySettings, setCapacitySettings] = useState({
     enforce: false,
     allow_cars: true,
@@ -44,6 +51,8 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
   const [privateSpotsSearch, setPrivateSpotsSearch] = useState('');
   const [privateSpotsSort, setPrivateSpotsSort] = useState('spotNumber');
   const [bulkClearColumn, setBulkClearColumn] = useState('');
+  const [editingSpot, setEditingSpot] = useState<any>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [loadingSettings, setLoadingSettings] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
 
@@ -134,6 +143,7 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
     if (settingsData) {
       settingsData.forEach(setting => {
         if (setting.key === 'entry_fields') setEntryFields(setting.value);
+        if (setting.key === 'private_spot_fields') setPrivateSpotFields(setting.value);
         if (setting.key === 'capacity_settings') setCapacitySettings(setting.value);
         if (setting.key === 'revenue_settings') setRevenueSettings(setting.value);
         if (setting.key === 'guard_permissions') setGuardPermissions(setting.value);
@@ -324,7 +334,9 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
     const { error } = await supabase
       .from('parking_lots')
       .update({ 
+        name: parkingLotName,
         address: parkingLotAddress,
+        nit: parkingLotNit,
         logo_url: finalLogoUrl
       })
       .eq('id', parkingLotId);
@@ -349,6 +361,43 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
 
   const updateEntryField = (id: string, updates: any) => {
     setEntryFields(entryFields.map(f => f.id === id ? { ...f, ...updates } : f));
+  };
+
+  const addPrivateSpotField = () => {
+    const newId = `campo_${Date.now()}`;
+    setPrivateSpotFields([...privateSpotFields, { id: newId, label: `Nuevo Campo ${privateSpotFields.length + 1}`, required: false, enabled: true }]);
+  };
+
+  const removePrivateSpotField = (id: string) => {
+    setPrivateSpotFields(privateSpotFields.filter(f => f.id !== id));
+  };
+
+  const updatePrivateSpotField = (id: string, updates: any) => {
+    setPrivateSpotFields(privateSpotFields.map(f => f.id === id ? { ...f, ...updates } : f));
+  };
+
+  const savePrivateSpotFields = async () => {
+    const labels = privateSpotFields.map(f => f.label.trim().toLowerCase());
+    if (labels.some(l => l === '')) {
+      alert('Error: No se pueden guardar campos con nombres vacíos.');
+      return;
+    }
+    const uniqueLabels = new Set(labels);
+    if (uniqueLabels.size !== labels.length) {
+      alert('Error: Existen campos con nombres duplicados. Por favor, usa nombres únicos.');
+      return;
+    }
+
+    setSavingSettings(true);
+    const { error } = await supabase
+      .from('settings')
+      .upsert({ key: 'private_spot_fields', value: privateSpotFields, parking_lot_id: parkingLotId }, { onConflict: 'key,parking_lot_id' });
+    if (error) {
+      alert('Error al guardar configuración de campos privados: ' + error.message);
+    } else {
+      alert('Configuración de campos privados guardada exitosamente.');
+    }
+    setSavingSettings(false);
   };
 
   const fetchData = async () => {
@@ -962,9 +1011,13 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
                               <div className="flex flex-col gap-0.5">
                                 {Object.entries(session.metadata)
                                   .filter(([k]) => k !== 'guard_name' && k !== 'checkout_guard_name')
-                                  .map(([key, value]) => (
-                                  <span key={key}><strong className="capitalize">{key}:</strong> {String(value)}</span>
-                                ))}
+                                  .map(([key, value]) => {
+                                    const fieldDef = entryFields.find(f => f.id === key);
+                                    const displayKey = fieldDef ? fieldDef.label : key;
+                                    return (
+                                      <span key={key} className="text-slate-700 font-medium">{String(value)}</span>
+                                    );
+                                  })}
                               </div>
                             ) : (
                               <span className="text-slate-400 italic">Sin detalles</span>
@@ -1264,10 +1317,9 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
                     className="px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-sm"
                   >
                     <option value="">Seleccionar columna a vaciar...</option>
-                    <option value="spotNumber">Espacio</option>
-                    <option value="ownerName">Propietario</option>
-                    <option value="licensePlate">Placa</option>
-                    <option value="notes">Notas</option>
+                    {privateSpotFields.filter(f => f.enabled).map(field => (
+                      <option key={field.id} value={field.id}>{field.label}</option>
+                    ))}
                   </select>
                   <button
                     onClick={handleBulkClear}
@@ -1282,43 +1334,42 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
                 onSubmit={(e) => {
                   e.preventDefault();
                   const formData = new FormData(e.currentTarget);
-                  const newSpot = {
+                  const newSpot: any = {
                     id: Math.random().toString(36).substr(2, 9),
-                    spotNumber: formData.get('spotNumber'),
-                    ownerName: formData.get('ownerName'),
-                    licensePlate: formData.get('licensePlate')?.toString().toUpperCase(),
-                    vehicleType: formData.get('vehicleType'),
-                    notes: formData.get('notes')
                   };
+                  privateSpotFields.forEach(field => {
+                    if (field.enabled) {
+                      newSpot[field.id] = formData.get(field.id)?.toString() || '';
+                      if (field.id === 'licensePlate') {
+                        newSpot[field.id] = newSpot[field.id].toUpperCase();
+                      }
+                    }
+                  });
                   savePrivateSpots([...privateSpots, newSpot]);
                   e.currentTarget.reset();
                 }}
                 className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
               >
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Número/ID del Espacio</label>
-                  <input type="text" name="spotNumber" required className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ej. A-12" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Nombre del Propietario</label>
-                  <input type="text" name="ownerName" required className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Nombre completo" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Placa del Vehículo</label>
-                  <input type="text" name="licensePlate" required className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none uppercase" placeholder="ABC-123" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Tipo de Vehículo</label>
-                  <select name="vehicleType" required className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
-                    <option value="car">Carro</option>
-                    <option value="motorcycle">Moto</option>
-                    <option value="bicycle">Bicicleta</option>
-                  </select>
-                </div>
-                <div className="md:col-span-2 lg:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Notas (Opcional)</label>
-                  <input type="text" name="notes" className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Información adicional" />
-                </div>
+                {privateSpotFields.filter(f => f.enabled).map(field => (
+                  <div key={field.id} className={field.id === 'notes' ? 'md:col-span-2 lg:col-span-2' : ''}>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">{field.label}</label>
+                    {field.id === 'vehicleType' ? (
+                      <select name={field.id} required={field.required} className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
+                        <option value="car">Carro</option>
+                        <option value="motorcycle">Moto</option>
+                        <option value="bicycle">Bicicleta</option>
+                      </select>
+                    ) : (
+                      <input 
+                        type="text" 
+                        name={field.id} 
+                        required={field.required} 
+                        className={`w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none ${field.id === 'licensePlate' ? 'uppercase' : ''}`} 
+                        placeholder={field.id === 'spotNumber' ? 'Ej. A-12' : field.id === 'licensePlate' ? 'ABC-123' : ''} 
+                      />
+                    )}
+                  </div>
+                ))}
                 <div className="md:col-span-2 lg:col-span-3 flex justify-end mt-2">
                   <button type="submit" className="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium transition-colors">
                     Asignar Espacio
@@ -1346,10 +1397,9 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
                   onChange={(e) => setPrivateSpotsSort(e.target.value)}
                   className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50"
                 >
-                  <option value="spotNumber">Por Espacio</option>
-                  <option value="ownerName">Por Propietario</option>
-                  <option value="licensePlate">Por Placa</option>
-                  <option value="notes">Por Notas</option>
+                  {privateSpotFields.filter(f => f.enabled).map(field => (
+                    <option key={field.id} value={field.id}>Por {field.label}</option>
+                  ))}
                 </select>
               </div>
             </div>
@@ -1358,45 +1408,51 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
-                    <th className="px-4 py-3 font-medium">Espacio</th>
-                    <th className="px-4 py-3 font-medium">Propietario</th>
-                    <th className="px-4 py-3 font-medium">Placa</th>
-                    <th className="px-4 py-3 font-medium">Tipo</th>
-                    <th className="px-4 py-3 font-medium">Notas</th>
+                    {privateSpotFields.filter(f => f.enabled).map(field => (
+                      <th key={field.id} className="px-4 py-3 font-medium">{field.label}</th>
+                    ))}
                     <th className="px-4 py-3 font-medium text-right">Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {privateSpots.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
+                      <td colSpan={privateSpotFields.filter(f => f.enabled).length + 1} className="px-4 py-8 text-center text-slate-500">
                         No hay parqueaderos privados asignados
                       </td>
                     </tr>
                   ) : (
                     privateSpots
                       .filter(spot => 
-                        (spot.spotNumber || '').toLowerCase().includes(privateSpotsSearch.toLowerCase()) ||
-                        (spot.ownerName || '').toLowerCase().includes(privateSpotsSearch.toLowerCase()) ||
-                        (spot.licensePlate || '').toLowerCase().includes(privateSpotsSearch.toLowerCase())
+                        privateSpotFields.filter(f => f.enabled).some(field => 
+                          (spot[field.id] || '').toLowerCase().includes(privateSpotsSearch.toLowerCase())
+                        )
                       )
                       .sort((a, b) => {
-                        if (privateSpotsSort === 'spotNumber') return (a.spotNumber || '').localeCompare(b.spotNumber || '', undefined, { numeric: true });
-                        if (privateSpotsSort === 'ownerName') return (a.ownerName || '').localeCompare(b.ownerName || '');
-                        if (privateSpotsSort === 'licensePlate') return (a.licensePlate || '').localeCompare(b.licensePlate || '');
-                        if (privateSpotsSort === 'notes') return (a.notes || '').localeCompare(b.notes || '');
-                        return 0;
+                        const valA = a[privateSpotsSort] || '';
+                        const valB = b[privateSpotsSort] || '';
+                        return valA.localeCompare(valB, undefined, { numeric: true });
                       })
                       .map((spot) => (
                       <tr key={spot.id} className="border-b border-slate-100 hover:bg-slate-50">
-                        <td className="px-4 py-3 font-medium text-slate-800">{spot.spotNumber}</td>
-                        <td className="px-4 py-3 text-slate-600">{spot.ownerName}</td>
-                        <td className="px-4 py-3 font-mono text-slate-600">{spot.licensePlate}</td>
-                        <td className="px-4 py-3 text-slate-600">
-                          {spot.vehicleType === 'car' ? 'Carro' : spot.vehicleType === 'motorcycle' ? 'Moto' : 'Bicicleta'}
-                        </td>
-                        <td className="px-4 py-3 text-slate-500 text-sm">{spot.notes}</td>
+                        {privateSpotFields.filter(f => f.enabled).map(field => (
+                          <td key={field.id} className={`px-4 py-3 ${field.id === 'licensePlate' ? 'font-mono text-slate-600' : field.id === 'spotNumber' ? 'font-medium text-slate-800' : 'text-slate-600'}`}>
+                            {field.id === 'vehicleType' 
+                              ? (spot[field.id] === 'car' ? 'Carro' : spot[field.id] === 'motorcycle' ? 'Moto' : spot[field.id] === 'bicycle' ? 'Bicicleta' : spot[field.id])
+                              : spot[field.id]}
+                          </td>
+                        ))}
                         <td className="px-4 py-3 text-right">
+                          <button 
+                            onClick={() => {
+                              setEditingSpot(spot);
+                              setShowEditModal(true);
+                            }}
+                            className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors mr-2"
+                            title="Editar asignación"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
                           <button 
                             onClick={() => savePrivateSpots(privateSpots.filter(s => s.id !== spot.id))}
                             className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
@@ -1875,6 +1931,87 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
             <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
               <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                 <Settings className="w-5 h-5 text-slate-500" />
+                Configuración de Campos de Parqueaderos Privados
+              </h2>
+            <button
+              onClick={savePrivateSpotFields}
+              disabled={savingSettings}
+              className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+            >
+              {savingSettings ? 'Guardando...' : 'Guardar Cambios'}
+            </button>
+          </div>
+          
+          <div className="p-6">
+            <p className="text-slate-600 mb-6">
+              Configura los campos que se deben llenar al registrar un parqueadero privado.
+            </p>
+
+            {loadingSettings ? (
+              <div className="py-12 text-center text-slate-500">Cargando configuración...</div>
+            ) : (
+              <div className="space-y-4">
+                {privateSpotFields.map((field, index) => (
+                  <div key={field.id} className="flex flex-col sm:flex-row gap-4 items-start sm:items-center p-4 border border-slate-200 rounded-2xl bg-slate-50">
+                    <div className="flex-1 w-full">
+                      <label className="block text-xs font-medium text-slate-500 mb-1 uppercase tracking-wider">Nombre del Campo</label>
+                      <input
+                        type="text"
+                        value={field.label}
+                        onChange={(e) => updatePrivateSpotField(field.id, { label: e.target.value })}
+                        className="block w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white"
+                        placeholder="Ej. Espacio, Propietario..."
+                      />
+                    </div>
+                    
+                    <div className="flex items-center gap-6 mt-2 sm:mt-0">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={field.required}
+                          onChange={(e) => updatePrivateSpotField(field.id, { required: e.target.checked })}
+                          className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                        />
+                        <span className="text-sm font-medium text-slate-700">Requerido</span>
+                      </label>
+                      
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={field.enabled}
+                          onChange={(e) => updatePrivateSpotField(field.id, { enabled: e.target.checked })}
+                          className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                        />
+                        <span className="text-sm font-medium text-slate-700">Habilitado</span>
+                      </label>
+
+                      <button
+                        onClick={() => removePrivateSpotField(field.id)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Eliminar campo"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                <button
+                  onClick={addPrivateSpotField}
+                  className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-500 font-medium hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
+                >
+                  <Plus className="w-5 h-5" />
+                  Agregar Nuevo Campo
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <Settings className="w-5 h-5 text-slate-500" />
                 Configuración de Campos de Ingreso
               </h2>
             <button
@@ -1951,6 +2088,75 @@ export default function AdminDashboard({ user, onLogout, userRole, parkingLotId,
             )}
           </div>
         </div>
+        </div>
+      )}
+
+      {/* Private Spot Edit Modal */}
+      {showEditModal && editingSpot && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <Edit2 className="w-5 h-5 text-indigo-600" />
+                Editar Parqueadero Privado
+              </h2>
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.currentTarget);
+                  const updatedSpot: any = { id: editingSpot.id };
+                  privateSpotFields.forEach(field => {
+                    if (field.enabled) {
+                      updatedSpot[field.id] = formData.get(field.id)?.toString() || '';
+                      if (field.id === 'licensePlate') {
+                        updatedSpot[field.id] = updatedSpot[field.id].toUpperCase();
+                      }
+                    }
+                  });
+                  savePrivateSpots(privateSpots.map(s => s.id === editingSpot.id ? updatedSpot : s));
+                  setShowEditModal(false);
+                  setEditingSpot(null);
+                }}
+                className="space-y-4"
+              >
+                {privateSpotFields.filter(f => f.enabled).map(field => (
+                  <div key={field.id}>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">{field.label}</label>
+                    {field.id === 'vehicleType' ? (
+                      <select name={field.id} defaultValue={editingSpot[field.id]} required={field.required} className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
+                        <option value="car">Carro</option>
+                        <option value="motorcycle">Moto</option>
+                        <option value="bicycle">Bicicleta</option>
+                      </select>
+                    ) : (
+                      <input 
+                        type="text" 
+                        name={field.id} 
+                        defaultValue={editingSpot[field.id]}
+                        required={field.required} 
+                        className={`w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none ${field.id === 'licensePlate' ? 'uppercase' : ''}`} 
+                      />
+                    )}
+                  </div>
+                ))}
+                <div className="pt-4 flex justify-end gap-3">
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setShowEditModal(false);
+                      setEditingSpot(null);
+                    }} 
+                    className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button type="submit" className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors">
+                    Guardar Cambios
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       )}
 

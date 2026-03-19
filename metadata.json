@@ -1,5 +1,5 @@
 {
-  "name": "ParqueoPro",
+  "name": "NexoPark",
   "description": "Sistema SaaS de gestión de parqueaderos con panel administrativo, panel super admin y panel de vigilancia para control de ingresos y salidas de vehículos.",
   "requestFramePermissions": []
 }

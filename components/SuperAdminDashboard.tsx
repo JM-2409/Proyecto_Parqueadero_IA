@@ -2,14 +2,20 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
-import { Building2, Users, LogOut, Plus, Edit2, Trash2, Shield, Key, Loader2, Search, Power, PowerOff } from 'lucide-react';
+import { Building2, Users, LogOut, Plus, Edit2, Trash2, Shield, Key, Loader2, Search, Power, PowerOff, Settings } from 'lucide-react';
 
 export default function SuperAdminDashboard({ user, onLogout }: { user: any, onLogout: () => void }) {
-  const [activeTab, setActiveTab] = useState<'parking_lots' | 'users'>('parking_lots');
+  const [activeTab, setActiveTab] = useState<'parking_lots' | 'users' | 'settings'>('parking_lots');
   const [parkingLots, setParkingLots] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Global Settings Form
+  const [globalAppName, setGlobalAppName] = useState('NexoPark');
+  const [globalLogoUrl, setGlobalLogoUrl] = useState<string | null>(null);
+  const [newGlobalLogoFile, setNewGlobalLogoFile] = useState<File | null>(null);
+  const [savingGlobalSettings, setSavingGlobalSettings] = useState(false);
 
   // Parking Lot Form
   const [showLotForm, setShowLotForm] = useState(false);
@@ -46,6 +52,13 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
   const fetchData = async () => {
     setLoading(true);
     
+    // Fetch global settings
+    const { data: globalData } = await supabase.from('global_app_settings').select('*').limit(1).single();
+    if (globalData) {
+      setGlobalAppName(globalData.app_name);
+      setGlobalLogoUrl(globalData.logo_url);
+    }
+
     // Fetch parking lots
     const { data: lotsData } = await supabase.from('parking_lots').select('*').order('created_at', { ascending: false });
     if (lotsData) setParkingLots(lotsData);
@@ -193,6 +206,55 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
     }
   };
 
+  const handleSaveGlobalSettings = async () => {
+    setSavingGlobalSettings(true);
+    try {
+      let finalLogoUrl = globalLogoUrl;
+
+      if (newGlobalLogoFile) {
+        const fileExt = newGlobalLogoFile.name.split('.').pop();
+        const fileName = `global_logo_${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('logos')
+          .upload(fileName, newGlobalLogoFile, { upsert: true });
+          
+        if (!uploadError) {
+          const { data: publicUrlData } = supabase.storage
+            .from('logos')
+            .getPublicUrl(fileName);
+          finalLogoUrl = publicUrlData.publicUrl;
+          setGlobalLogoUrl(finalLogoUrl);
+        } else {
+          throw new Error('Error al subir el logo: ' + uploadError.message);
+        }
+      }
+
+      // Check if row exists
+      const { data: existing } = await supabase.from('global_app_settings').select('id').limit(1).single();
+      
+      if (existing) {
+        await supabase.from('global_app_settings').update({
+          app_name: globalAppName,
+          logo_url: finalLogoUrl,
+          updated_at: new Date().toISOString()
+        }).eq('id', existing.id);
+      } else {
+        await supabase.from('global_app_settings').insert({
+          app_name: globalAppName,
+          logo_url: finalLogoUrl
+        });
+      }
+
+      setNewGlobalLogoFile(null);
+      alert('Configuración global guardada exitosamente. Recarga la página para ver los cambios.');
+    } catch (err: any) {
+      alert(err.message);
+    } finally {
+      setSavingGlobalSettings(false);
+    }
+  };
+
   const executeDeleteUser = async () => {
     if (!deletingUser) return;
     setFormLoading(true);
@@ -220,7 +282,7 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
       <div className="flex justify-between items-center mb-8">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center overflow-hidden shadow-sm">
-            <img src="/logo.png" alt="ParqueoPro" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
+            <img src={globalLogoUrl || "/logo.png"} alt={globalAppName} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; (e.currentTarget.nextElementSibling as HTMLElement).style.display = 'block'; }} />
             <Shield className="w-6 h-6 text-indigo-600 hidden" />
           </div>
           <div>
@@ -252,6 +314,13 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
           >
             <Users className="w-4 h-4" />
             Usuarios
+          </button>
+          <button
+            onClick={() => { setActiveTab('settings'); setSearchTerm(''); }}
+            className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-all flex items-center gap-2 ${activeTab === 'settings' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-50'}`}
+          >
+            <Settings className="w-4 h-4" />
+            Configuración Global
           </button>
         </div>
 
@@ -441,6 +510,70 @@ export default function SuperAdminDashboard({ user, onLogout }: { user: any, onL
                     No hay usuarios registrados.
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+                <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-indigo-600" />
+                  Configuración Global de la Aplicación
+                </h2>
+                <button
+                  onClick={handleSaveGlobalSettings}
+                  disabled={savingGlobalSettings}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                >
+                  {savingGlobalSettings ? 'Guardando...' : 'Guardar Cambios'}
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <div className="space-y-6 max-w-2xl">
+                  <div className="flex items-center gap-6 mb-6">
+                    <div className="w-24 h-24 rounded-full bg-slate-100 border-2 border-dashed border-slate-300 flex items-center justify-center overflow-hidden relative group shadow-sm">
+                      {(newGlobalLogoFile || globalLogoUrl) ? (
+                        <img 
+                          src={newGlobalLogoFile ? URL.createObjectURL(newGlobalLogoFile) : globalLogoUrl!} 
+                          alt="Logo Global" 
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <Building2 className="w-8 h-8 text-slate-400" />
+                      )}
+                      <label className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                        <span className="text-white text-xs font-medium">Cambiar</span>
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              setNewGlobalLogoFile(e.target.files[0]);
+                            }
+                          }}
+                        />
+                      </label>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-medium text-slate-800">Logo de la Aplicación</h3>
+                      <p className="text-xs text-slate-500 mt-1">Sube una imagen para mostrar en la pantalla de inicio y como logo principal. Recomendado: PNG o JPG, máx 2MB.</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">Nombre de la Aplicación</label>
+                    <input
+                      type="text"
+                      value={globalAppName}
+                      onChange={(e) => setGlobalAppName(e.target.value)}
+                      className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                      placeholder="Ej. NexoPark"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           )}
