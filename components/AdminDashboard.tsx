@@ -29,14 +29,12 @@ import {
 import { format, differenceInMinutes, subDays, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import {
-  ComposedChart,
-  Line,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from "recharts";
 
@@ -135,6 +133,10 @@ export default function AdminDashboard({
   const [showUserForm, setShowUserForm] = useState(false);
   const [editingUser, setEditingUser] = useState<any>(null);
 
+  // Global settings state
+  const [globalAppName, setGlobalAppName] = useState("NexoPark");
+  const [globalLogoUrl, setGlobalLogoUrl] = useState<string | null>(null);
+
   // User form state
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -188,9 +190,16 @@ export default function AdminDashboard({
   const [chartEndDate, setChartEndDate] = useState(
     () => new Date().toISOString().split("T")[0],
   );
-  const [chartType, setChartType] = useState<"both" | "revenue" | "vehicles">(
-    "both",
-  );
+
+  const setQuickFilter = (days: number) => {
+    const end = new Date();
+    const start = new Date();
+    if (days > 0) {
+      start.setDate(end.getDate() - (days - 1));
+    }
+    setChartEndDate(end.toISOString().split("T")[0]);
+    setChartStartDate(start.toISOString().split("T")[0]);
+  };
 
   useEffect(() => {
     fetchData();
@@ -583,6 +592,18 @@ export default function AdminDashboard({
   const fetchData = async () => {
     setLoading(true);
 
+    // Fetch global app settings
+    const { data: globalData } = await supabase
+      .from("global_app_settings")
+      .select("*")
+      .limit(1)
+      .single();
+
+    if (globalData) {
+      setGlobalAppName(globalData.app_name);
+      setGlobalLogoUrl(globalData.logo_url);
+    }
+
     // Fetch revenue settings to get last closing time
     const { data: revSettings } = await supabase
       .from("settings")
@@ -643,17 +664,50 @@ export default function AdminDashboard({
   const chartData = useMemo(() => {
     if (!history.length) return [];
 
-    const start = new Date(chartStartDate);
-    const end = new Date(chartEndDate);
+    const start = parseISO(chartStartDate);
+    const end = parseISO(chartEndDate);
 
-    // Ensure start is before or equal to end
     if (start > end) return [];
+
+    const isSameDay = chartStartDate === chartEndDate;
+
+    if (isSameDay) {
+      // Group by hour
+      const day = chartStartDate;
+      const hours = Array.from({ length: 24 }).map((_, i) => {
+        const hourStr = String(i).padStart(2, "0");
+        return `${day}T${hourStr}`;
+      });
+
+      return hours.map((hourPrefix) => {
+        const hourSessions = history.filter((s) =>
+          s.entry_time.startsWith(hourPrefix),
+        );
+        const hourCompleted = history.filter(
+          (s) =>
+            s.status === "completed" &&
+            s.exit_time &&
+            s.exit_time.startsWith(hourPrefix),
+        );
+
+        const revenue = hourCompleted.reduce(
+          (sum, s) => sum + Number(s.amount_paid || 0),
+          0,
+        );
+        const vehicles = hourSessions.length;
+
+        return {
+          label: `${hourPrefix.split("T")[1]}:00`,
+          Ingresos: revenue,
+          Vehículos: vehicles,
+        };
+      });
+    }
 
     // Calculate difference in days
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
 
-    // Limit to 31 days to prevent performance issues
     const daysCount = Math.min(diffDays, 31);
 
     const days = Array.from({ length: daysCount })
@@ -667,7 +721,10 @@ export default function AdminDashboard({
     return days.map((day) => {
       const daySessions = history.filter((s) => s.entry_time.startsWith(day));
       const dayCompleted = history.filter(
-        (s) => s.status === "completed" && s.exit_time?.startsWith(day),
+        (s) =>
+          s.status === "completed" &&
+          s.exit_time &&
+          s.exit_time.startsWith(day),
       );
 
       const revenue = dayCompleted.reduce(
@@ -677,7 +734,7 @@ export default function AdminDashboard({
       const vehicles = daySessions.length;
 
       return {
-        date: format(parseISO(day), "EEE dd", { locale: es }),
+        label: format(parseISO(day), "EEE dd", { locale: es }),
         Ingresos: revenue,
         Vehículos: vehicles,
       };
@@ -980,17 +1037,20 @@ export default function AdminDashboard({
         <div className="flex items-center gap-4 group">
           <div className="relative">
             <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-600 to-purple-400 rounded-full blur opacity-20 group-hover:opacity-35 transition duration-300"></div>
-            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square">
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square bg-white">
               <img
-                src="/logo.png"
+                src={globalLogoUrl || "/logo.png"}
                 alt="Logo"
                 className="w-full h-full object-cover transform transition duration-500 group-hover:scale-110"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/logo.png";
+                }}
               />
             </div>
           </div>
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 truncate leading-none mb-1">
-              {parkingLotName || "Admin Panel"}
+              {parkingLotName || globalAppName}
             </h1>
             <div className="flex items-center gap-1.5 text-slate-500">
               <Key className="w-3.5 h-3.5 text-indigo-600" />
@@ -1153,130 +1213,267 @@ export default function AdminDashboard({
             </div>
           </div>
 
-          {/* Chart Section */}
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-6 mb-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
-              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <BarChart3 className="w-5 h-5 text-slate-500" />
-                Estadísticas
-              </h2>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <select
-                  value={chartType}
-                  onChange={(e) => setChartType(e.target.value as any)}
-                  className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
-                >
-                  <option value="both">Ingresos y Vehículos</option>
-                  <option value="revenue">Solo Ingresos</option>
-                  <option value="vehicles">Solo Vehículos</option>
-                </select>
+          {/* Dashboard Charts & Filters Section */}
+          <div className="mb-8 space-y-6">
+            {/* Improved Filter Bar */}
+            <div className="bg-white/80 backdrop-blur-2xl rounded-3xl p-5 border border-white shadow-xl flex flex-col lg:flex-row justify-between items-center gap-6">
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {[
+                  { label: "Hoy", val: 1 },
+                  { label: "7 Días", val: 7 },
+                  { label: "30 Días", val: 30 },
+                ].map((f) => (
+                  <button
+                    key={f.label}
+                    onClick={() => setQuickFilter(f.val)}
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-50 text-slate-600 border border-slate-100 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-sm"
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-3 bg-slate-50/50 p-2 rounded-2xl border border-slate-100 shadow-inner">
                 <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter ml-2">
+                    Desde
+                  </span>
                   <input
                     type="date"
                     value={chartStartDate}
                     onChange={(e) => setChartStartDate(e.target.value)}
-                    className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="bg-transparent border-none text-xs font-bold text-slate-700 focus:ring-0 outline-none p-1 cursor-pointer"
                   />
-                  <span className="text-slate-400">a</span>
+                </div>
+                <div className="w-px h-4 bg-slate-200"></div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">
+                    Hasta
+                  </span>
                   <input
                     type="date"
                     value={chartEndDate}
                     onChange={(e) => setChartEndDate(e.target.value)}
-                    className="px-3 py-2 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="bg-transparent border-none text-xs font-bold text-slate-700 focus:ring-0 outline-none p-1 cursor-pointer"
                   />
                 </div>
               </div>
             </div>
-            <div className="h-64 sm:h-80 w-full">
-              {chartData.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <ComposedChart
-                    data={chartData}
-                    margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                  >
-                    <CartesianGrid
-                      strokeDasharray="3 3"
-                      vertical={false}
-                      stroke="#f1f5f9"
-                    />
-                    <XAxis
-                      dataKey="date"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: "#64748b", fontSize: 12 }}
-                      dy={10}
-                    />
 
-                    {(chartType === "both" || chartType === "revenue") && (
-                      <YAxis
-                        yAxisId="left"
+            {/* Split Charts Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Revenue Chart */}
+              <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] p-6 border border-white shadow-2xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <DollarSign className="w-24 h-24 text-indigo-600" />
+                </div>
+                <div className="relative z-10 mb-6">
+                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                    Flujo de Caja
+                  </h3>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-black text-slate-900">
+                        Ingresos
+                      </span>
+                      <span className="text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
+                        COP
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Total Periodo</p>
+                      <p className="text-lg font-black text-indigo-600">
+                        {formatCurrency(chartData.reduce((acc, curr) => acc + curr.Ingresos, 0))}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="h-64 sm:h-72 w-full flex items-center justify-center">
+                  {chartData.some(d => d.Ingresos > 0) ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData}>
+                      <defs>
+                        <linearGradient
+                          id="colorRev"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="#6366f1"
+                            stopOpacity={0.3}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#6366f1"
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="#f1f5f9"
+                      />
+                      <XAxis
+                        dataKey="label"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: "#64748b", fontSize: 12 }}
-                        dx={-10}
+                        tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 600 }}
+                        dy={10}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 600 }}
                         tickFormatter={(value) => `$${value / 1000}k`}
+                        dx={-10}
                       />
-                    )}
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "20px",
+                          border: "none",
+                          boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)",
+                          background: "rgba(255, 255, 255, 0.9)",
+                          backdropFilter: "blur(10px)",
+                          padding: "12px",
+                        }}
+                        itemStyle={{
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                          color: "#4f46e5",
+                        }}
+                        formatter={(value: any) => [
+                          formatCurrency(Number(value)),
+                          "Ingresos",
+                        ]}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="Ingresos"
+                        stroke="#6366f1"
+                        strokeWidth={4}
+                        fillOpacity={1}
+                        fill="url(#colorRev)"
+                        animationDuration={1500}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 opacity-20">
+                      <DollarSign className="w-12 h-12" />
+                      <p className="text-xs font-bold uppercase tracking-widest">Sin ingresos en el periodo</p>
+                    </div>
+                  )}
+                </div>
+              </div>
 
-                    {(chartType === "both" || chartType === "vehicles") && (
-                      <YAxis
-                        yAxisId="right"
-                        orientation={chartType === "both" ? "right" : "left"}
+              {/* Traffic Chart */}
+              <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] p-6 border border-white shadow-2xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <History className="w-24 h-24 text-emerald-600" />
+                </div>
+                <div className="relative z-10 mb-6">
+                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+                    Tráfico Diario
+                  </h3>
+                  <div className="flex items-baseline justify-between gap-2">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-3xl font-black text-slate-900">
+                        Vehículos
+                      </span>
+                      <span className="text-xs font-bold text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
+                        Entradas
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Total Visitas</p>
+                      <p className="text-lg font-black text-emerald-600">
+                        {chartData.reduce((acc, curr) => acc + curr.Vehículos, 0)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="h-64 sm:h-72 w-full flex items-center justify-center">
+                  {chartData.some(d => d.Vehículos > 0) ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData}>
+                      <defs>
+                        <linearGradient
+                          id="colorVeh"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="#10b981"
+                            stopOpacity={0.3}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#10b981"
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="#f1f5f9"
+                      />
+                      <XAxis
+                        dataKey="label"
                         axisLine={false}
                         tickLine={false}
-                        tick={{ fill: "#64748b", fontSize: 12 }}
-                        dx={chartType === "both" ? 10 : -10}
+                        tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 600 }}
+                        dy={10}
                       />
-                    )}
-
-                    <Tooltip
-                      contentStyle={{
-                        borderRadius: "12px",
-                        border: "none",
-                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                      }}
-                      formatter={(value: any, name: any) => [
-                        name === "Ingresos"
-                          ? formatCurrency(Number(value))
-                          : value,
-                        name,
-                      ]}
-                    />
-                    <Legend wrapperStyle={{ paddingTop: "20px" }} />
-
-                    {(chartType === "both" || chartType === "revenue") && (
-                      <Bar
-                        yAxisId="left"
-                        dataKey="Ingresos"
-                        fill="#4f46e5"
-                        radius={[4, 4, 0, 0]}
-                        maxBarSize={40}
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#94a3b8", fontSize: 10, fontWeight: 600 }}
+                        dx={-10}
                       />
-                    )}
-
-                    {(chartType === "both" || chartType === "vehicles") && (
-                      <Line
-                        yAxisId="right"
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "20px",
+                          border: "none",
+                          boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)",
+                          background: "rgba(255, 255, 255, 0.9)",
+                          backdropFilter: "blur(10px)",
+                          padding: "12px",
+                        }}
+                        itemStyle={{
+                          fontSize: "12px",
+                          fontWeight: "bold",
+                          color: "#059669",
+                        }}
+                      />
+                      <Area
                         type="monotone"
                         dataKey="Vehículos"
                         stroke="#10b981"
-                        strokeWidth={3}
-                        dot={{
-                          r: 4,
-                          fill: "#10b981",
-                          strokeWidth: 2,
-                          stroke: "#fff",
-                        }}
-                        activeDot={{ r: 6 }}
+                        strokeWidth={4}
+                        fillOpacity={1}
+                        fill="url(#colorVeh)"
+                        animationDuration={1500}
                       />
-                    )}
-                  </ComposedChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-slate-500">
-                  No hay datos suficientes para mostrar la gráfica.
+                    </AreaChart>
+                  </ResponsiveContainer>
+                  ) : (
+                    <div className="flex flex-col items-center gap-2 opacity-20">
+                      <History className="w-12 h-12" />
+                      <p className="text-xs font-bold uppercase tracking-widest">Sin tráfico en el periodo</p>
+                    </div>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
           </div>
 

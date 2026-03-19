@@ -430,6 +430,16 @@ export default function SuperAdminDashboard({
             <Users className="w-4 h-4" />
             Usuarios
           </button>
+          <button
+            onClick={() => {
+              setActiveTab("settings");
+              setSearchTerm("");
+            }}
+            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}
+          >
+            <Settings className="w-4 h-4" />
+            Configuración
+          </button>
         </div>
 
         <div className="relative w-full lg:w-72">
@@ -589,7 +599,7 @@ export default function SuperAdminDashboard({
           )}
 
           {activeTab === "users" && (
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
                 <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                   <Users className="w-5 h-5 text-indigo-600" />
@@ -692,27 +702,148 @@ export default function SuperAdminDashboard({
             </div>
           )}
 
+          {activeTab === "settings" && (
+            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="p-6 border-b border-slate-200 bg-slate-50">
+                <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                  <Settings className="w-5 h-5 text-indigo-600" />
+                  Configuración Global del Sistema
+                </h2>
+              </div>
+
+              <div className="p-6 sm:p-8 max-w-2xl">
+                <div className="space-y-8">
+                  {/* App Name */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-black text-slate-400 uppercase tracking-widest">
+                      Nombre de la Aplicación
+                    </label>
+                    <input
+                      type="text"
+                      value={globalAppName}
+                      onChange={(e) => setGlobalAppName(e.target.value)}
+                      className="block w-full px-4 py-3 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white font-bold text-slate-800"
+                      placeholder="Ej. NexoPark"
+                    />
+                    <p className="text-xs text-slate-500">Este nombre aparecerá en el encabezado y en los recibos generados.</p>
+                  </div>
+
+                  {/* Logo Upload */}
+                  <div className="space-y-4">
+                    <label className="block text-sm font-black text-slate-400 uppercase tracking-widest">
+                      Logo de la Plataforma
+                    </label>
+
+                    <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
+                      <div className="relative group">
+                        <div className="w-24 h-24 rounded-full overflow-hidden bg-white border-4 border-white shadow-lg shrink-0 flex items-center justify-center">
+                          {newGlobalLogoFile ? (
+                            <img
+                              src={URL.createObjectURL(newGlobalLogoFile)}
+                              alt="Preview"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : globalLogoUrl ? (
+                            <img
+                              src={globalLogoUrl}
+                              alt="Global Logo"
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <Building2 className="w-10 h-10 text-slate-300" />
+                          )}
+                        </div>
+                        {newGlobalLogoFile && (
+                          <button
+                            onClick={() => setNewGlobalLogoFile(null)}
+                            className="absolute -top-1 -right-1 p-1 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600 transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="flex-1 space-y-3 w-full">
+                        <input
+                          type="file"
+                          id="global-logo-upload"
+                          className="hidden"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) setNewGlobalLogoFile(file);
+                          }}
+                        />
+                        <label
+                          htmlFor="global-logo-upload"
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 cursor-pointer transition-all shadow-sm"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Subir Nuevo Logo
+                        </label>
+                        <p className="text-[10px] text-slate-400 text-center sm:text-left leading-relaxed">
+                          Recomendado: Imagen cuadrada PNG o JPG, mín. 400x400px. El logo se visualizará de forma circular.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 border-t border-slate-100">
+                    <button
+                      onClick={handleSaveGlobalSettings}
+                      disabled={savingGlobalSettings}
+                      className="w-full sm:w-auto px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-indigo-600 transition-all shadow-xl hover:shadow-indigo-200 disabled:opacity-50 flex items-center justify-center gap-3 group"
+                    >
+                      {savingGlobalSettings ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Guardando...
+                        </>
+                      ) : (
+                        <>
+                          Guardar Configuración
+                          <Zap className="w-4 h-4 group-hover:scale-125 transition-transform" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
         </>
       )}
 
       {/* Lot Form Modal */}
       {showLotForm && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto"
+          onClick={() => setShowLotForm(false)}
+        >
+          <div
+            className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md my-auto animate-in fade-in zoom-in duration-300 relative border border-white/20 flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
-              <h3 className="text-xl font-bold text-slate-800">
-                {editingLot ? "Editar Parqueadero" : "Nuevo Parqueadero"}
-              </h3>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+                  <Building2 className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                  {editingLot ? "Editar Parqueadero" : "Nuevo Parqueadero"}
+                </h3>
+              </div>
               <button
                 onClick={() => setShowLotForm(false)}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
+                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
             <form
               onSubmit={handleSaveLot}
-              className="p-6 space-y-4 overflow-y-auto"
+              className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 custom-scrollbar"
             >
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
@@ -824,22 +955,33 @@ export default function SuperAdminDashboard({
 
       {/* User Form Modal */}
       {showUserForm && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto"
+          onClick={() => setShowUserForm(false)}
+        >
+          <div
+            className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md my-auto animate-in fade-in zoom-in duration-300 relative border border-white/20 flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
-              <h3 className="text-xl font-bold text-slate-800">
-                {editingUser ? "Editar Usuario" : "Nuevo Usuario"}
-              </h3>
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-purple-50 text-purple-600 border border-purple-100">
+                  <Users className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                  {editingUser ? "Editar Usuario" : "Nuevo Usuario"}
+                </h3>
+              </div>
               <button
                 onClick={() => setShowUserForm(false)}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
+                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
             <form
               onSubmit={handleSaveUser}
-              className="p-6 space-y-4 overflow-y-auto"
+              className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 custom-scrollbar"
             >
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">

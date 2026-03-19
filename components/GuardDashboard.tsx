@@ -70,6 +70,8 @@ export default function GuardDashboard({
   const [editingSpot, setEditingSpot] = useState<any | null>(null);
   const [totalRevenue, setTotalRevenue] = useState(0);
   const [globalSettings, setGlobalSettings] = useState<any>({});
+  const [globalAppName, setGlobalAppName] = useState("NexoPark");
+  const [globalLogoUrl, setGlobalLogoUrl] = useState<string | null>(null);
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const [plate, setPlate] = useState("");
   const [type, setType] = useState<"car" | "motorcycle" | "bicycle">("car");
@@ -183,13 +185,26 @@ export default function GuardDashboard({
   }, [revenueSettings, parkingLotId]);
 
   const fetchGlobalSettings = async () => {
-    const { data } = await supabase
+    // Fetch individual parking lot settings
+    const { data: lotData } = await supabase
       .from("parking_lots")
       .select("name, nit, address, phone, email, logo_url")
       .eq("id", parkingLotId)
       .single();
-    if (data) {
-      setGlobalSettings(data);
+    if (lotData) {
+      setGlobalSettings(lotData);
+    }
+
+    // Fetch global app settings
+    const { data: globalData } = await supabase
+      .from("global_app_settings")
+      .select("*")
+      .limit(1)
+      .single();
+
+    if (globalData) {
+      setGlobalAppName(globalData.app_name);
+      setGlobalLogoUrl(globalData.logo_url);
     }
   };
 
@@ -868,17 +883,20 @@ export default function GuardDashboard({
         <div className="flex items-center gap-4 group">
           <div className="relative">
             <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-indigo-300 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-300"></div>
-            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square">
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square bg-white">
               <img
-                src="/logo.png"
+                src={globalLogoUrl || "/logo.png"}
                 alt="Logo"
                 className="w-full h-full object-cover transform transition duration-500 group-hover:scale-110"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/logo.png";
+                }}
               />
             </div>
           </div>
           <div className="min-w-0">
             <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 truncate leading-none mb-1">
-              {globalSettings.name || "NexoPark"}
+              {globalSettings.name || globalAppName}
             </h1>
             <div className="flex items-center gap-1.5 text-slate-500">
               <Shield className="w-3.5 h-3.5 text-indigo-500" />
@@ -1624,43 +1642,60 @@ export default function GuardDashboard({
 
       {/* Modal de Recibo (Completed Session) */}
       {completedSession && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full max-h-[95vh] overflow-y-auto animate-in fade-in zoom-in duration-200 relative">
-            <button
-              onClick={() => {
-                setCompletedSession(null);
-                setWhatsappNumber("");
-              }}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors z-10"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            <div className="p-6 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-emerald-50">
-                <CheckCircle className="w-8 h-8 text-emerald-600" />
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto"
+          onClick={() => {
+            setCompletedSession(null);
+            setWhatsappNumber("");
+          }}
+        >
+          <div
+            className="bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full my-auto animate-in fade-in zoom-in duration-300 relative border border-white/20"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 right-0 flex justify-end p-4 z-20 pointer-events-none">
+              <button
+                onClick={() => {
+                  setCompletedSession(null);
+                  setWhatsappNumber("");
+                }}
+                className="p-2.5 bg-slate-100 text-slate-500 hover:bg-red-50 hover:text-red-600 rounded-full transition-all shadow-sm border border-white pointer-events-auto"
+                title="Cerrar Recibo"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="px-6 pb-8 text-center -mt-6">
+              <div className="w-20 h-20 rounded-3xl bg-emerald-50 flex items-center justify-center mx-auto mb-4 border border-emerald-100 shadow-inner">
+                <CheckCircle className="w-10 h-10 text-emerald-600" />
               </div>
-              <h2 className="text-2xl font-bold text-slate-800 mb-1">
-                Pago Exitoso
+              <h2 className="text-2xl font-black text-slate-900 mb-1 tracking-tight">
+                Pago Registrado
               </h2>
-              <p className="text-slate-500 mb-4 font-mono text-lg">
+              <p className="text-slate-500 mb-6 font-mono font-bold text-lg bg-slate-50 inline-block px-4 py-1 rounded-xl border border-slate-100">
                 {completedSession.license_plate}
               </p>
 
               <div
-                className="bg-white p-4 mb-6 text-left border border-slate-200 shadow-sm relative mx-auto w-full max-w-[300px] font-mono text-xs text-slate-800"
+                className="bg-white p-6 mb-8 text-left border border-slate-200 shadow-xl relative mx-auto w-full max-w-[320px] font-mono text-[11px] text-slate-800 rounded-lg transform scale-95"
                 id="receipt-content"
+                style={{ backgroundImage: 'radial-gradient(#e2e8f0 1px, transparent 1px)', backgroundSize: '10px 10px' }}
               >
                 {/* Header */}
                 <div className="text-center mb-4 border-b border-slate-200 pb-4">
-                  <div className="w-12 h-12 mx-auto mb-2 rounded-full overflow-hidden border border-slate-200">
+                  <div className="w-12 h-12 mx-auto mb-2 rounded-full overflow-hidden border border-slate-200 bg-white">
                     <img
-                      src="/logo.png"
+                      src={globalLogoUrl || "/logo.png"}
                       alt="Logo"
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "/logo.png";
+                      }}
                     />
                   </div>
                   <h3 className="font-bold text-lg">
-                    {globalSettings.app_name || "Parqueadero"}
+                    {globalSettings.name || globalAppName}
                   </h3>
                   {globalSettings.nit && (
                     <p className="text-sm text-slate-500">
@@ -1783,22 +1818,22 @@ export default function GuardDashboard({
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col gap-3 px-2">
                 <button
                   onClick={handlePrintReceipt}
-                  className="flex-1 py-3 px-4 rounded-xl font-semibold bg-indigo-600 text-white hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
+                  className="w-full py-4 rounded-2xl font-bold bg-slate-900 text-white hover:bg-indigo-600 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-indigo-200 group"
                 >
-                  <Printer className="w-4 h-4" />
-                  Imprimir
+                  <Printer className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                  Imprimir Recibo
                 </button>
                 <button
                   onClick={() => {
                     setCompletedSession(null);
                     setWhatsappNumber("");
                   }}
-                  className="flex-1 py-3 px-4 rounded-xl font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                  className="w-full py-4 rounded-2xl font-bold bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-300 flex items-center justify-center gap-2 border border-slate-200"
                 >
-                  Cerrar
+                  Finalizar Operación
                 </button>
               </div>
             </div>
