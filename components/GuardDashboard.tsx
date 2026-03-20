@@ -74,6 +74,7 @@ export default function GuardDashboard({
   const [globalSettings, setGlobalSettings] = useState<any>({});
   const [globalAppName, setGlobalAppName] = useState("NexoPark");
   const [globalLogoUrl, setGlobalLogoUrl] = useState<string | null>(null);
+  const [logoVersion, setLogoVersion] = useState(Date.now());
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const [plate, setPlate] = useState("");
   const [type, setType] = useState<"car" | "motorcycle" | "bicycle">("car");
@@ -209,6 +210,7 @@ export default function GuardDashboard({
     if (globalData) {
       setGlobalAppName(globalData.app_name);
       setGlobalLogoUrl(globalData.logo_url);
+      setLogoVersion(Date.now());
     }
   };
 
@@ -889,7 +891,7 @@ export default function GuardDashboard({
             <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-indigo-300 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-300"></div>
             <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square bg-white">
               <img
-                src={globalLogoUrl || "/logo.png"}
+                src={globalLogoUrl ? `${globalLogoUrl}?v=${logoVersion}` : "/logo.png"}
                 alt="Logo"
                 className="w-full h-full object-cover transform transition duration-500 group-hover:scale-110"
                 onError={(e) => {
@@ -914,7 +916,7 @@ export default function GuardDashboard({
         {/* Lado Derecho: Acciones y Usuario */}
         <div className="flex flex-col sm:flex-row items-center gap-3 lg:gap-4">
           {/* Centro de Acciones Rápidas */}
-          <div className="flex items-center gap-2 bg-slate-50/50 p-1.5 rounded-2xl border border-slate-100 w-full sm:w-auto overflow-x-auto no-scrollbar shadow-inner">
+          <div className="flex items-center gap-2 bg-slate-50/50 p-1 rounded-2xl border border-slate-100 w-full sm:w-auto overflow-x-auto no-scrollbar shadow-inner">
             {onSwitchView && (
               <div className="bg-white rounded-xl p-1 flex border border-slate-200 shadow-sm shrink-0">
                 <button
@@ -993,17 +995,17 @@ export default function GuardDashboard({
       />
 
       {/* Mobile View Toggle */}
-      <div className="lg:hidden mb-8 bg-white rounded-2xl p-1.5 flex border border-slate-200 shadow-sm">
+      <div className="lg:hidden mb-8 bg-white/80 backdrop-blur-xl rounded-[2rem] p-2 flex border border-white shadow-lg">
         <button
           onClick={() => setMobileView("entry")}
-          className={`flex-1 py-3.5 rounded-xl text-sm font-semibold transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === "entry" ? "bg-indigo-600 text-white shadow-md transform scale-[1.02]" : "text-slate-500 hover:bg-slate-50"}`}
+          className={`flex-1 py-4 rounded-2xl text-sm font-bold transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === "entry" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
         >
           <Plus className="w-4 h-4" />
           Registrar Ingreso
         </button>
         <button
           onClick={() => setMobileView("list")}
-          className={`flex-1 py-3.5 rounded-xl text-sm font-semibold transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === "list" ? "bg-indigo-600 text-white shadow-md transform scale-[1.02]" : "text-slate-500 hover:bg-slate-50"}`}
+          className={`flex-1 py-4 rounded-2xl text-sm font-bold transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === "list" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
         >
           <Car className="w-4 h-4" />
           Vehículos Activos
@@ -1015,11 +1017,11 @@ export default function GuardDashboard({
         <div
           className={`lg:col-span-1 ${mobileView === "entry" ? "block" : "hidden lg:block"}`}
         >
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-emerald-500" />
-                Registrar Ingreso
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white p-6 sm:p-8 sticky top-6">
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                <CheckCircle className="w-6 h-6 text-emerald-500" />
+                Ingreso
               </h2>
               {autoCompleted && (
                 <span className="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded-full flex items-center gap-1 animate-in fade-in">
@@ -1175,20 +1177,20 @@ export default function GuardDashboard({
         <div
           className={`lg:col-span-2 ${mobileView === "list" ? "block" : "hidden lg:block"}`}
         >
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
-            <div className="p-5 border-b border-slate-200 bg-slate-50 space-y-4">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden flex flex-col h-full">
+            <div className="p-5 sm:p-8 border-b border-slate-100 bg-slate-50/50 space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => setActiveTab("active")}
-                    className={`px-4 py-2 rounded-xl font-medium transition-colors ${activeTab === "active" ? "bg-indigo-100 text-indigo-700" : "text-slate-600 hover:bg-slate-200"}`}
+                    className={`px-5 py-2.5 rounded-2xl font-bold text-sm transition-all ${activeTab === "active" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
                   >
                     Vehículos Activos
                   </button>
                   {guardPermissions.show_history && (
                     <button
                       onClick={() => setActiveTab("history")}
-                      className={`px-4 py-2 rounded-xl font-medium transition-colors flex items-center gap-2 ${activeTab === "history" ? "bg-indigo-100 text-indigo-700" : "text-slate-600 hover:bg-slate-200"}`}
+                      className={`px-5 py-2.5 rounded-2xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === "history" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
                     >
                       <History className="w-4 h-4" />
                       Historial (Minuta)
@@ -1215,16 +1217,18 @@ export default function GuardDashboard({
             <div className="flex-1 overflow-y-auto max-h-[calc(100vh-250px)] lg:max-h-[600px]">
               {activeTab === "active" ? (
                 filteredSessions.length === 0 ? (
-                  <div className="p-12 text-center text-slate-500">
-                    <Car className="w-12 h-12 mx-auto mb-4 opacity-20" />
-                    <p>
-                      {searchQuery
-                        ? "No se encontraron vehículos con esa placa."
-                        : "No hay vehículos en el parqueadero en este momento."}
-                    </p>
+                  <div className="p-12 sm:p-20 text-center">
+                    <div className="flex flex-col items-center gap-4 opacity-20">
+                      <Car className="w-16 h-16 text-slate-400" />
+                      <p className="text-sm font-black text-slate-500 uppercase tracking-widest">
+                        {searchQuery
+                          ? "No se encontraron resultados"
+                          : "Sin vehículos activos"}
+                      </p>
+                    </div>
                   </div>
                 ) : (
-                  <div className="divide-y divide-slate-100">
+                  <div className="divide-y divide-slate-100 custom-scrollbar">
                     {filteredSessions.map((session) => {
                       const mins = Math.max(
                         1,
@@ -1344,18 +1348,18 @@ export default function GuardDashboard({
                   </div>
                 )
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
+                <div className="overflow-x-auto custom-scrollbar">
+                  <table className="w-full text-left border-collapse min-w-[800px]">
                     <thead>
-                      <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
-                        <th className="px-4 py-3 font-medium">Recibo</th>
-                        <th className="px-4 py-3 font-medium">Placa</th>
-                        <th className="px-4 py-3 font-medium">Tipo</th>
-                        <th className="px-4 py-3 font-medium">Ingreso</th>
-                        <th className="px-4 py-3 font-medium">Salida</th>
-                        <th className="px-4 py-3 font-medium">Tiempo</th>
-                        <th className="px-4 py-3 font-medium">Tarifa</th>
-                        <th className="px-4 py-3 font-medium text-right">
+                      <tr className="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
+                        <th className="px-6 py-4">Recibo</th>
+                        <th className="px-6 py-4">Placa</th>
+                        <th className="px-6 py-4">Tipo</th>
+                        <th className="px-6 py-4">Ingreso</th>
+                        <th className="px-6 py-4">Salida</th>
+                        <th className="px-6 py-4">Tiempo</th>
+                        <th className="px-6 py-4">Tarifa</th>
+                        <th className="px-6 py-4 text-right">
                           Total
                         </th>
                       </tr>
@@ -1383,42 +1387,44 @@ export default function GuardDashboard({
                           return (
                             <tr
                               key={session.id}
-                              className="border-b border-slate-100 hover:bg-slate-50"
+                              className="border-b border-slate-50 hover:bg-slate-50 transition-colors"
                             >
-                              <td className="px-4 py-3 text-slate-500 text-sm">
+                              <td className="px-6 py-4 text-slate-400 text-xs font-bold">
                                 {session.ticket_number}
                               </td>
-                              <td className="px-4 py-3 font-mono font-medium text-slate-800">
+                              <td className="px-6 py-4 font-mono font-black text-slate-900">
                                 {session.license_plate}
                               </td>
-                              <td className="px-4 py-3 text-slate-600">
-                                {session.vehicle_type === "car"
-                                  ? "Carro"
-                                  : session.vehicle_type === "motorcycle"
-                                    ? "Moto"
-                                    : "Bicicleta"}
+                              <td className="px-6 py-4">
+                                <span className="capitalize text-xs font-bold text-slate-600 bg-slate-100 px-2 py-1 rounded-md">
+                                  {session.vehicle_type === "car"
+                                    ? "Carro"
+                                    : session.vehicle_type === "motorcycle"
+                                      ? "Moto"
+                                      : "Bicicleta"}
+                                </span>
                               </td>
-                              <td className="px-4 py-3 text-slate-600">
+                              <td className="px-6 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">
                                 {format(
                                   new Date(session.entry_time),
-                                  "dd/MM/yy h:mm a",
+                                  "dd/MM/yy hh:mm a",
                                 )}
                               </td>
-                              <td className="px-4 py-3 text-slate-600">
+                              <td className="px-6 py-4 text-xs font-bold text-slate-500 whitespace-nowrap">
                                 {format(
                                   new Date(session.exit_time),
-                                  "dd/MM/yy h:mm a",
+                                  "dd/MM/yy hh:mm a",
                                 )}
                               </td>
-                              <td className="px-4 py-3 text-slate-600">
+                              <td className="px-6 py-4 text-xs font-black text-indigo-600">
                                 {mins} min
                               </td>
-                              <td className="px-4 py-3 text-slate-600">
+                              <td className="px-6 py-4 text-xs font-bold text-slate-500 italic">
                                 {session.rate_name ||
                                   session.rate?.name ||
                                   "Tarifa Especial"}
                               </td>
-                              <td className="px-4 py-3 text-right font-medium text-emerald-600">
+                              <td className="px-6 py-4 text-right font-black text-emerald-600">
                                 {formatCurrency(session.amount_paid || 0)}
                               </td>
                             </tr>
@@ -1437,10 +1443,10 @@ export default function GuardDashboard({
       {/* Modal de Parqueaderos Privados */}
       {showPrivateSpots && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <Car className="w-6 h-6 text-indigo-600" />
+          <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-300 border border-white/20">
+            <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h2 className="text-2xl font-black text-slate-900 flex items-center gap-3">
+                <Car className="w-7 h-7 text-indigo-600" />
                 Parqueaderos Privados
               </h2>
               <button
@@ -1513,29 +1519,29 @@ export default function GuardDashboard({
                       return (
                         <div
                           key={spot.id}
-                          className="border border-slate-200 rounded-2xl p-4 relative overflow-hidden group"
+                          className="bg-white border border-slate-100 rounded-3xl p-5 relative overflow-hidden group shadow-sm hover:shadow-md transition-all duration-300"
                         >
-                          <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-50 rounded-bl-full -z-10"></div>
-                          <div className="flex justify-between items-start mb-3">
-                            <span className="text-2xl font-bold text-indigo-900">
+                          <div className="absolute top-0 right-0 w-20 h-20 bg-indigo-50/50 rounded-bl-[3rem] -z-0 transition-transform group-hover:scale-110"></div>
+                          <div className="flex justify-between items-start mb-4 relative z-10">
+                            <span className="text-3xl font-black text-indigo-600 tracking-tighter">
                               {spot.spotNumber || "N/A"}
                             </span>
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => setEditingSpot(spot)}
-                                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-white rounded-xl transition-all opacity-0 group-hover:opacity-100 shadow-sm border border-slate-100"
                                 title="Editar"
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
                               <span
-                                className={`px-2.5 py-1 rounded-full text-xs font-medium ${activeSession ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
+                                className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${activeSession ? "bg-emerald-50 text-emerald-600 border border-emerald-100" : "bg-slate-50 text-slate-400 border border-slate-100"}`}
                               >
                                 {activeSession ? "Ocupado" : "Libre"}
                               </span>
                             </div>
                           </div>
-                          <div className="space-y-2">
+                          <div className="space-y-2 relative z-10">
                             {privateSpotFields
                               .filter((f) => f.enabled && f.id !== "spotNumber")
                               .map((field) => (
@@ -1710,7 +1716,7 @@ export default function GuardDashboard({
                 <div className="text-center mb-4 border-b border-slate-200 pb-4">
                   <div className="w-12 h-12 mx-auto mb-2 rounded-full overflow-hidden border border-slate-200 bg-white">
                     <img
-                      src={globalLogoUrl || "/logo.png"}
+                      src={globalLogoUrl ? `${globalLogoUrl}?v=${logoVersion}` : "/logo.png"}
                       alt="Logo"
                       className="w-full h-full object-cover"
                       onError={(e) => {

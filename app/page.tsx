@@ -22,12 +22,32 @@ export default function Home() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [globalSettings, setGlobalSettings] = useState<{ app_name: string, logo_url: string | null }>({ app_name: 'NexoPark', logo_url: null });
+  const [logoVersion, setLogoVersion] = useState(Date.now());
 
   useEffect(() => {
+    // Check for updates mechanism
+    const latestVersion = '2.1.1'; // Increment this when deploying major updates
+    const storedVersion = localStorage.getItem('app_version');
+
+    if (storedVersion && storedVersion !== latestVersion) {
+      console.log('Nueva versión detectada. Limpiando cache...');
+      localStorage.setItem('app_version', latestVersion);
+      // Clear cache and reload
+      if ('serviceWorker' in navigator) {
+        caches.keys().then((names) => {
+          for (let name of names) caches.delete(name);
+        });
+      }
+      window.location.reload();
+    } else if (!storedVersion) {
+      localStorage.setItem('app_version', latestVersion);
+    }
+
     // Fetch global settings
     supabase.from('global_app_settings').select('*').limit(1).single().then(({ data }) => {
       if (data) {
         setGlobalSettings({ app_name: data.app_name, logo_url: data.logo_url });
+        setLogoVersion(Date.now());
       }
     });
 
@@ -173,7 +193,7 @@ export default function Home() {
                   <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-indigo-300 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
                   <div className="relative w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md bg-white">
                     <img
-                      src={globalSettings.logo_url || "/logo.png"}
+                      src={globalSettings.logo_url ? `${globalSettings.logo_url}?v=${logoVersion}` : "/logo.png"}
                       alt={globalSettings.app_name}
                       className="w-full h-full object-cover transform transition duration-500 group-hover:scale-110"
                       onError={(e) => {
@@ -429,7 +449,7 @@ export default function Home() {
               <div className="absolute -inset-2 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
               <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center mx-auto shadow-xl border-4 border-white overflow-hidden bg-white">
                 <img
-                  src={globalSettings.logo_url || "/logo.png"}
+                  src={globalSettings.logo_url ? `${globalSettings.logo_url}?v=${logoVersion}` : "/logo.png"}
                   alt={globalSettings.app_name}
                   className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
                   onError={(e) => {

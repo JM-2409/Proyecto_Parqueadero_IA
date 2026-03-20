@@ -42,6 +42,7 @@ export default function SuperAdminDashboard({
   // Global Settings Form
   const [globalAppName, setGlobalAppName] = useState("NexoPark");
   const [globalLogoUrl, setGlobalLogoUrl] = useState<string | null>(null);
+  const [logoVersion, setLogoVersion] = useState(Date.now());
   const [newGlobalLogoFile, setNewGlobalLogoFile] = useState<File | null>(null);
   const [savingGlobalSettings, setSavingGlobalSettings] = useState(false);
 
@@ -90,6 +91,7 @@ export default function SuperAdminDashboard({
     if (globalData) {
       setGlobalAppName(globalData.app_name);
       setGlobalLogoUrl(globalData.logo_url);
+      setLogoVersion(Date.now());
     }
 
     // Fetch parking lots
@@ -364,11 +366,14 @@ export default function SuperAdminDashboard({
         <div className="flex items-center gap-4 group">
           <div className="relative">
             <div className="absolute -inset-1 bg-gradient-to-tr from-amber-500 to-red-400 rounded-full blur opacity-20 group-hover:opacity-35 transition duration-300"></div>
-            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square">
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square bg-white">
               <img
-                src="/logo.png"
+                src={globalLogoUrl ? `${globalLogoUrl}?v=${logoVersion}` : "/logo.png"}
                 alt="Logo"
                 className="w-full h-full object-cover transform transition duration-500 group-hover:scale-110"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/logo.png";
+                }}
               />
             </div>
           </div>
@@ -427,13 +432,13 @@ export default function SuperAdminDashboard({
       />
 
       <div className="flex flex-col lg:flex-row gap-4 mb-6 sm:mb-8 justify-between items-start lg:items-center">
-        <div className="flex gap-1.5 sm:gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 w-full overflow-x-auto no-scrollbar sticky top-0 z-30">
+        <div className="flex gap-1.5 sm:gap-2 bg-white/70 backdrop-blur-xl p-2 rounded-3xl shadow-lg border border-white/50 w-full overflow-x-auto no-scrollbar scroll-smooth sticky top-0 z-30">
           <button
             onClick={() => {
               setActiveTab("parking_lots");
               setSearchTerm("");
             }}
-            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "parking_lots" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}
+            className={`px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "parking_lots" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
           >
             <Building2 className="w-4 h-4" />
             Parqueaderos
@@ -443,7 +448,7 @@ export default function SuperAdminDashboard({
               setActiveTab("users");
               setSearchTerm("");
             }}
-            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "users" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}
+            className={`px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "users" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
           >
             <Users className="w-4 h-4" />
             Usuarios
@@ -453,7 +458,7 @@ export default function SuperAdminDashboard({
               setActiveTab("settings");
               setSearchTerm("");
             }}
-            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}
+            className={`px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
           >
             <Settings className="w-4 h-4" />
             Configuración
@@ -481,11 +486,11 @@ export default function SuperAdminDashboard({
       ) : (
         <>
           {activeTab === "parking_lots" && (
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <Building2 className="w-5 h-5 text-indigo-600" />
-                  Parqueaderos Registrados
+            <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
+              <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                  <Building2 className="w-6 h-6 text-indigo-600" />
+                  Parqueaderos
                 </h2>
                 <button
                   onClick={() => {
@@ -617,11 +622,11 @@ export default function SuperAdminDashboard({
           )}
 
           {activeTab === "users" && (
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <Users className="w-5 h-5 text-indigo-600" />
-                  Administradores y Vigilantes
+            <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                  <Users className="w-6 h-6 text-indigo-600" />
+                  Usuarios
                 </h2>
                 <button
                   onClick={() => {
@@ -721,11 +726,11 @@ export default function SuperAdminDashboard({
           )}
 
           {activeTab === "settings" && (
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="p-6 border-b border-slate-200 bg-slate-50">
-                <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-indigo-600" />
-                  Configuración Global del Sistema
+            <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="p-6 sm:p-8 border-b border-slate-100 bg-slate-50/50">
+                <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                  <Settings className="w-6 h-6 text-indigo-600" />
+                  Configuración Global
                 </h2>
               </div>
 

@@ -138,6 +138,7 @@ export default function AdminDashboard({
   // Global settings state
   const [globalAppName, setGlobalAppName] = useState("NexoPark");
   const [globalLogoUrl, setGlobalLogoUrl] = useState<string | null>(null);
+  const [logoVersion, setLogoVersion] = useState(Date.now());
 
   // User form state
   const [username, setUsername] = useState("");
@@ -609,6 +610,7 @@ export default function AdminDashboard({
     if (globalData) {
       setGlobalAppName(globalData.app_name);
       setGlobalLogoUrl(globalData.logo_url);
+      setLogoVersion(Date.now());
     }
 
     // Fetch revenue settings to get last closing time
@@ -1046,7 +1048,7 @@ export default function AdminDashboard({
             <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-600 to-purple-400 rounded-full blur opacity-20 group-hover:opacity-35 transition duration-300"></div>
             <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square bg-white">
               <img
-                src={globalLogoUrl || "/logo.png"}
+                src={globalLogoUrl ? `${globalLogoUrl}?v=${logoVersion}` : "/logo.png"}
                 alt="Logo"
                 className="w-full h-full object-cover transform transition duration-500 group-hover:scale-110"
                 onError={(e) => {
@@ -1131,38 +1133,38 @@ export default function AdminDashboard({
       />
 
       {/* Navigation Tabs */}
-      <div className="flex gap-1.5 sm:gap-2 mb-6 sm:mb-8 bg-white p-1.5 sm:p-2 rounded-2xl shadow-sm border border-slate-200 w-full overflow-x-auto no-scrollbar scroll-smooth sticky top-0 z-30">
+      <div className="flex gap-1.5 sm:gap-2 mb-6 sm:mb-8 bg-white/70 backdrop-blur-xl p-2 rounded-3xl shadow-lg border border-white/50 w-full overflow-x-auto no-scrollbar scroll-smooth sticky top-0 z-30">
         <button
           onClick={() => setActiveTab("dashboard")}
-          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "dashboard" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
+          className={`px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "dashboard" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
         >
           <BarChart3 className="w-4 h-4" />
           Resumen
         </button>
         <button
           onClick={() => setActiveTab("users")}
-          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "users" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
+          className={`px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "users" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
         >
           <Users className="w-4 h-4" />
           Usuarios
         </button>
         <button
           onClick={() => setActiveTab("rates")}
-          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "rates" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
+          className={`px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "rates" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
         >
           <DollarSign className="w-4 h-4" />
           Tarifas
         </button>
         <button
           onClick={() => setActiveTab("private_spots")}
-          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "private_spots" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
+          className={`px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "private_spots" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
         >
           <Car className="w-4 h-4" />
           Privados
         </button>
         <button
           onClick={() => setActiveTab("settings")}
-          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
+          className={`px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
         >
           <Settings className="w-4 h-4" />
           Ajustes
@@ -1173,46 +1175,46 @@ export default function AdminDashboard({
         <>
           {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-5">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center">
+            <div className="bg-white/80 backdrop-blur-2xl p-6 rounded-[2rem] shadow-xl border border-white flex items-center gap-5 transition-all hover:scale-[1.02] duration-300">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center shadow-inner">
                 <DollarSign className="w-7 h-7 text-emerald-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-500 mb-1">
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
                   Ingresos Hoy
                 </p>
-                <h3 className="text-2xl font-bold text-slate-800">
+                <h3 className="text-2xl font-black text-slate-900">
                   {formatCurrency(stats.totalRevenue)}
                 </h3>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-5">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center">
+            <div className="bg-white/80 backdrop-blur-2xl p-6 rounded-[2rem] shadow-xl border border-white flex items-center gap-5 transition-all hover:scale-[1.02] duration-300">
+              <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center shadow-inner">
                 <Car className="w-7 h-7 text-indigo-600" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-slate-500 mb-1">
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
                   Vehículos Activos
                 </p>
                 <div className="flex items-end gap-3">
-                  <h3 className="text-2xl font-bold text-slate-800">
+                  <h3 className="text-2xl font-black text-slate-900">
                     {stats.activeVehicles}
                   </h3>
                   <div className="flex gap-3 text-xs text-slate-500 mb-1">
-                    <span title="Carros" className="flex items-center gap-1">
-                      <Car className="w-3 h-3" /> {stats.activeCars}
+                    <span title="Carros" className="flex items-center gap-1 font-bold">
+                      <Car className="w-3.5 h-3.5" /> {stats.activeCars}
                     </span>
-                    <span title="Motos" className="flex items-center gap-1">
-                      <Motorbike className="w-3 h-3" />{" "}
+                    <span title="Motos" className="flex items-center gap-1 font-bold">
+                      <Motorbike className="w-3.5 h-3.5" />{" "}
                       {stats.activeMotorcycles}
                     </span>
                     {stats.activeBicycles > 0 && (
                       <span
                         title="Bicicletas"
-                        className="flex items-center gap-1"
+                        className="flex items-center gap-1 font-bold"
                       >
-                        <Bike className="w-3 h-3" /> {stats.activeBicycles}
+                        <Bike className="w-3.5 h-3.5" /> {stats.activeBicycles}
                       </span>
                     )}
                   </div>
@@ -1220,15 +1222,15 @@ export default function AdminDashboard({
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-5">
-              <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center">
+            <div className="bg-white/80 backdrop-blur-2xl p-6 rounded-[2rem] shadow-xl border border-white flex items-center gap-5 transition-all hover:scale-[1.02] duration-300">
+              <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center shadow-inner">
                 <History className="w-7 h-7 text-blue-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-500 mb-1">
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
                   Total Ingresos Hoy
                 </p>
-                <h3 className="text-2xl font-bold text-slate-800">
+                <h3 className="text-2xl font-black text-slate-900">
                   {stats.totalToday}
                 </h3>
               </div>
@@ -1500,10 +1502,10 @@ export default function AdminDashboard({
           </div>
 
           {/* Historial Table */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-4 sm:p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50">
-              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <History className="w-5 h-5 text-slate-500" />
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
+            <div className="p-5 sm:p-8 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
+              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                <History className="w-6 h-6 text-slate-400" />
                 Historial General
               </h2>
               <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto">
@@ -1534,25 +1536,25 @@ export default function AdminDashboard({
               </div>
             </div>
 
-            <div className="overflow-x-auto -mx-px">
-              <table className="w-full text-left border-collapse">
+            <div className="overflow-x-auto -mx-px custom-scrollbar">
+              <table className="w-full text-left border-collapse min-w-[1000px]">
                 <thead>
-                  <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
-                    <th className="px-6 py-4 font-medium">Recibo</th>
-                    <th className="px-6 py-4 font-medium">Placa</th>
-                    <th className="px-6 py-4 font-medium">Tipo</th>
-                    <th className="px-6 py-4 font-medium">Detalles</th>
-                    <th className="px-6 py-4 font-medium">Ingreso</th>
-                    <th className="px-6 py-4 font-medium">Salida</th>
-                    <th className="px-6 py-4 font-medium">Tiempo</th>
-                    <th className="px-6 py-4 font-medium">Tarifa</th>
-                    <th className="px-6 py-4 font-medium text-right">
+                  <tr className="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
+                    <th className="px-6 py-4">Recibo</th>
+                    <th className="px-6 py-4">Placa</th>
+                    <th className="px-6 py-4">Tipo</th>
+                    <th className="px-6 py-4">Detalles</th>
+                    <th className="px-6 py-4">Ingreso</th>
+                    <th className="px-6 py-4">Salida</th>
+                    <th className="px-6 py-4">Tiempo</th>
+                    <th className="px-6 py-4">Tarifa</th>
+                    <th className="px-6 py-4 text-right">
                       Valor Pagado
                     </th>
-                    <th className="px-6 py-4 font-medium text-center">
+                    <th className="px-6 py-4 text-center">
                       Estado
                     </th>
-                    <th className="px-6 py-4 font-medium text-center">
+                    <th className="px-6 py-4 text-center">
                       Acciones
                     </th>
                   </tr>
@@ -1561,21 +1563,29 @@ export default function AdminDashboard({
                   {loading ? (
                     <tr>
                       <td
-                        colSpan={10}
-                        className="px-6 py-12 text-center text-slate-500"
+                        colSpan={11}
+                        className="px-6 py-20 text-center"
                       >
-                        Cargando datos...
+                        <div className="flex flex-col items-center gap-3">
+                          <Sparkles className="w-10 h-10 text-indigo-600 animate-pulse" />
+                          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Cargando datos...</p>
+                        </div>
                       </td>
                     </tr>
                   ) : filteredHistory.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={10}
-                        className="px-6 py-12 text-center text-slate-500"
+                        colSpan={11}
+                        className="px-6 py-20 text-center"
                       >
-                        {searchHistory
-                          ? "No se encontraron registros con esa búsqueda."
-                          : "No hay registros en el sistema."}
+                        <div className="flex flex-col items-center gap-3 opacity-30">
+                          <Search className="w-12 h-12 text-slate-400" />
+                          <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">
+                            {searchHistory
+                              ? "No se encontraron registros con esa búsqueda."
+                              : "No hay registros en el sistema."}
+                          </p>
+                        </div>
                       </td>
                     </tr>
                   ) : (
@@ -1684,27 +1694,27 @@ export default function AdminDashboard({
                               </span>
                             )}
                           </td>
-                          <td className="px-6 py-4 text-sm text-slate-600">
+                          <td className="px-6 py-4 text-xs font-bold text-slate-600 whitespace-nowrap">
                             {format(
                               new Date(session.entry_time),
-                              "dd/MM/yy h:mm a",
+                              "dd/MM/yy hh:mm a",
                             )}
                           </td>
-                          <td className="px-6 py-4 text-sm text-slate-600">
+                          <td className="px-6 py-4 text-xs font-bold text-slate-600 whitespace-nowrap">
                             {isCompleted
                               ? format(
                                   new Date(session.exit_time),
-                                  "dd/MM/yy h:mm a",
+                                  "dd/MM/yy hh:mm a",
                                 )
                               : "-"}
                           </td>
-                          <td className="px-6 py-4 text-sm text-slate-600">
+                          <td className="px-6 py-4 text-xs font-black text-indigo-600 uppercase">
                             {mins} min
                           </td>
-                          <td className="px-6 py-4 text-sm text-slate-600">
+                          <td className="px-6 py-4 text-xs font-bold text-slate-500 italic">
                             {session.rate_name || "-"}
                           </td>
-                          <td className="px-6 py-4 text-right font-medium text-slate-800">
+                          <td className="px-6 py-4 text-right font-black text-slate-900">
                             {isCompleted
                               ? formatCurrency(session.amount_paid)
                               : "-"}
@@ -1809,8 +1819,8 @@ export default function AdminDashboard({
       )}
 
       {activeTab === "users" && (
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+        <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
+          <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
             <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
               <Users className="w-5 h-5 text-slate-500" />
               Gestión de Usuarios
@@ -1827,11 +1837,11 @@ export default function AdminDashboard({
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
-                  <th className="px-6 py-4 font-medium">Usuario</th>
-                  <th className="px-6 py-4 font-medium">Rol</th>
-                  <th className="px-6 py-4 font-medium">Fecha Creación</th>
-                  <th className="px-6 py-4 font-medium text-right">Acciones</th>
+                  <tr className="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
+                    <th className="px-6 py-4">Usuario</th>
+                    <th className="px-6 py-4">Rol</th>
+                    <th className="px-6 py-4">Fecha Creación</th>
+                    <th className="px-6 py-4 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -1914,8 +1924,8 @@ export default function AdminDashboard({
       )}
 
       {activeTab === "rates" && (
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+        <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
+          <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
             <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
               <Settings className="w-5 h-5 text-slate-500" />
               Gestión de Tarifas
@@ -1932,13 +1942,13 @@ export default function AdminDashboard({
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
-                  <th className="px-6 py-4 font-medium">Nombre</th>
-                  <th className="px-6 py-4 font-medium">Vehículo</th>
-                  <th className="px-6 py-4 font-medium">Tipo de Cobro</th>
-                  <th className="px-6 py-4 font-medium">Valor</th>
-                  <th className="px-6 py-4 font-medium text-center">Estado</th>
-                  <th className="px-6 py-4 font-medium text-right">Acciones</th>
+                  <tr className="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
+                    <th className="px-6 py-4">Nombre</th>
+                    <th className="px-6 py-4">Vehículo</th>
+                    <th className="px-6 py-4">Tipo de Cobro</th>
+                    <th className="px-6 py-4">Valor</th>
+                    <th className="px-6 py-4 text-center">Estado</th>
+                    <th className="px-6 py-4 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -2051,15 +2061,15 @@ export default function AdminDashboard({
       )}
 
       {activeTab === "private_spots" && (
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-            <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+        <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
+          <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+            <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
               <Car className="w-5 h-5 text-indigo-600" />
               Gestión de Parqueaderos Privados
             </h2>
           </div>
-          <div className="p-6">
-            <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+          <div className="p-6 sm:p-8">
+            <div className="mb-8 p-6 bg-slate-50/50 rounded-[2rem] border border-slate-200/60 shadow-inner">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
                 <h3 className="font-medium text-slate-800">
                   Asignar Nuevo Parqueadero
@@ -2194,15 +2204,15 @@ export default function AdminDashboard({
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
+                  <tr className="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
                     {privateSpotFields
                       .filter((f) => f.enabled)
                       .map((field) => (
-                        <th key={field.id} className="px-4 py-3 font-medium">
+                        <th key={field.id} className="px-6 py-4">
                           {field.label}
                         </th>
                       ))}
-                    <th className="px-4 py-3 font-medium text-right">
+                    <th className="px-6 py-4 text-right">
                       Acciones
                     </th>
                   </tr>
@@ -2294,10 +2304,10 @@ export default function AdminDashboard({
       )}
 
       {activeTab === "settings" && (
-        <div className="space-y-6">
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+        <div className="space-y-8">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
+            <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
                 <Building2 className="w-5 h-5 text-indigo-600" />
                 Información del Parqueadero
               </h2>
@@ -2400,9 +2410,9 @@ export default function AdminDashboard({
           </div>
 
           {/* Capacity Settings */}
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
+            <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
                 <Car className="w-5 h-5 text-indigo-600" />
                 Límites de Capacidad y Tipos de Vehículos
               </h2>
@@ -2574,9 +2584,9 @@ export default function AdminDashboard({
           </div>
 
           {/* Guard Permissions Settings */}
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
+            <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
                 <Users className="w-5 h-5 text-indigo-600" />
                 Permisos de Guardas
               </h2>
@@ -2644,9 +2654,9 @@ export default function AdminDashboard({
           </div>
 
           {/* Revenue Settings */}
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
+            <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
                 <DollarSign className="w-5 h-5 text-indigo-600" />
                 Cierre de Caja y Visibilidad
               </h2>
@@ -2712,9 +2722,9 @@ export default function AdminDashboard({
           </div>
 
           {/* Special Vehicles */}
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
+            <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
                 <Shield className="w-5 h-5 text-indigo-600" />
                 Tarifas Especiales y Mensualidades
               </h2>
@@ -2893,11 +2903,11 @@ export default function AdminDashboard({
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <Settings className="w-5 h-5 text-slate-500" />
-                Configuración de Campos de Parqueaderos Privados
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
+            <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                <Settings className="w-5 h-5 text-indigo-600" />
+                Campos de Parqueaderos Privados
               </h2>
               <button
                 onClick={savePrivateSpotFields}
@@ -2998,10 +3008,10 @@ export default function AdminDashboard({
             </div>
           </div>
 
-          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <Settings className="w-5 h-5 text-slate-500" />
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
+            <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                <Settings className="w-5 h-5 text-indigo-600" />
                 Configuración de Campos de Ingreso
               </h2>
               <button
