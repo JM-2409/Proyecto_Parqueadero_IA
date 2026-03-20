@@ -21,7 +21,9 @@ import {
   Plus,
   X,
   Printer,
+  Sparkles,
 } from "lucide-react";
+import UpdatesModal from "./UpdatesModal";
 import { format, differenceInMinutes, subDays } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -89,6 +91,7 @@ export default function GuardDashboard({
   const [guardName, setGuardName] = useState("");
   const [showGuardModal, setShowGuardModal] = useState(false);
   const [tempGuardName, setTempGuardName] = useState("");
+  const [showUpdates, setShowUpdates] = useState(false);
 
   // Novelties State
   const [noveltyModalVehicle, setNoveltyModalVehicle] = useState<any | null>(
@@ -963,6 +966,15 @@ export default function GuardDashboard({
             </div>
 
             <button
+              onClick={() => setShowUpdates(true)}
+              className="p-3.5 rounded-2xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all duration-300 border border-indigo-100 shadow-sm group relative"
+              title="Novedades"
+            >
+              <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+            </button>
+
+            <button
               onClick={onLogout}
               className="p-3.5 rounded-2xl bg-slate-900 hover:bg-red-600 text-white transition-all duration-300 shadow-lg hover:shadow-red-200 group relative"
               title="Cerrar Sesión"
@@ -972,6 +984,12 @@ export default function GuardDashboard({
           </div>
         </div>
       </div>
+
+      <UpdatesModal
+        isOpen={showUpdates}
+        onClose={() => setShowUpdates(false)}
+        userRole="guard"
+      />
 
       {/* Mobile View Toggle */}
       <div className="lg:hidden mb-8 bg-white rounded-2xl p-1.5 flex border border-slate-200 shadow-sm">
@@ -1270,11 +1288,16 @@ export default function GuardDashboard({
                                       })
                                       .map(([key, value]) => {
                                         const fieldDef = entryFields.find(
-                                          (f) => f.id === key,
+                                          (f) => f.id === key || f.label === key,
                                         );
-                                        const displayLabel = fieldDef
+                                        let displayLabel = fieldDef
                                           ? fieldDef.label
                                           : key;
+
+                                        if (!fieldDef && key.startsWith("campo_")) {
+                                          displayLabel = "Dato";
+                                        }
+
                                         const isNameField = displayLabel
                                           .toLowerCase()
                                           .includes("nombre");
@@ -1717,15 +1740,33 @@ export default function GuardDashboard({
                   </div>
                   {completedSession.metadata &&
                     Object.keys(completedSession.metadata).length > 0 && (
-                      <div className="flex justify-between">
-                        <span>Cliente:</span>
-                        <span className="font-bold text-right truncate max-w-[150px]">
-                          {
-                            Object.values(
-                              completedSession.metadata,
-                            )[0] as string
-                          }
-                        </span>
+                      <div className="space-y-1">
+                        {Object.entries(completedSession.metadata)
+                          .filter(
+                            ([k]) =>
+                              k !== "guard_name" &&
+                              k !== "checkout_guard_name" &&
+                              k !== "admin_checkout_observation" &&
+                              k !== "admin_checkout_by" &&
+                              k !== "admin_checkout_time",
+                          )
+                          .map(([key, value]) => {
+                            const fieldDef = entryFields.find(
+                              (f) => f.id === key || f.label === key,
+                            );
+                            let displayLabel = fieldDef ? fieldDef.label : key;
+                            if (!fieldDef && key.startsWith("campo_")) {
+                              displayLabel = "Dato";
+                            }
+                            return (
+                              <div key={key} className="flex justify-between">
+                                <span>{displayLabel}:</span>
+                                <span className="font-bold text-right truncate max-w-[150px]">
+                                  {String(value)}
+                                </span>
+                              </div>
+                            );
+                          })}
                       </div>
                     )}
                   <div className="flex justify-between">
