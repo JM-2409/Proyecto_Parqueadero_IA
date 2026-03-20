@@ -20,7 +20,9 @@ import {
   Car,
   UserCircle,
   Zap,
+  Sparkles,
 } from "lucide-react";
+import UpdatesModal from "./UpdatesModal";
 
 export default function SuperAdminDashboard({
   user,
@@ -70,6 +72,7 @@ export default function SuperAdminDashboard({
   // Delete Modals
   const [deletingLot, setDeletingLot] = useState<any>(null);
   const [deletingUser, setDeletingUser] = useState<any>(null);
+  const [showUpdates, setShowUpdates] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -399,6 +402,15 @@ export default function SuperAdminDashboard({
           </div>
 
           <button
+            onClick={() => setShowUpdates(true)}
+            className="p-3.5 rounded-2xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all duration-300 border border-indigo-100 shadow-sm group relative"
+            title="Novedades"
+          >
+            <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+          </button>
+
+          <button
             onClick={onLogout}
             className="p-3.5 rounded-2xl bg-slate-900 hover:bg-red-600 text-white transition-all duration-300 shadow-lg hover:shadow-red-200 group"
             title="Cerrar Sesión"
@@ -407,6 +419,12 @@ export default function SuperAdminDashboard({
           </button>
         </div>
       </div>
+
+      <UpdatesModal
+        isOpen={showUpdates}
+        onClose={() => setShowUpdates(false)}
+        userRole="superadmin"
+      />
 
       <div className="flex flex-col lg:flex-row gap-4 mb-6 sm:mb-8 justify-between items-start lg:items-center">
         <div className="flex gap-1.5 sm:gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 w-full overflow-x-auto no-scrollbar sticky top-0 z-30">

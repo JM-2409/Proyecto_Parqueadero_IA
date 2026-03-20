@@ -25,7 +25,9 @@ import {
   X,
   Search,
   UserCircle,
+  Sparkles,
 } from "lucide-react";
+import UpdatesModal from "./UpdatesModal";
 import { format, differenceInMinutes, subDays, parseISO } from "date-fns";
 import { es } from "date-fns/locale";
 import {
@@ -175,6 +177,7 @@ export default function AdminDashboard({
   // Deletion state
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const [deletingRateId, setDeletingRateId] = useState<string | null>(null);
+  const [showUpdates, setShowUpdates] = useState(false);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -1102,6 +1105,15 @@ export default function AdminDashboard({
             </div>
 
             <button
+              onClick={() => setShowUpdates(true)}
+              className="p-3.5 rounded-2xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all duration-300 border border-indigo-100 shadow-sm group relative"
+              title="Novedades"
+            >
+              <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+            </button>
+
+            <button
               onClick={onLogout}
               className="p-3.5 rounded-2xl bg-slate-900 hover:bg-red-600 text-white transition-all duration-300 shadow-lg hover:shadow-red-200 group"
               title="Cerrar Sesión"
@@ -1111,6 +1123,12 @@ export default function AdminDashboard({
           </div>
         </div>
       </div>
+
+      <UpdatesModal
+        isOpen={showUpdates}
+        onClose={() => setShowUpdates(false)}
+        userRole="admin"
+      />
 
       {/* Navigation Tabs */}
       <div className="flex gap-1.5 sm:gap-2 mb-6 sm:mb-8 bg-white p-1.5 sm:p-2 rounded-2xl shadow-sm border border-slate-200 w-full overflow-x-auto no-scrollbar scroll-smooth sticky top-0 z-30">

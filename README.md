@@ -1,93 +1,60 @@
-# NexoPark - Sistema de Gestión de Parqueaderos
+# NexoPark - Sistema de Gestión de Parqueaderos (SaaS) 🚗
 
-Un sistema web moderno y completo para la administración y control de estacionamientos, construido con Next.js, React, Tailwind CSS y Supabase.
+NexoPark es una solución integral en la nube (SaaS) diseñada para optimizar y modernizar la administración de estacionamientos de cualquier tamaño. Construido con tecnologías de vanguardia para garantizar rapidez, seguridad y una excelente experiencia de usuario.
+
+---
 
 ## 🚀 Características Principales
 
-### Panel de Super Administrador (SaaS)
-* **Gestión de Parqueaderos:** Creación, edición, suspensión y eliminación de múltiples parqueaderos en la plataforma.
-* **Control de Suscripciones:** Asignación de planes (Mensual, Semestral, Anual) y fechas de vencimiento para cada parqueadero.
-* **Gestión Global de Usuarios:** Administración de todos los usuarios del sistema, asignándolos a sus respectivos parqueaderos.
-* **Bloqueo Automático:** Suspensión automática del acceso a parqueaderos con suscripciones vencidas.
+### 👑 Panel de Super Administrador (Control SaaS)
+*   **Gestión Multi-Parqueadero:** Creación y control total de múltiples establecimientos.
+*   **Control de Suscripciones:** Gestión de planes (Prueba, Mensual, Semestral, Anual) con bloqueos automáticos por vencimiento.
+*   **Marca Blanca Global:** Configuración centralizada del nombre de la app y logo para toda la plataforma.
+*   **Administración de Usuarios:** Gestión de todos los roles (Admin/Guarda) a nivel de base de datos.
 
-### Panel de Administrador
-* **Dashboard Estadístico:** Visualización de ingresos totales, vehículos activos e ingresos del día actual.
-* **Gráficos Interactivos:** Comparativa de ingresos y cantidad de vehículos con filtros por rango de fechas y tipo de gráfico.
-* **Gestión de Tarifas:** Creación y edición de múltiples tipos de tarifas (minuto, hora, día/noche, mensualidades).
-* **Límites de Capacidad:** Configuración de límites máximos de vehículos por tipo con opción de bloqueo automático.
-* **Control de Recaudo y Cierres de Caja:** Seguimiento del dinero recaudado y cierres de caja.
-* **Gestión de Usuarios:** Creación de cuentas para vigilantes del parqueadero.
-* **Gestión de Parqueaderos Privados:** Asignación de espacios, búsqueda, filtros, ordenamiento y limpieza masiva de columnas (ej. para sorteos de parqueaderos).
-* **Personalización:** Configuración de dirección, teléfono, email y logo del parqueadero (Nombre y NIT gestionados por Super Admin).
-* **Historial Completo:** Registro detallado de todas las entradas y salidas.
+### 💼 Panel de Administrador (Gestión del Negocio)
+*   **Dashboard de Analíticas:** Gráficos avanzados e independientes para Ingresos y Tráfico de vehículos.
+*   **Filtros Inteligentes:** Consulta de estadísticas por Hoy, 7 días, 30 días o rangos personalizados.
+*   **Tarifas Flexibles:** Configuración de cobros por minuto, hora, fracción, día, noche y tarifas especiales.
+*   **Control de Capacidad:** Límites automáticos de cupos para carros, motos y bicicletas.
+*   **Gestión de Parqueaderos Privados:** Mapeo de espacios fijos con herramientas de limpieza masiva de datos.
+*   **Cierres de Caja:** Control riguroso de ingresos acumulados con historial de cierres por turno.
 
-### Panel de Vigilante (Guarda)
-* **Ingreso Rápido:** Registro de entrada de vehículos con un solo clic y autocompletado inteligente (ocultando nombre del vigilante).
-* **Autocompletado Mejorado:** Búsqueda robusta de placas recurrentes para autocompletar tipo de vehículo y campos personalizados.
-* **Control en Tiempo Real:** Visualización de vehículos activos y disponibilidad de espacios.
-* **Salida Automatizada:** Cálculo automático del valor a cobrar basado en las tarifas configuradas.
-* **Gestión de Turnos:** Registro del nombre del guarda en turno y entrega de turno.
-* **Parqueaderos Privados:** Visualización, búsqueda, ordenamiento y edición de datos de parqueaderos privados.
-* **Recibos Personalizados:** Generación de recibos de pago con formato de "ticket térmico", logo y datos del parqueadero, listos para descargar como imagen o compartir por WhatsApp.
-
-### Seguridad y Base de Datos (Supabase)
-* **Row Level Security (RLS):** Políticas de seguridad a nivel de fila estrictas para garantizar que los datos de cada parqueadero estén aislados y seguros.
-* **Secuencias Seguras:** Generación de números de ticket consecutivos por parqueadero utilizando funciones `SECURITY DEFINER` para evitar saltos y colisiones.
-* **Integridad Referencial:** Borrado en cascada (CASCADE) configurado para eliminar automáticamente tarifas, sesiones y configuraciones al eliminar un parqueadero.
-
-### Landing Page y Pagos
-* **Presentación del Servicio:** Página de inicio moderna con información sobre características, visión y misión.
-* **Planes y Precios:** Integración con links de pago de Bold para suscripciones (Mensual: $50.000, Semestral: $270.000, Anual: $480.000).
-* **Portal de Renovación:** Pantalla dedicada para usuarios con suscripción vencida, facilitando la renovación directa hacia la pasarela de pagos (Park app).
-
-## 🛠️ Tecnologías Utilizadas
-
-* **Frontend:** Next.js 15 (App Router), React 19
-* **Estilos:** Tailwind CSS
-* **Iconos:** Lucide React
-* **Gráficos:** Recharts
-* **Backend & Base de Datos:** Supabase (PostgreSQL)
-* **Autenticación:** Supabase Auth
-* **Generación de Recibos:** html2canvas
-* **Manejo de Fechas:** date-fns (con soporte para español)
-
-## ⚙️ Instalación y Configuración Local
-
-1. **Clonar el repositorio:**
-   ```bash
-   git clone <url-del-repositorio>
-   cd parqueadero-app
-   ```
-
-2. **Instalar dependencias:**
-   ```bash
-   npm install
-   ```
-
-3. **Configurar Variables de Entorno:**
-   Crea un archivo `.env.local` en la raíz del proyecto:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=tu_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=tu_supabase_anon_key
-   SUPABASE_SERVICE_ROLE_KEY=tu_supabase_service_role_key
-   ```
-
-4. **Configurar la Base de Datos:**
-   Aplica las migraciones de Supabase:
-   ```bash
-   npx supabase db push
-   ```
-
-5. **Iniciar el servidor de desarrollo:**
-   ```bash
-   npm run dev
-   ```
-
-## 🔐 Roles del Sistema
-
-* **Super Administrador:** Control total de la plataforma SaaS, parqueaderos y suscripciones.
-* **Administrador:** Control total de un parqueadero específico (tarifas, reportes, vigilantes).
-* **Vigilante:** Operación diaria del parqueadero (ingresos, salidas, cobros).
+### 🛡️ Panel de Vigilante (Operación Diaria)
+*   **Ingreso Eficiente:** Registro rápido de placas con autocompletado inteligente de datos recurrentes.
+*   **Registro de Novedades:** Captura de fotos y observaciones ante daños o incidentes.
+*   **Salidas Automatizadas:** Cálculo de cobro instantáneo basado en el tiempo de permanencia.
+*   **Gestión de Turnos:** Bloqueo de pantalla y registro obligatorio del operador en turno.
+*   **Recibos Digitales:** Generación de tickets profesionales con opción de imprimir o compartir vía WhatsApp y Web Share API.
 
 ---
-*Desarrollado para optimizar la gestión de parqueaderos de manera eficiente y segura.*
+
+## 🛠️ Stack Tecnológico
+
+*   **Frontend:** Next.js 15 (App Router), React 19.
+*   **Estilos:** Tailwind CSS 4.0 (Diseño Responsivo y Moderno).
+*   **Base de Datos y Auth:** Supabase (PostgreSQL con Row Level Security).
+*   **Analíticas:** Recharts para gráficos de alto rendimiento.
+*   **Utilidades:** `date-fns` (Fechas en español), `html2canvas` (Tickets), `Lucide React` (Iconografía).
+
+---
+
+## 📦 Versiones y Actualizaciones
+
+NexoPark utiliza un sistema de control de versiones semántico. Cada rol dentro de la plataforma tiene acceso a su historial de actualizaciones específico:
+
+*   📌 **Vigilancia:** Solo visualiza mejoras operativas y de recibos.
+*   👔 **Administrador:** Visualiza mejoras operativas y herramientas de gestión/analíticas.
+*   🚀 **Super Admin:** Acceso al historial completo de cambios en la infraestructura SaaS.
+
+---
+
+## ⚙️ Instalación Local
+
+1.  **Clonar:** `git clone <repo-url>`
+2.  **Dependencias:** `npm install`
+3.  **Variables de Entorno:** Configurar `.env.local` con las credenciales de Supabase.
+4.  **Desarrollo:** `npm run dev`
+
+---
+*NexoPark: La tecnología que tu parqueadero necesita para crecer.*

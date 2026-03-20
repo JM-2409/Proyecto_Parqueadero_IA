@@ -21,7 +21,9 @@ import {
   Plus,
   X,
   Printer,
+  Sparkles,
 } from "lucide-react";
+import UpdatesModal from "./UpdatesModal";
 import { format, differenceInMinutes, subDays } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -89,6 +91,7 @@ export default function GuardDashboard({
   const [guardName, setGuardName] = useState("");
   const [showGuardModal, setShowGuardModal] = useState(false);
   const [tempGuardName, setTempGuardName] = useState("");
+  const [showUpdates, setShowUpdates] = useState(false);
 
   // Novelties State
   const [noveltyModalVehicle, setNoveltyModalVehicle] = useState<any | null>(
@@ -963,6 +966,15 @@ export default function GuardDashboard({
             </div>
 
             <button
+              onClick={() => setShowUpdates(true)}
+              className="p-3.5 rounded-2xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all duration-300 border border-indigo-100 shadow-sm group relative"
+              title="Novedades"
+            >
+              <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+            </button>
+
+            <button
               onClick={onLogout}
               className="p-3.5 rounded-2xl bg-slate-900 hover:bg-red-600 text-white transition-all duration-300 shadow-lg hover:shadow-red-200 group relative"
               title="Cerrar Sesión"
@@ -972,6 +984,12 @@ export default function GuardDashboard({
           </div>
         </div>
       </div>
+
+      <UpdatesModal
+        isOpen={showUpdates}
+        onClose={() => setShowUpdates(false)}
+        userRole="guard"
+      />
 
       {/* Mobile View Toggle */}
       <div className="lg:hidden mb-8 bg-white rounded-2xl p-1.5 flex border border-slate-200 shadow-sm">
