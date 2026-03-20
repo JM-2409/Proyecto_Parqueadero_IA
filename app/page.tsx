@@ -26,7 +26,7 @@ export default function Home() {
 
   useEffect(() => {
     // Check for updates mechanism
-    const latestVersion = '2.1.1'; // Increment this when deploying major updates
+    const latestVersion = '2.1.2'; // Increment this when deploying major updates
     const storedVersion = localStorage.getItem('app_version');
 
     if (storedVersion && storedVersion !== latestVersion) {
@@ -191,13 +191,16 @@ export default function Home() {
               <div className="flex items-center gap-4 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                 <div className="relative">
                   <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-indigo-300 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
-                  <div className="relative w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md bg-white">
+                  <div className="relative w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-lg bg-white aspect-square">
                     <img
-                      src={globalSettings.logo_url ? `${globalSettings.logo_url}?v=${logoVersion}` : "/logo.png"}
+                      src={globalSettings.logo_url ? (globalSettings.logo_url.includes('?') ? `${globalSettings.logo_url}&v=${logoVersion}` : `${globalSettings.logo_url}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
                       alt={globalSettings.app_name}
-                      className="w-full h-full object-cover transform transition duration-500 group-hover:scale-110"
+                      className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/logo.png";
+                        const target = e.target as HTMLImageElement;
+                        if (!target.src.includes('/logo.png')) {
+                          target.src = `/logo.png?v=${logoVersion}`;
+                        }
                       }}
                     />
                   </div>
@@ -447,13 +450,16 @@ export default function Home() {
           <div className="text-center mb-10">
             <div className="relative inline-block group">
               <div className="absolute -inset-2 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
-              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center mx-auto shadow-xl border-4 border-white overflow-hidden bg-white">
+              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center mx-auto shadow-2xl border-4 border-white overflow-hidden bg-white aspect-square">
                 <img
-                  src={globalSettings.logo_url ? `${globalSettings.logo_url}?v=${logoVersion}` : "/logo.png"}
+                  src={globalSettings.logo_url ? (globalSettings.logo_url.includes('?') ? `${globalSettings.logo_url}&v=${logoVersion}` : `${globalSettings.logo_url}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
                   alt={globalSettings.app_name}
                   className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/logo.png";
+                    const target = e.target as HTMLImageElement;
+                    if (!target.src.includes('/logo.png')) {
+                      target.src = `/logo.png?v=${logoVersion}`;
+                    }
                   }}
                 />
               </div>

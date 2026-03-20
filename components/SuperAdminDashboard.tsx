@@ -366,13 +366,16 @@ export default function SuperAdminDashboard({
         <div className="flex items-center gap-4 group">
           <div className="relative">
             <div className="absolute -inset-1 bg-gradient-to-tr from-amber-500 to-red-400 rounded-full blur opacity-20 group-hover:opacity-35 transition duration-300"></div>
-            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square bg-white">
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-lg shrink-0 aspect-square bg-white">
               <img
-                src={globalLogoUrl ? `${globalLogoUrl}?v=${logoVersion}` : "/logo.png"}
+                src={globalLogoUrl ? (globalLogoUrl.includes('?') ? `${globalLogoUrl}&v=${logoVersion}` : `${globalLogoUrl}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
                 alt="Logo"
                 className="w-full h-full object-cover transform transition duration-500 group-hover:scale-110"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/logo.png";
+                  const target = e.target as HTMLImageElement;
+                  if (!target.src.includes('/logo.png')) {
+                    target.src = `/logo.png?v=${logoVersion}`;
+                  }
                 }}
               />
             </div>
@@ -438,17 +441,17 @@ export default function SuperAdminDashboard({
               setActiveTab("parking_lots");
               setSearchTerm("");
             }}
-            className={`px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "parking_lots" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
+            className={`px-5 py-2.5 rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-[11px] transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "parking_lots" ? "bg-indigo-600 text-white shadow-lg ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
           >
             <Building2 className="w-4 h-4" />
-            Parqueaderos
+            Puntos
           </button>
           <button
             onClick={() => {
               setActiveTab("users");
               setSearchTerm("");
             }}
-            className={`px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "users" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
+            className={`px-5 py-2.5 rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-[11px] transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "users" ? "bg-indigo-600 text-white shadow-lg ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
           >
             <Users className="w-4 h-4" />
             Usuarios
@@ -458,10 +461,10 @@ export default function SuperAdminDashboard({
               setActiveTab("settings");
               setSearchTerm("");
             }}
-            className={`px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
+            className={`px-5 py-2.5 rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-[11px] transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-indigo-600 text-white shadow-lg ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
           >
             <Settings className="w-4 h-4" />
-            Configuración
+            Global
           </button>
         </div>
 
@@ -759,7 +762,7 @@ export default function SuperAdminDashboard({
 
                     <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
                       <div className="relative group">
-                        <div className="w-24 h-24 rounded-full overflow-hidden bg-white border-4 border-white shadow-lg shrink-0 flex items-center justify-center">
+                        <div className="w-24 h-24 rounded-full overflow-hidden bg-white border-4 border-white shadow-lg shrink-0 flex items-center justify-center aspect-square">
                           {newGlobalLogoFile ? (
                             <img
                               src={URL.createObjectURL(newGlobalLogoFile)}
@@ -768,9 +771,15 @@ export default function SuperAdminDashboard({
                             />
                           ) : globalLogoUrl ? (
                             <img
-                              src={globalLogoUrl}
+                              src={`${globalLogoUrl}?v=${logoVersion}`}
                               alt="Global Logo"
                               className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                if (!target.src.includes('/logo.png')) {
+                                  target.src = `/logo.png?v=${logoVersion}`;
+                                }
+                              }}
                             />
                           ) : (
                             <Building2 className="w-10 h-10 text-slate-300" />

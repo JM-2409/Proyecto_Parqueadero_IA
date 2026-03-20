@@ -22,6 +22,7 @@ import {
   X,
   Printer,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 import UpdatesModal from "./UpdatesModal";
 import { format, differenceInMinutes, subDays } from "date-fns";
@@ -889,13 +890,16 @@ export default function GuardDashboard({
         <div className="flex items-center gap-4 group">
           <div className="relative">
             <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-indigo-300 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-300"></div>
-            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square bg-white">
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-lg shrink-0 aspect-square bg-white">
               <img
-                src={globalLogoUrl ? `${globalLogoUrl}?v=${logoVersion}` : "/logo.png"}
+                src={globalLogoUrl ? (globalLogoUrl.includes('?') ? `${globalLogoUrl}&v=${logoVersion}` : `${globalLogoUrl}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
                 alt="Logo"
                 className="w-full h-full object-cover transform transition duration-500 group-hover:scale-110"
                 onError={(e) => {
-                  (e.target as HTMLImageElement).src = "/logo.png";
+                  const target = e.target as HTMLImageElement;
+                  if (!target.src.includes('/logo.png')) {
+                    target.src = `/logo.png?v=${logoVersion}`;
+                  }
                 }}
               />
             </div>
@@ -941,8 +945,8 @@ export default function GuardDashboard({
               <span>Privados</span>
             </button>
             {revenueSettings?.show_to_guards && (
-              <div className="bg-emerald-500 text-white px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-xs shadow-md shrink-0">
-                <DollarSign className="w-3.5 h-3.5" />
+              <div className="bg-emerald-600 text-white px-5 py-2.5 rounded-2xl flex items-center gap-2 font-black text-xs shadow-xl shadow-emerald-200 shrink-0 border border-emerald-500/50">
+                <DollarSign className="w-4 h-4" />
                 <span>{formatCurrency(totalRevenue)}</span>
               </div>
             )}
@@ -998,17 +1002,17 @@ export default function GuardDashboard({
       <div className="lg:hidden mb-8 bg-white/80 backdrop-blur-xl rounded-[2rem] p-2 flex border border-white shadow-lg">
         <button
           onClick={() => setMobileView("entry")}
-          className={`flex-1 py-4 rounded-2xl text-sm font-bold transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === "entry" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
+          className={`flex-1 py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === "entry" ? "bg-emerald-600 text-white shadow-lg ring-4 ring-emerald-50" : "text-slate-500 hover:text-emerald-600 hover:bg-white"}`}
         >
           <Plus className="w-4 h-4" />
-          Registrar Ingreso
+          Ingreso
         </button>
         <button
           onClick={() => setMobileView("list")}
-          className={`flex-1 py-4 rounded-2xl text-sm font-bold transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === "list" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
+          className={`flex-1 py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === "list" ? "bg-indigo-600 text-white shadow-lg ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
         >
           <Car className="w-4 h-4" />
-          Vehículos Activos
+          En Patio
         </button>
       </div>
 
@@ -1032,12 +1036,12 @@ export default function GuardDashboard({
 
             <form onSubmit={handleEntry} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">
                   Placa del Vehículo
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Search className="h-5 w-5 text-slate-400" />
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <Search className="h-6 w-6 text-slate-300 group-focus-within:text-emerald-500 transition-colors" />
                   </div>
                   <input
                     type="text"
@@ -1045,7 +1049,7 @@ export default function GuardDashboard({
                     maxLength={6}
                     value={plate}
                     onChange={handlePlateChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white uppercase font-mono text-lg tracking-wider"
+                    className="block w-full pl-12 pr-4 py-4 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-emerald-100 focus:border-emerald-500 outline-none transition-all bg-slate-50 focus:bg-white uppercase font-black text-2xl tracking-[0.2em] text-slate-800 placeholder:text-slate-200"
                     placeholder="ABC123"
                   />
                 </div>
@@ -1165,9 +1169,16 @@ export default function GuardDashboard({
               <button
                 type="submit"
                 disabled={loading || plate.length < 5}
-                className="w-full py-3 px-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm mt-4"
+                className="w-full py-5 px-6 rounded-2xl bg-emerald-600 text-white font-black uppercase tracking-widest hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-xl shadow-emerald-200 hover:shadow-emerald-300 hover:scale-[1.02] active:scale-95 mt-6 flex items-center justify-center gap-3"
               >
-                {loading ? "Registrando..." : "Dar Ingreso"}
+                {loading ? (
+                  <Loader2 className="w-6 h-6 animate-spin" />
+                ) : (
+                  <>
+                    <span>Dar Ingreso</span>
+                    <CheckCircle className="w-5 h-5" />
+                  </>
+                )}
               </button>
             </form>
           </div>
@@ -1183,17 +1194,17 @@ export default function GuardDashboard({
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => setActiveTab("active")}
-                    className={`px-5 py-2.5 rounded-2xl font-bold text-sm transition-all ${activeTab === "active" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
+                    className={`px-5 py-2.5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === "active" ? "bg-emerald-600 text-white shadow-lg ring-4 ring-emerald-50" : "text-slate-500 hover:text-emerald-600 hover:bg-white"}`}
                   >
-                    Vehículos Activos
+                    En Patio
                   </button>
                   {guardPermissions.show_history && (
                     <button
                       onClick={() => setActiveTab("history")}
-                      className={`px-5 py-2.5 rounded-2xl font-bold text-sm transition-all flex items-center gap-2 ${activeTab === "history" ? "bg-indigo-600 text-white shadow-md ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
+                      className={`px-5 py-2.5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2 ${activeTab === "history" ? "bg-slate-800 text-white shadow-lg ring-4 ring-slate-50" : "text-slate-500 hover:text-slate-800 hover:bg-white"}`}
                     >
                       <History className="w-4 h-4" />
-                      Historial (Minuta)
+                      Historia
                     </button>
                   )}
                 </div>
@@ -1338,8 +1349,9 @@ export default function GuardDashboard({
 
                           <button
                             onClick={() => handleCheckoutClick(session)}
-                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 text-white font-medium hover:bg-slate-700 transition-colors"
+                            className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-rose-600 text-white font-black uppercase tracking-widest text-xs hover:bg-rose-700 transition-all shadow-lg shadow-rose-200 hover:shadow-rose-300 hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
                           >
+                            <LogOut className="w-4 h-4" />
                             Dar Salida
                           </button>
                         </div>
@@ -1457,7 +1469,7 @@ export default function GuardDashboard({
               </button>
             </div>
             <div className="p-6 border-b border-slate-100 bg-white">
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 px-2">
                 <div className="flex-1 relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Search className="h-5 w-5 text-slate-400" />
@@ -1474,7 +1486,7 @@ export default function GuardDashboard({
                   <select
                     value={privateSpotsSort}
                     onChange={(e) => setPrivateSpotsSort(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-sm font-bold min-h-[48px]"
                   >
                     {privateSpotFields
                       .filter((f) => f.enabled)
@@ -1714,13 +1726,16 @@ export default function GuardDashboard({
               >
                 {/* Header */}
                 <div className="text-center mb-4 border-b border-slate-200 pb-4">
-                  <div className="w-12 h-12 mx-auto mb-2 rounded-full overflow-hidden border border-slate-200 bg-white">
+                  <div className="w-12 h-12 mx-auto mb-2 rounded-full overflow-hidden border border-slate-200 bg-white aspect-square">
                     <img
-                      src={globalLogoUrl ? `${globalLogoUrl}?v=${logoVersion}` : "/logo.png"}
+                      src={globalLogoUrl ? (globalLogoUrl.includes('?') ? `${globalLogoUrl}&v=${logoVersion}` : `${globalLogoUrl}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
                       alt="Logo"
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/logo.png";
+                        const target = e.target as HTMLImageElement;
+                        if (!target.src.includes('/logo.png')) {
+                          target.src = `/logo.png?v=${logoVersion}`;
+                        }
                       }}
                     />
                   </div>

@@ -44,6 +44,11 @@
   background: #cbd5e1;
 }
 
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #e2e8f0 transparent;
+}
+
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
