@@ -22,12 +22,33 @@ export default function Home() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [globalSettings, setGlobalSettings] = useState<{ app_name: string, logo_url: string | null }>({ app_name: 'NexoPark', logo_url: null });
+  const [logoVersion, setLogoVersion] = useState(Date.now());
+  const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
+    // Check for updates mechanism
+    const latestVersion = '2.1.2'; // Increment this when deploying major updates
+    const storedVersion = localStorage.getItem('app_version');
+
+    if (storedVersion && storedVersion !== latestVersion) {
+      console.log('Nueva versión detectada. Limpiando cache...');
+      localStorage.setItem('app_version', latestVersion);
+      // Clear cache and reload
+      if ('serviceWorker' in navigator) {
+        caches.keys().then((names) => {
+          for (let name of names) caches.delete(name);
+        });
+      }
+      window.location.reload();
+    } else if (!storedVersion) {
+      localStorage.setItem('app_version', latestVersion);
+    }
+
     // Fetch global settings
     supabase.from('global_app_settings').select('*').limit(1).single().then(({ data }) => {
       if (data) {
         setGlobalSettings({ app_name: data.app_name, logo_url: data.logo_url });
+        setLogoVersion(Date.now());
       }
     });
 
@@ -170,16 +191,18 @@ export default function Home() {
             <div className="px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
               <div className="flex items-center gap-4 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                 <div className="relative">
-                  <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-indigo-300 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
-                  <div className="relative w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md bg-white">
-                    <img
-                      src={globalSettings.logo_url || "/logo.png"}
-                      alt={globalSettings.app_name}
-                      className="w-full h-full object-cover transform transition duration-500 group-hover:scale-110"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/logo.png";
-                      }}
-                    />
+                  <div className="absolute -inset-1.5 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                  <div className="relative w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center shadow-xl bg-white aspect-square group">
+                    {!logoError ? (
+                      <img
+                        src={globalSettings.logo_url ? (globalSettings.logo_url.includes('?') ? `${globalSettings.logo_url}&v=${logoVersion}` : `${globalSettings.logo_url}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
+                        alt={globalSettings.app_name}
+                        className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
+                        onError={() => setLogoError(true)}
+                      />
+                    ) : (
+                      <Car className="w-6 h-6 text-indigo-600 group-hover:scale-110 transition-transform" />
+                    )}
                   </div>
                 </div>
                 <span className="font-black text-xl sm:text-2xl tracking-tighter text-slate-900">{globalSettings.app_name}</span>
@@ -382,15 +405,17 @@ export default function Home() {
           <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-slate-700 bg-white">
-                  <img
-                    src={globalSettings.logo_url || "/logo.png"}
-                    alt={globalSettings.app_name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/logo.png";
-                    }}
-                  />
+                <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-slate-700 bg-white aspect-square">
+                  {!logoError ? (
+                    <img
+                      src={globalSettings.logo_url ? (globalSettings.logo_url.includes('?') ? `${globalSettings.logo_url}&v=${logoVersion}` : `${globalSettings.logo_url}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
+                      alt={globalSettings.app_name}
+                      className="w-full h-full object-cover"
+                      onError={() => setLogoError(true)}
+                    />
+                  ) : (
+                    <Car className="w-4 h-4 text-slate-900" />
+                  )}
                 </div>
                 <span className="font-bold text-lg text-white">{globalSettings.app_name}</span>
               </div>
@@ -427,15 +452,17 @@ export default function Home() {
           <div className="text-center mb-10">
             <div className="relative inline-block group">
               <div className="absolute -inset-2 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
-              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center mx-auto shadow-xl border-4 border-white overflow-hidden bg-white">
-                <img
-                  src={globalSettings.logo_url || "/logo.png"}
-                  alt={globalSettings.app_name}
-                  className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = "/logo.png";
-                  }}
-                />
+              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center mx-auto shadow-2xl overflow-hidden bg-white aspect-square">
+                {!logoError ? (
+                  <img
+                    src={globalSettings.logo_url ? (globalSettings.logo_url.includes('?') ? `${globalSettings.logo_url}&v=${logoVersion}` : `${globalSettings.logo_url}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
+                    alt={globalSettings.app_name}
+                    className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
+                    onError={() => setLogoError(true)}
+                  />
+                ) : (
+                  <Car className="w-12 h-12 text-indigo-600 group-hover:scale-110 transition-transform" />
+                )}
               </div>
             </div>
             <h1 className="mt-6 text-3xl sm:text-4xl font-black text-slate-900 tracking-tighter">{globalSettings.app_name}</h1>
