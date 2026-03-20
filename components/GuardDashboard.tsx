@@ -739,7 +739,7 @@ export default function GuardDashboard({
         `*Ingreso:* ${entryTime}\n` +
         `*Salida:* ${exitTime}\n` +
         `*Tiempo Total:* ${totalMinutes} minutos\n` +
-        `*Tarifa Aplicada:* ${completedSession.rate?.name || "N/A"}\n` +
+
         `*Total Pagado:* ${formatCurrency(completedSession.amount_paid)}\n\n` +
         `¡Gracias por su visita!`;
 
@@ -1813,12 +1813,7 @@ export default function GuardDashboard({
                       m
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Tarifa:</span>
-                    <span className="truncate max-w-[150px] text-right">
-                      {completedSession.rate?.name || "N/A"}
-                    </span>
-                  </div>
+                  
                 </div>
 
                 {/* Total */}
@@ -1953,7 +1948,7 @@ export default function GuardDashboard({
 
                   {selectedRateId === "special" && (
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-500">Tarifa Aplicada:</span>
+
                       <span className="font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
                         Tarifa Especial
                       </span>
