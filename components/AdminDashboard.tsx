@@ -2070,15 +2070,15 @@ export default function AdminDashboard({
           </div>
           <div className="p-6 sm:p-8">
             <div className="mb-8 p-6 bg-slate-50/50 rounded-[2rem] border border-slate-200/60 shadow-inner">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
-                <h3 className="font-medium text-slate-800">
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 gap-6">
+                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">
                   Asignar Nuevo Parqueadero
                 </h3>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
                   <select
                     value={bulkClearColumn}
                     onChange={(e) => setBulkClearColumn(e.target.value)}
-                    className="px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-sm"
+                    className="px-4 py-2.5 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-red-500 outline-none bg-white text-sm font-bold text-slate-700 min-h-[48px] sm:min-h-0"
                   >
                     <option value="">Seleccionar columna a vaciar...</option>
                     {privateSpotFields
@@ -2092,7 +2092,7 @@ export default function AdminDashboard({
                   <button
                     onClick={handleBulkClear}
                     disabled={!bulkClearColumn}
-                    className="px-4 py-2 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 font-medium transition-colors disabled:opacity-50 text-sm"
+                    className="px-6 py-2.5 bg-red-50 text-red-600 rounded-2xl hover:bg-red-600 hover:text-white font-black transition-all duration-300 disabled:opacity-30 text-[10px] uppercase tracking-widest border border-red-100 shadow-sm min-h-[48px] sm:min-h-0"
                   >
                     Vaciar Columna
                   </button>
