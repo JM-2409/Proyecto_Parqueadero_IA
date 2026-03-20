@@ -81,6 +81,7 @@ export default function GuardDashboard({
   const [checkoutSession, setCheckoutSession] = useState<any | null>(null);
   const [completedSession, setCompletedSession] = useState<any | null>(null);
   const [whatsappNumber, setWhatsappNumber] = useState("");
+  const [whatsappCountryCode, setWhatsappCountryCode] = useState("+57");
   const [confirmAmount, setConfirmAmount] = useState(false);
   const [selectedRateId, setSelectedRateId] = useState<string>("");
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -744,7 +745,7 @@ export default function GuardDashboard({
 
       const encodedMessage = encodeURIComponent(message);
       window.open(
-        `https://wa.me/${whatsappNumber}?text=${encodedMessage}`,
+        `https://wa.me/${whatsappCountryCode.replace("+", "")}${whatsappNumber}?text=${encodedMessage}`,
         "_blank",
       );
     } catch (error) {
@@ -1841,13 +1842,22 @@ export default function GuardDashboard({
                     Enviar por WhatsApp
                   </label>
                   <div className="flex gap-2">
-                    <input
-                      type="tel"
-                      placeholder="Número (ej. 573001234567)"
-                      value={whatsappNumber}
-                      onChange={(e) => setWhatsappNumber(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
-                    />
+                    <div className="flex w-full gap-2">
+                      <input
+                        type="text"
+                        value={whatsappCountryCode}
+                        onChange={(e) => setWhatsappCountryCode(e.target.value)}
+                        className="w-16 px-2 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-center"
+                        placeholder="+57"
+                      />
+                      <input
+                        type="tel"
+                        placeholder="Número"
+                        value={whatsappNumber}
+                        onChange={(e) => setWhatsappNumber(e.target.value)}
+                        className="flex-1 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                      />
+                    </div>
                     <button
                       onClick={handleWhatsAppShare}
                       disabled={!whatsappNumber || isSharing}
