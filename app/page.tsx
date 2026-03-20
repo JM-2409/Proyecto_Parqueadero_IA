@@ -405,15 +405,17 @@ export default function Home() {
           <footer className="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-slate-700 bg-white">
-                  <img
-                    src={globalSettings.logo_url || "/logo.png"}
-                    alt={globalSettings.app_name}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).src = "/logo.png";
-                    }}
-                  />
+                <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center border border-slate-700 bg-white aspect-square">
+                  {!logoError ? (
+                    <img
+                      src={globalSettings.logo_url ? (globalSettings.logo_url.includes('?') ? `${globalSettings.logo_url}&v=${logoVersion}` : `${globalSettings.logo_url}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
+                      alt={globalSettings.app_name}
+                      className="w-full h-full object-cover"
+                      onError={() => setLogoError(true)}
+                    />
+                  ) : (
+                    <Car className="w-4 h-4 text-slate-900" />
+                  )}
                 </div>
                 <span className="font-bold text-lg text-white">{globalSettings.app_name}</span>
               </div>
