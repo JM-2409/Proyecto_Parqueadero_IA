@@ -190,8 +190,8 @@ export default function Home() {
             <div className="px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
               <div className="flex items-center gap-4 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                 <div className="relative">
-                  <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-indigo-300 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
-                  <div className="relative w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-lg bg-white aspect-square">
+                  <div className="absolute -inset-1.5 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                  <div className="relative w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center shadow-xl bg-white aspect-square">
                     <img
                       src={globalSettings.logo_url ? (globalSettings.logo_url.includes('?') ? `${globalSettings.logo_url}&v=${logoVersion}` : `${globalSettings.logo_url}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
                       alt={globalSettings.app_name}
@@ -450,7 +450,7 @@ export default function Home() {
           <div className="text-center mb-10">
             <div className="relative inline-block group">
               <div className="absolute -inset-2 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
-              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center mx-auto shadow-2xl border-4 border-white overflow-hidden bg-white aspect-square">
+              <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center mx-auto shadow-2xl overflow-hidden bg-white aspect-square">
                 <img
                   src={globalSettings.logo_url ? (globalSettings.logo_url.includes('?') ? `${globalSettings.logo_url}&v=${logoVersion}` : `${globalSettings.logo_url}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
                   alt={globalSettings.app_name}

@@ -365,12 +365,12 @@ export default function SuperAdminDashboard({
         {/* Lado Izquierdo: Branding */}
         <div className="flex items-center gap-4 group">
           <div className="relative">
-            <div className="absolute -inset-1 bg-gradient-to-tr from-amber-500 to-red-400 rounded-full blur opacity-20 group-hover:opacity-35 transition duration-300"></div>
-            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-lg shrink-0 aspect-square bg-white">
+            <div className="absolute -inset-1.5 bg-gradient-to-tr from-amber-500 to-red-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center shadow-xl shrink-0 aspect-square bg-white">
               <img
                 src={globalLogoUrl ? (globalLogoUrl.includes('?') ? `${globalLogoUrl}&v=${logoVersion}` : `${globalLogoUrl}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
                 alt="Logo"
-                className="w-full h-full object-cover transform transition duration-500 group-hover:scale-110"
+                className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   if (!target.src.includes('/logo.png')) {

@@ -1048,12 +1048,12 @@ export default function AdminDashboard({
         {/* Lado Izquierdo: Branding */}
         <div className="flex items-center gap-4 group">
           <div className="relative">
-            <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-600 to-purple-400 rounded-full blur opacity-20 group-hover:opacity-35 transition duration-300"></div>
-            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-lg shrink-0 aspect-square bg-white">
+            <div className="absolute -inset-1.5 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center shadow-xl shrink-0 aspect-square bg-white">
               <img
                 src={globalLogoUrl ? (globalLogoUrl.includes('?') ? `${globalLogoUrl}&v=${logoVersion}` : `${globalLogoUrl}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
                 alt="Logo"
-                className="w-full h-full object-cover transform transition duration-500 group-hover:scale-110"
+                className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   if (!target.src.includes('/logo.png')) {
@@ -2354,30 +2354,40 @@ export default function AdminDashboard({
               ) : (
                 <div className="space-y-6 max-w-2xl">
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Nombre del Parqueadero
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                        Nombre del Punto
                       </label>
-                      <input
-                        type="text"
-                        value={parkingLotName}
-                        disabled
-                        className="block w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-100 text-slate-500 cursor-not-allowed"
-                        placeholder="Ej. Parqueadero Central"
-                      />
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <Building2 className="h-5 w-5 text-slate-300" />
+                        </div>
+                        <input
+                          type="text"
+                          value={parkingLotName}
+                          disabled
+                          className="block w-full pl-12 pr-4 py-4 border border-slate-200 rounded-2xl bg-slate-100/50 text-slate-500 cursor-not-allowed font-bold"
+                          placeholder="Ej. Parqueadero Central"
+                        />
+                      </div>
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        NIT / RUT
+                    <div className="space-y-2">
+                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                        Identificación NIT
                       </label>
-                      <input
-                        type="text"
-                        value={parkingLotNit}
-                        disabled
-                        className="block w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-100 text-slate-500 cursor-not-allowed"
-                        placeholder="Ej. 900.123.456-7"
-                      />
+                      <div className="relative group">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <Shield className="h-5 w-5 text-slate-300" />
+                        </div>
+                        <input
+                          type="text"
+                          value={parkingLotNit}
+                          disabled
+                          className="block w-full pl-12 pr-4 py-4 border border-slate-200 rounded-2xl bg-slate-100/50 text-slate-500 cursor-not-allowed font-bold"
+                          placeholder="Ej. 900.123.456-7"
+                        />
+                      </div>
                     </div>
                   </div>
                   <p className="text-xs text-slate-500 mt-1">
@@ -2385,17 +2395,22 @@ export default function AdminDashboard({
                     Super Administrador.
                   </p>
 
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Dirección
+                  <div className="space-y-2">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                      Ubicación / Dirección
                     </label>
-                    <input
-                      type="text"
-                      value={parkingLotAddress}
-                      onChange={(e) => setParkingLotAddress(e.target.value)}
-                      className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
-                      placeholder="Ej. Calle Principal 123"
-                    />
+                    <div className="relative group">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <Search className="h-5 w-5 text-slate-300" />
+                      </div>
+                      <input
+                        type="text"
+                        value={parkingLotAddress}
+                        onChange={(e) => setParkingLotAddress(e.target.value)}
+                        className="block w-full pl-12 pr-4 py-4 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all bg-white font-bold text-slate-800"
+                        placeholder="Ej. Calle Principal 123"
+                      />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 p-4 bg-indigo-50 rounded-xl border border-indigo-100">

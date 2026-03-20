@@ -462,6 +462,8 @@ export default function GuardDashboard({
       .single();
 
     if (!error && newSession) {
+      // Success Notification / State could be added here
+
       if (hasEntryNovelty && entryNoveltyObservation.trim()) {
         let photoUrl = null;
         if (entryNoveltyPhoto) {
@@ -889,12 +891,12 @@ export default function GuardDashboard({
         {/* Lado Izquierdo: Branding */}
         <div className="flex items-center gap-4 group">
           <div className="relative">
-            <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-indigo-300 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-300"></div>
-            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-lg shrink-0 aspect-square bg-white">
+            <div className="absolute -inset-1.5 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center shadow-xl shrink-0 aspect-square bg-white">
               <img
                 src={globalLogoUrl ? (globalLogoUrl.includes('?') ? `${globalLogoUrl}&v=${logoVersion}` : `${globalLogoUrl}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
                 alt="Logo"
-                className="w-full h-full object-cover transform transition duration-500 group-hover:scale-110"
+                className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   if (!target.src.includes('/logo.png')) {
@@ -1021,7 +1023,10 @@ export default function GuardDashboard({
         <div
           className={`lg:col-span-1 ${mobileView === "entry" ? "block" : "hidden lg:block"}`}
         >
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white p-6 sm:p-8 sticky top-6">
+          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-2xl border border-white p-6 sm:p-8 sticky top-6 overflow-hidden">
+            <div className="absolute top-0 right-0 p-10 opacity-5">
+              <Zap className="w-40 h-40 text-emerald-600" />
+            </div>
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
                 <CheckCircle className="w-6 h-6 text-emerald-500" />
@@ -1921,16 +1926,16 @@ export default function GuardDashboard({
             </button>
             <div className="p-6 text-center overflow-y-auto">
               <div
-                className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${confirmAmount ? "bg-emerald-50" : "bg-indigo-50"}`}
+                className={`w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-4 border-4 ${confirmAmount ? "bg-emerald-50 border-emerald-100 shadow-emerald-100" : "bg-rose-50 border-rose-100 shadow-rose-100"} shadow-inner`}
               >
                 {confirmAmount ? (
-                  <DollarSign className="w-8 h-8 text-emerald-600" />
+                  <DollarSign className="w-10 h-10 text-emerald-600" />
                 ) : (
-                  <CheckCircle className="w-8 h-8 text-indigo-600" />
+                  <LogOut className="w-10 h-10 text-rose-600" />
                 )}
               </div>
-              <h2 className="text-2xl font-bold text-slate-800 mb-1">
-                {confirmAmount ? "Confirmar Pago" : "Confirmar Salida"}
+              <h2 className={`text-2xl font-black tracking-tight mb-1 ${confirmAmount ? "text-emerald-600" : "text-rose-600"}`}>
+                {confirmAmount ? "Confirmar Pago" : "Registrar Salida"}
               </h2>
               <p className="text-slate-500 mb-6 font-mono text-lg">
                 {checkoutSession.license_plate}
@@ -2010,7 +2015,7 @@ export default function GuardDashboard({
                 <button
                   onClick={handleCheckout}
                   disabled={loading || !selectedRateId}
-                  className={`flex-1 py-3 px-4 rounded-xl text-white font-medium disabled:opacity-50 transition-colors shadow-sm ${confirmAmount ? "bg-emerald-600 hover:bg-emerald-700" : "bg-indigo-600 hover:bg-indigo-700"}`}
+                  className={`flex-1 py-4 px-6 rounded-2xl text-white font-black uppercase tracking-widest text-xs disabled:opacity-50 transition-all shadow-xl ${confirmAmount ? "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-200" : "bg-rose-600 hover:bg-rose-700 shadow-rose-200"} hover:scale-105 active:scale-95`}
                 >
                   {loading
                     ? "Procesando..."
