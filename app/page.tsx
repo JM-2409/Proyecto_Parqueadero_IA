@@ -23,6 +23,7 @@ export default function Home() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [globalSettings, setGlobalSettings] = useState<{ app_name: string, logo_url: string | null }>({ app_name: 'NexoPark', logo_url: null });
   const [logoVersion, setLogoVersion] = useState(Date.now());
+  const [logoError, setLogoError] = useState(false);
 
   useEffect(() => {
     // Check for updates mechanism
@@ -191,18 +192,17 @@ export default function Home() {
               <div className="flex items-center gap-4 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                 <div className="relative">
                   <div className="absolute -inset-1.5 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-                  <div className="relative w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center shadow-xl bg-white aspect-square">
-                    <img
-                      src={globalSettings.logo_url ? (globalSettings.logo_url.includes('?') ? `${globalSettings.logo_url}&v=${logoVersion}` : `${globalSettings.logo_url}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
-                      alt={globalSettings.app_name}
-                      className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        if (!target.src.includes('/logo.png')) {
-                          target.src = `/logo.png?v=${logoVersion}`;
-                        }
-                      }}
-                    />
+                  <div className="relative w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center shadow-xl bg-white aspect-square group">
+                    {!logoError ? (
+                      <img
+                        src={globalSettings.logo_url ? (globalSettings.logo_url.includes('?') ? `${globalSettings.logo_url}&v=${logoVersion}` : `${globalSettings.logo_url}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
+                        alt={globalSettings.app_name}
+                        className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
+                        onError={() => setLogoError(true)}
+                      />
+                    ) : (
+                      <Car className="w-6 h-6 text-indigo-600 group-hover:scale-110 transition-transform" />
+                    )}
                   </div>
                 </div>
                 <span className="font-black text-xl sm:text-2xl tracking-tighter text-slate-900">{globalSettings.app_name}</span>
@@ -451,17 +451,16 @@ export default function Home() {
             <div className="relative inline-block group">
               <div className="absolute -inset-2 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
               <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center mx-auto shadow-2xl overflow-hidden bg-white aspect-square">
-                <img
-                  src={globalSettings.logo_url ? (globalSettings.logo_url.includes('?') ? `${globalSettings.logo_url}&v=${logoVersion}` : `${globalSettings.logo_url}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
-                  alt={globalSettings.app_name}
-                  className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    if (!target.src.includes('/logo.png')) {
-                      target.src = `/logo.png?v=${logoVersion}`;
-                    }
-                  }}
-                />
+                {!logoError ? (
+                  <img
+                    src={globalSettings.logo_url ? (globalSettings.logo_url.includes('?') ? `${globalSettings.logo_url}&v=${logoVersion}` : `${globalSettings.logo_url}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
+                    alt={globalSettings.app_name}
+                    className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
+                    onError={() => setLogoError(true)}
+                  />
+                ) : (
+                  <Car className="w-12 h-12 text-indigo-600 group-hover:scale-110 transition-transform" />
+                )}
               </div>
             </div>
             <h1 className="mt-6 text-3xl sm:text-4xl font-black text-slate-900 tracking-tighter">{globalSettings.app_name}</h1>

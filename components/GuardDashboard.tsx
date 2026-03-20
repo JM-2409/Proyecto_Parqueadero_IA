@@ -76,6 +76,7 @@ export default function GuardDashboard({
   const [globalAppName, setGlobalAppName] = useState("NexoPark");
   const [globalLogoUrl, setGlobalLogoUrl] = useState<string | null>(null);
   const [logoVersion, setLogoVersion] = useState(Date.now());
+  const [logoError, setLogoError] = useState(false);
   const [fieldValues, setFieldValues] = useState<Record<string, string>>({});
   const [plate, setPlate] = useState("");
   const [type, setType] = useState<"car" | "motorcycle" | "bicycle">("car");
@@ -893,17 +894,16 @@ export default function GuardDashboard({
           <div className="relative">
             <div className="absolute -inset-1.5 bg-gradient-to-tr from-emerald-500 to-teal-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
             <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center shadow-xl shrink-0 aspect-square bg-white">
-              <img
-                src={globalLogoUrl ? (globalLogoUrl.includes('?') ? `${globalLogoUrl}&v=${logoVersion}` : `${globalLogoUrl}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
-                alt="Logo"
-                className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (!target.src.includes('/logo.png')) {
-                    target.src = `/logo.png?v=${logoVersion}`;
-                  }
-                }}
-              />
+              {!logoError ? (
+                <img
+                  src={globalLogoUrl ? (globalLogoUrl.includes('?') ? `${globalLogoUrl}&v=${logoVersion}` : `${globalLogoUrl}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
+                  alt="Logo"
+                  className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
+                  onError={() => setLogoError(true)}
+                />
+              ) : (
+                <Car className="w-8 h-8 text-emerald-600 group-hover:scale-110 transition-transform" />
+              )}
             </div>
           </div>
           <div className="min-w-0">
@@ -1731,18 +1731,17 @@ export default function GuardDashboard({
               >
                 {/* Header */}
                 <div className="text-center mb-4 border-b border-slate-200 pb-4">
-                  <div className="w-12 h-12 mx-auto mb-2 rounded-full overflow-hidden border border-slate-200 bg-white aspect-square">
-                    <img
-                      src={globalLogoUrl ? (globalLogoUrl.includes('?') ? `${globalLogoUrl}&v=${logoVersion}` : `${globalLogoUrl}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
-                      alt="Logo"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        if (!target.src.includes('/logo.png')) {
-                          target.src = `/logo.png?v=${logoVersion}`;
-                        }
-                      }}
-                    />
+                  <div className="w-12 h-12 mx-auto mb-2 rounded-full overflow-hidden border border-slate-200 bg-white aspect-square flex items-center justify-center">
+                    {!logoError ? (
+                      <img
+                        src={globalLogoUrl ? (globalLogoUrl.includes('?') ? `${globalLogoUrl}&v=${logoVersion}` : `${globalLogoUrl}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
+                        alt="Logo"
+                        className="w-full h-full object-cover"
+                        onError={() => setLogoError(true)}
+                      />
+                    ) : (
+                      <Car className="w-6 h-6 text-slate-800" />
+                    )}
                   </div>
                   <h3 className="font-bold text-lg">
                     {globalSettings.name || globalAppName}

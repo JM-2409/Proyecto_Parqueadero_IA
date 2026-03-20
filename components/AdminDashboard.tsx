@@ -142,6 +142,7 @@ export default function AdminDashboard({
   const [globalAppName, setGlobalAppName] = useState("NexoPark");
   const [globalLogoUrl, setGlobalLogoUrl] = useState<string | null>(null);
   const [logoVersion, setLogoVersion] = useState(Date.now());
+  const [logoError, setLogoError] = useState(false);
 
   // User form state
   const [username, setUsername] = useState("");
@@ -1050,17 +1051,16 @@ export default function AdminDashboard({
           <div className="relative">
             <div className="absolute -inset-1.5 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
             <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center shadow-xl shrink-0 aspect-square bg-white">
-              <img
-                src={globalLogoUrl ? (globalLogoUrl.includes('?') ? `${globalLogoUrl}&v=${logoVersion}` : `${globalLogoUrl}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
-                alt="Logo"
-                className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (!target.src.includes('/logo.png')) {
-                    target.src = `/logo.png?v=${logoVersion}`;
-                  }
-                }}
-              />
+              {!logoError ? (
+                <img
+                  src={globalLogoUrl ? (globalLogoUrl.includes('?') ? `${globalLogoUrl}&v=${logoVersion}` : `${globalLogoUrl}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
+                  alt="Logo"
+                  className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
+                  onError={() => setLogoError(true)}
+                />
+              ) : (
+                <Car className="w-8 h-8 text-indigo-600 group-hover:scale-110 transition-transform" />
+              )}
             </div>
           </div>
           <div className="min-w-0">
