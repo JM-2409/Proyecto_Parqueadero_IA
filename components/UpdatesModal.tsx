@@ -27,11 +27,11 @@ export default function UpdatesModal({ isOpen, onClose, userRole }: UpdatesModal
         {/* Header */}
         <div className="p-6 sm:p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50/50 dark:bg-slate-800/50 shrink-0">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-200">
+            <div className="w-12 h-12 rounded-2xl bg-brand-primary flex items-center justify-center shadow-lg shadow-brand-primary/20">
               <Sparkles className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Novedades</h2>
+              <h2 className="text-2xl font-black text-brand-primary dark:text-white tracking-tight uppercase">Novedades</h2>
               <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Historial de actualizaciones</p>
             </div>
           </div>
@@ -48,10 +48,10 @@ export default function UpdatesModal({ isOpen, onClose, userRole }: UpdatesModal
           {filteredUpdates.map((update, idx) => (
             <div key={update.version} className="relative pl-8 border-l-2 border-slate-100 dark:border-slate-800 pb-2">
               {/* Dot */}
-              <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-white dark:border-slate-900 shadow-sm ${idx === 0 ? 'bg-indigo-600 animate-pulse' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
+              <div className={`absolute -left-[9px] top-0 w-4 h-4 rounded-full border-4 border-white dark:border-slate-900 shadow-sm ${idx === 0 ? 'bg-brand-primary animate-pulse' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
 
               <div className="mb-2 flex flex-wrap items-center gap-3">
-                <span className="px-3 py-1 bg-indigo-50 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-400 rounded-full text-xs font-black tracking-wider border border-indigo-100 dark:border-indigo-800">
+                <span className="px-3 py-1 bg-brand-primary/10 dark:bg-brand-primary/20 text-brand-primary dark:text-white rounded-full text-xs font-black tracking-wider border border-brand-primary/10">
                   v{update.version}
                 </span>
                 <div className="flex items-center gap-1.5 text-slate-400 text-xs font-bold">
@@ -66,7 +66,7 @@ export default function UpdatesModal({ isOpen, onClose, userRole }: UpdatesModal
               <div className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-4 space-y-2 border border-slate-100 dark:border-slate-800">
                 {update.changes.map((change, cIdx) => (
                   <div key={cIdx} className="flex gap-3 text-sm text-slate-600 dark:text-slate-400">
-                    <ChevronRight className="w-4 h-4 text-indigo-500 dark:text-indigo-400 shrink-0 mt-0.5" />
+                    <ChevronRight className="w-4 h-4 text-brand-accent shrink-0 mt-0.5" />
                     <span className="font-medium">{change}</span>
                   </div>
                 ))}

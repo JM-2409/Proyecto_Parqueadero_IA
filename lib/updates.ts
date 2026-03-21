@@ -9,6 +9,21 @@ export interface UpdateEntry {
 
 export const UPDATES: UpdateEntry[] = [
   {
+    version: "3.0.0",
+    date: "2024-03-22",
+    roles: ['guard', 'admin', 'superadmin'],
+    title: "NexoPark Enterprise: Rebranding & Optimization",
+    description: "Gran actualización con rediseño corporativo total, optimización de velocidad operativa y soporte PWA.",
+    changes: [
+      "Diseño: Nueva identidad visual 'NexoPark' con colores corporativos (Navy Primario, Turquesa, Menta) y Glassmorphism.",
+      "Vigilancia: Flujo de ingreso 'Zero-Click' controlado por teclado (shortcuts Ctrl+K/F2 y Enter para registro automático).",
+      "Vigilancia: Impresión automática de recibos digitales mediante iframe silencioso.",
+      "Base de Datos: Optimización de velocidad mediante índices y lógica automatizada para residentes ($0 fee).",
+      "Rendimiento: Compresión de imágenes del lado del cliente y migración a funciones ligeras (date-fns).",
+      "PWA: Soporte para instalación como aplicación nativa en móviles y tablets."
+    ]
+  },
+  {
     version: "2.1.0",
     date: "2024-03-20",
     roles: ['guard', 'admin', 'superadmin'],

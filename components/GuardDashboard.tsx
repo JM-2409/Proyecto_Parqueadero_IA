@@ -1077,14 +1077,14 @@ export default function GuardDashboard({
   );
 
   return (
-    <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 pb-20 bg-brand-bg/20 dark:bg-slate-950 min-h-screen transition-colors duration-300">
-      {/* Header Rediseñado */}
-      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-brand-primary dark:bg-slate-900 backdrop-blur-2xl border border-white/10 shadow-2xl relative overflow-hidden transition-all duration-300 p-4 sm:p-5 rounded-[2.5rem]">
+    <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 pb-20 transition-colors duration-300">
+      {/* Header Rediseñado - Glassmorphism */}
+      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-white dark:border-slate-800 shadow-xl relative overflow-hidden transition-all duration-300 p-4 sm:p-5 rounded-[2.5rem]">
         {/* Lado Izquierdo: Branding */}
         <div className="flex items-center gap-4 group">
           <div className="relative">
-            <div className="absolute -inset-1 bg-gradient-to-tr from-brand-primary to-brand-accent rounded-full blur opacity-25 group-hover:opacity-40 transition duration-300"></div>
-            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square bg-white">
+            <div className="absolute -inset-1 bg-gradient-to-tr from-brand-accent to-brand-primary rounded-full blur opacity-20 group-hover:opacity-35 transition duration-300"></div>
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white dark:border-slate-700 shadow-md shrink-0 aspect-square bg-white">
               <img
                 src={globalLogoUrl || "/logo.png"}
                 alt="Logo"
@@ -1096,10 +1096,10 @@ export default function GuardDashboard({
             </div>
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white truncate leading-none mb-1">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-brand-primary dark:text-white truncate leading-none mb-1 uppercase">
               {globalSettings.name || globalAppName}
             </h1>
-            <div className="flex items-center gap-1.5 text-white/70">
+            <div className="flex items-center gap-1.5 text-brand-primary/70 dark:text-white/70">
               <Shield className="w-3.5 h-3.5 text-brand-accent" />
               <p className="text-xs sm:text-sm font-semibold truncate uppercase tracking-wider opacity-80">
                 Punto de Control
@@ -1116,13 +1116,13 @@ export default function GuardDashboard({
               <div className="bg-white dark:bg-slate-800 rounded-xl p-1 flex border border-slate-200 dark:border-slate-700 shadow-sm shrink-0">
                 <button
                   onClick={() => onSwitchView("admin")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentView === "admin" ? "bg-brand-primary text-white shadow-md" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentView === "admin" ? "bg-brand-primary text-white shadow-md" : "text-slate-500 dark:text-slate-400 hover:text-brand-primary"}`}
                 >
                   Admin
                 </button>
                 <button
                   onClick={() => onSwitchView("guard")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentView === "guard" ? "bg-brand-primary text-white shadow-md" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentView === "guard" ? "bg-brand-primary text-white shadow-md" : "text-slate-500 dark:text-slate-400 hover:text-brand-primary"}`}
                 >
                   Vigilancia
                 </button>
@@ -1147,7 +1147,7 @@ export default function GuardDashboard({
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               onClick={toggleDarkMode}
-              className="p-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 text-white transition-all shadow-sm"
+              className="p-3.5 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-brand-primary dark:text-white transition-all shadow-sm"
               title={isDarkMode ? "Modo Claro" : "Modo Oscuro"}
             >
               {isDarkMode ? (
@@ -1157,18 +1157,18 @@ export default function GuardDashboard({
               )}
             </button>
 
-            <div className="flex-1 sm:flex-none flex items-center gap-3 bg-white/10 pl-4 pr-2 py-1.5 rounded-2xl border border-white/10 shadow-sm group">
+            <div className="flex-1 sm:flex-none flex items-center gap-3 bg-white dark:bg-slate-800 pl-4 pr-2 py-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm group">
               <div className="flex flex-col items-start min-w-0">
-                <span className="text-[10px] font-black text-white/50 uppercase tracking-tighter leading-none mb-0.5">
+                <span className="text-[10px] font-black text-brand-primary/50 dark:text-white/50 uppercase tracking-tighter leading-none mb-0.5">
                   Operador en turno
                 </span>
-                <span className="text-sm font-bold text-white truncate max-w-[120px]">
+                <span className="text-sm font-bold text-brand-primary dark:text-white truncate max-w-[120px]">
                   {guardName || "Sin Asignar"}
                 </span>
               </div>
               <button
                 onClick={handleLockScreen}
-                className="p-2 rounded-xl hover:bg-white/20 text-white/70 hover:text-white transition-all shadow-sm border border-white/10 bg-white/5"
+                className="p-2 rounded-xl bg-brand-primary/10 dark:bg-brand-primary/20 text-brand-primary dark:text-white transition-all shadow-sm border border-brand-primary/10"
                 title="Cambiar Turno / Bloquear"
               >
                 <UserCircle className="w-5 h-5" />
@@ -1177,16 +1177,16 @@ export default function GuardDashboard({
 
             <button
               onClick={() => setShowUpdates(true)}
-              className="p-3.5 rounded-2xl bg-brand-accent/20 text-brand-accent hover:bg-brand-accent hover:text-white transition-all duration-300 border border-brand-accent/20 shadow-sm group relative"
+              className="p-3.5 rounded-2xl bg-brand-accent/10 text-brand-accent hover:bg-brand-accent hover:text-white transition-all duration-300 border border-brand-accent/20 shadow-sm group relative"
               title="Novedades"
             >
               <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
             </button>
 
             <button
               onClick={onLogout}
-              className="p-3.5 rounded-2xl bg-slate-900 hover:bg-red-600 text-white transition-all duration-300 shadow-lg hover:shadow-red-200 group relative"
+              className="p-3.5 rounded-2xl bg-brand-primary hover:bg-red-600 text-white transition-all duration-300 shadow-lg hover:shadow-red-200 group relative"
               title="Cerrar Sesión"
             >
               <LogOut className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />

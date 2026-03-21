@@ -213,9 +213,9 @@ export default function Home() {
   if (!user) {
     if (!showLogin) {
       return (
-        <div className="min-h-screen bg-white text-slate-900 font-sans">
+        <div className="min-h-screen bg-brand-bg/10 text-slate-900 font-sans transition-colors duration-300">
           {/* Header Rediseñado */}
-          <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl bg-white/80 backdrop-blur-xl border border-slate-200/60 z-50 rounded-[2rem] shadow-lg transition-all duration-300">
+          <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl bg-white/80 backdrop-blur-xl border border-white z-50 rounded-[2.5rem] shadow-xl transition-all duration-300">
             <div className="px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
               <div className="flex items-center gap-4 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                 <div className="relative">
@@ -251,25 +251,25 @@ export default function Home() {
           </header>
 
           {/* Hero Section */}
-          <section className="pt-24 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 mb-6">
+          <section className="pt-32 sm:pt-40 pb-20 sm:pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-brand-primary mb-6 uppercase">
               El control total de tu <span className="text-brand-accent">parqueadero</span>
             </h1>
-            <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-10 leading-relaxed">
+            <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-12 leading-relaxed font-medium">
               Software en la nube diseñado para administrar estacionamientos de manera eficiente. Controla ingresos, salidas, tarifas, mensualidades y cierres de caja en tiempo real.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all shadow-lg hover:shadow-xl">
+              <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="bg-brand-primary hover:brightness-110 text-white px-10 py-4 rounded-[2.5rem] font-black uppercase tracking-widest text-sm transition-all shadow-2xl shadow-brand-primary/20">
                 Ver Planes y Precios
               </button>
             </div>
           </section>
 
           {/* Vision & Mission */}
-          <section className="py-20 bg-slate-50">
+          <section className="py-24 bg-white/40 backdrop-blur-md">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid md:grid-cols-2 gap-12">
-                <div className="bg-white p-10 rounded-3xl shadow-sm border border-slate-100">
+                <div className="bg-white/80 backdrop-blur-2xl p-10 rounded-[2.5rem] shadow-xl border border-white group hover:-translate-y-2 transition-transform duration-500">
                   <div className="w-14 h-14 bg-brand-accent/10 rounded-2xl flex items-center justify-center mb-6">
                     <Target className="w-7 h-7 text-brand-accent" />
                   </div>
@@ -278,7 +278,7 @@ export default function Home() {
                     Proveer a los administradores de parqueaderos una herramienta tecnológica intuitiva, segura y accesible que simplifique sus operaciones diarias, evite fugas de dinero y mejore la experiencia tanto del personal como de los clientes.
                   </p>
                 </div>
-                <div className="bg-white p-10 rounded-3xl shadow-sm border border-slate-100">
+                <div className="bg-white/80 backdrop-blur-2xl p-10 rounded-[2.5rem] shadow-xl border border-white group hover:-translate-y-2 transition-transform duration-500">
                   <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6">
                     <Eye className="w-7 h-7 text-emerald-600" />
                   </div>
@@ -292,94 +292,101 @@ export default function Home() {
           </section>
 
           {/* Features */}
-          <section className="py-20">
+          <section id="features" className="py-24">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-16">
-                <h2 className="text-3xl font-bold text-slate-900 mb-4">¿Para qué sirve {globalSettings.app_name}?</h2>
-                <p className="text-lg text-slate-600 max-w-2xl mx-auto">Todo lo que necesitas para operar tu negocio sin complicaciones.</p>
+              <div className="text-center mb-20">
+                <h2 className="text-4xl font-black text-brand-primary mb-4 uppercase tracking-tighter">¿Para qué sirve {globalSettings.app_name}?</h2>
+                <p className="text-lg text-slate-500 max-w-2xl mx-auto font-medium">Todo lo que necesitas para operar tu negocio sin complicaciones.</p>
               </div>
-              <div className="grid md:grid-cols-3 gap-8">
-                <div className="p-6 border border-slate-100 rounded-2xl bg-white shadow-sm">
-                  <ShieldCheck className="w-10 h-10 text-brand-accent mb-4" />
-                  <h4 className="text-xl font-bold mb-2">Control de Seguridad</h4>
-                  <p className="text-slate-600">Registra placas, tipos de vehículos y novedades (rayones, golpes) con evidencia fotográfica al instante.</p>
+              <div className="grid md:grid-cols-3 gap-10">
+                <div className="p-8 bg-white/60 backdrop-blur-xl border border-white rounded-[2.5rem] shadow-lg hover:shadow-2xl transition-all group">
+                  <div className="w-12 h-12 rounded-2xl bg-brand-bg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <ShieldCheck className="w-6 h-6 text-brand-accent" />
+                  </div>
+                  <h4 className="text-xl font-black text-brand-primary mb-3 uppercase tracking-tight">Control de Seguridad</h4>
+                  <p className="text-slate-600 leading-relaxed text-sm font-medium">Registra placas, tipos de vehículos y novedades (rayones, golpes) con evidencia fotográfica al instante.</p>
                 </div>
-                <div className="p-6 border border-slate-100 rounded-2xl bg-white shadow-sm">
-                  <Clock className="w-10 h-10 text-brand-accent mb-4" />
-                  <h4 className="text-xl font-bold mb-2">Tarifas Flexibles</h4>
-                  <p className="text-slate-600">Configura cobros por minuto, hora, fracción, día o noche. El sistema calcula automáticamente el valor a pagar.</p>
+                <div className="p-8 bg-white/60 backdrop-blur-xl border border-white rounded-[2.5rem] shadow-lg hover:shadow-2xl transition-all group">
+                  <div className="w-12 h-12 rounded-2xl bg-brand-bg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <Clock className="w-6 h-6 text-brand-accent" />
+                  </div>
+                  <h4 className="text-xl font-black text-brand-primary mb-3 uppercase tracking-tight">Tarifas Flexibles</h4>
+                  <p className="text-slate-600 leading-relaxed text-sm font-medium">Configura cobros por minuto, hora, fracción, día o noche. El sistema calcula automáticamente el valor a pagar.</p>
                 </div>
-                <div className="p-6 border border-slate-100 rounded-2xl bg-white shadow-sm">
-                  <BarChart3 className="w-10 h-10 text-brand-accent mb-4" />
-                  <h4 className="text-xl font-bold mb-2">Reportes y Cierres</h4>
-                  <p className="text-slate-600">Visualiza ingresos en tiempo real, realiza cierres de caja por turno y mantén un historial detallado de operaciones.</p>
+                <div className="p-8 bg-white/60 backdrop-blur-xl border border-white rounded-[2.5rem] shadow-lg hover:shadow-2xl transition-all group">
+                  <div className="w-12 h-12 rounded-2xl bg-brand-bg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <BarChart3 className="w-6 h-6 text-brand-accent" />
+                  </div>
+                  <h4 className="text-xl font-black text-brand-primary mb-3 uppercase tracking-tight">Reportes y Cierres</h4>
+                  <p className="text-slate-600 leading-relaxed text-sm font-medium">Visualiza ingresos en tiempo real, realiza cierres de caja por turno y mantén un historial detallado de operaciones.</p>
                 </div>
               </div>
             </div>
           </section>
 
           {/* Pricing */}
-          <section id="pricing" className="py-20 bg-slate-900 text-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-16">
-                <h2 className="text-3xl md:text-4xl font-bold mb-4">Planes de Suscripción</h2>
-                <p className="text-lg text-slate-400 max-w-2xl mx-auto">Elige el plan que mejor se adapte a tu negocio. Paga de forma segura a través de Bold.</p>
+          <section id="pricing" className="py-24 bg-brand-primary text-white overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-brand-accent rounded-full blur-[150px] opacity-20 -mr-48 -mt-48"></div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+              <div className="text-center mb-20">
+                <h2 className="text-4xl font-black mb-4 uppercase tracking-tighter">Planes de Suscripción</h2>
+                <p className="text-lg text-slate-300 max-w-2xl mx-auto font-medium">Elige el plan que mejor se adapte a tu negocio. Paga de forma segura a través de Bold.</p>
               </div>
               
-              <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              <div className="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto">
                 {/* Mensual */}
-                <div className="bg-slate-800 rounded-3xl p-8 border border-slate-700 flex flex-col">
-                  <h3 className="text-2xl font-bold mb-2">Mensual</h3>
-                  <p className="text-slate-400 mb-6">Ideal para empezar</p>
-                  <div className="mb-6">
-                    <span className="text-4xl font-extrabold">$50.000</span>
-                    <span className="text-slate-400">/mes</span>
+                <div className="bg-slate-800/40 backdrop-blur-xl rounded-[2.5rem] p-10 border border-white/10 flex flex-col hover:bg-slate-800/60 transition-all">
+                  <h3 className="text-2xl font-black mb-2 uppercase tracking-tight">Mensual</h3>
+                  <p className="text-slate-400 mb-8 text-sm font-medium">Ideal para empezar</p>
+                  <div className="mb-10">
+                    <span className="text-5xl font-black">$50.000</span>
+                    <span className="text-slate-400 font-bold">/mes</span>
                   </div>
-                  <ul className="space-y-4 mb-8 flex-1">
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Acceso completo</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Soporte básico</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Actualizaciones</span></li>
+                  <ul className="space-y-5 mb-10 flex-1">
+                    <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Acceso completo</span></li>
+                    <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Soporte básico</span></li>
+                    <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Actualizaciones</span></li>
                   </ul>
-                  <a href="https://checkout.bold.co/payment/LNK_IL54FGTSDC" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-brand-accent text-white font-semibold hover:brightness-110 transition-all">
+                  <a href="https://checkout.bold.co/payment/LNK_IL54FGTSDC" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-4 px-6 rounded-2xl bg-brand-accent text-white font-black uppercase tracking-widest text-xs hover:brightness-110 transition-all shadow-xl shadow-brand-accent/20">
                     Suscribirse
                   </a>
                 </div>
 
                 {/* Semestral */}
-                <div className="bg-brand-primary rounded-3xl p-8 border border-white/10 flex flex-col relative transform md:-translate-y-4 shadow-2xl">
-                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-brand-accent text-white px-3 py-1 rounded-full text-sm font-bold tracking-wide">
+                <div className="bg-white rounded-[2.5rem] p-10 border border-white flex flex-col relative transform md:-translate-y-6 shadow-2xl scale-105 z-20">
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-brand-accent text-white px-5 py-2 rounded-full text-xs font-black tracking-widest uppercase shadow-lg">
                     MÁS POPULAR
                   </div>
-                  <h3 className="text-2xl font-bold mb-2">Semestral</h3>
-                  <p className="text-brand-accent/80 mb-6">Ahorra un 10%</p>
-                  <div className="mb-6">
-                    <span className="text-4xl font-extrabold">$270.000</span>
-                    <span className="text-brand-accent/80">/6 meses</span>
+                  <h3 className="text-2xl font-black mb-2 text-brand-primary uppercase tracking-tight">Semestral</h3>
+                  <p className="text-brand-accent font-bold mb-8 text-sm">Ahorra un 10%</p>
+                  <div className="mb-10 text-brand-primary">
+                    <span className="text-5xl font-black">$270.000</span>
+                    <span className="text-slate-400 font-bold">/6 meses</span>
                   </div>
-                  <ul className="space-y-4 mb-8 flex-1">
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Acceso completo</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Soporte prioritario</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Actualizaciones</span></li>
+                  <ul className="space-y-5 mb-10 flex-1">
+                    <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Acceso completo</span></li>
+                    <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Soporte prioritario</span></li>
+                    <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Actualizaciones</span></li>
                   </ul>
-                  <a href="https://checkout.bold.co/payment/LNK_8O3EX4CD1E" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-white text-brand-primary font-bold hover:bg-slate-50 transition-colors">
+                  <a href="https://checkout.bold.co/payment/LNK_8O3EX4CD1E" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-4 px-6 rounded-2xl bg-brand-primary text-white font-black uppercase tracking-widest text-xs hover:brightness-110 transition-all shadow-xl shadow-brand-primary/20">
                     Suscribirse
                   </a>
                 </div>
 
                 {/* Anual */}
-                <div className="bg-slate-800 rounded-3xl p-8 border border-slate-700 flex flex-col">
-                  <h3 className="text-2xl font-bold mb-2">Anual</h3>
-                  <p className="text-slate-400 mb-6">Ahorra un 20%</p>
-                  <div className="mb-6">
-                    <span className="text-4xl font-extrabold">$480.000</span>
-                    <span className="text-slate-400">/año</span>
+                <div className="bg-slate-800/40 backdrop-blur-xl rounded-[2.5rem] p-10 border border-white/10 flex flex-col hover:bg-slate-800/60 transition-all">
+                  <h3 className="text-2xl font-black mb-2 uppercase tracking-tight">Anual</h3>
+                  <p className="text-slate-400 mb-8 text-sm font-medium">Ahorra un 20%</p>
+                  <div className="mb-10">
+                    <span className="text-5xl font-black">$480.000</span>
+                    <span className="text-slate-400 font-bold">/año</span>
                   </div>
-                  <ul className="space-y-4 mb-8 flex-1">
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Acceso completo</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Soporte 24/7</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Actualizaciones</span></li>
+                  <ul className="space-y-5 mb-10 flex-1">
+                    <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Acceso completo</span></li>
+                    <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Soporte 24/7</span></li>
+                    <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Actualizaciones</span></li>
                   </ul>
-                  <a href="https://checkout.bold.co/payment/LNK_HEOP6AYS3L" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-brand-accent text-white font-semibold hover:brightness-110 transition-all">
+                  <a href="https://checkout.bold.co/payment/LNK_HEOP6AYS3L" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-4 px-6 rounded-2xl bg-brand-accent text-white font-black uppercase tracking-widest text-xs hover:brightness-110 transition-all shadow-xl shadow-brand-accent/20">
                     Suscribirse
                   </a>
                 </div>
@@ -399,13 +406,13 @@ export default function Home() {
           </section>
 
           {/* Contact Form */}
-          <section className="py-20 bg-white">
+          <section id="contact" className="py-24 bg-brand-bg/10">
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-slate-900 mb-4">Contáctanos</h2>
-                <p className="text-lg text-slate-600">¿Tienes dudas o necesitas un plan personalizado? Escríbenos.</p>
+              <div className="text-center mb-16">
+                <h2 className="text-4xl font-black text-brand-primary mb-4 uppercase tracking-tighter">Contáctanos</h2>
+                <p className="text-lg text-slate-500 font-medium">¿Tienes dudas o necesitas un plan personalizado? Escríbenos.</p>
               </div>
-              <form onSubmit={handleContactSubmit} className="space-y-6 bg-slate-50 p-8 rounded-3xl border border-slate-100 shadow-sm">
+              <form onSubmit={handleContactSubmit} className="space-y-6 bg-white/80 backdrop-blur-2xl p-10 rounded-[2.5rem] border border-white shadow-xl">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">Nombre Completo</label>
@@ -482,17 +489,17 @@ export default function Home() {
     }
 
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-brand-bg/20 flex flex-col items-center justify-center p-4 relative overflow-hidden">
         {/* Decoración de fondo */}
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
-          <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-200 rounded-full blur-[100px] opacity-30"></div>
-          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-purple-200 rounded-full blur-[100px] opacity-30"></div>
+          <div className="absolute -top-24 -left-24 w-96 h-96 bg-brand-primary/20 rounded-full blur-[100px] opacity-30"></div>
+          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-brand-accent/20 rounded-full blur-[100px] opacity-30"></div>
         </div>
 
         <div className="max-w-md w-full bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-2xl border border-white p-8 sm:p-10 relative z-10 animate-in fade-in zoom-in duration-500">
           <button
             onClick={() => setShowLogin(false)}
-            className="absolute top-8 left-8 p-2 rounded-xl bg-slate-100 text-slate-400 hover:text-brand-accent hover:bg-white hover:shadow-sm transition-all active:scale-95"
+            className="absolute top-8 left-8 p-2 rounded-xl bg-brand-bg text-slate-400 hover:text-brand-accent hover:bg-white hover:shadow-sm transition-all active:scale-95"
             title="Volver"
           >
             <ArrowRight className="w-5 h-5 rotate-180" />
@@ -577,7 +584,7 @@ export default function Home() {
           </form>
 
           <p className="mt-10 text-center text-xs text-slate-400 font-bold uppercase tracking-widest">
-            &copy; {new Date().getFullYear()} {globalSettings.app_name} cloud v2.0
+            &copy; {new Date().getFullYear()} {globalSettings.app_name} cloud v3.0
           </p>
         </div>
       </div>
