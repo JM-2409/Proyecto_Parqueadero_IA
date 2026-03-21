@@ -22,15 +22,21 @@ import {
   UserCircle,
   Zap,
   Sparkles,
+  Sun,
+  Moon,
 } from "lucide-react";
 import UpdatesModal from "./UpdatesModal";
 
 export default function SuperAdminDashboard({
   user,
   onLogout,
+  isDarkMode,
+  toggleDarkMode,
 }: {
   user: any;
   onLogout: () => void;
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
 }) {
   const [activeTab, setActiveTab] = useState<
     "parking_lots" | "users" | "settings"
@@ -358,9 +364,9 @@ export default function SuperAdminDashboard({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 transition-colors duration-300">
       {/* Header Rediseñado */}
-      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-white/80 backdrop-blur-2xl border border-white shadow-xl relative overflow-hidden transition-all duration-300 p-4 sm:p-5 rounded-[2.5rem]">
+      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-brand-primary dark:bg-slate-900 backdrop-blur-2xl border border-white/10 shadow-2xl relative overflow-hidden transition-all duration-300 p-4 sm:p-5 rounded-[2.5rem]">
         {/* Lado Izquierdo: Branding */}
         <div className="flex items-center gap-4 group">
           <div className="relative">
@@ -374,11 +380,11 @@ export default function SuperAdminDashboard({
             </div>
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 truncate leading-none mb-1">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white truncate leading-none mb-1">
               Super Admin
             </h1>
-            <div className="flex items-center gap-1.5 text-slate-500">
-              <Zap className="w-3.5 h-3.5 text-amber-500" />
+            <div className="flex items-center gap-1.5 text-white/70">
+              <Zap className="w-3.5 h-3.5 text-amber-400" />
               <p className="text-xs sm:text-sm font-semibold truncate uppercase tracking-wider opacity-80">
                 Gestión Global NexoPark
               </p>
@@ -387,24 +393,36 @@ export default function SuperAdminDashboard({
         </div>
 
         {/* Lado Derecho: Perfil y Logout */}
-        <div className="flex items-center gap-2">
-          <div className="flex-1 lg:flex-none flex items-center gap-3 bg-white pl-4 pr-2 py-1.5 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-center gap-2">
+          <button
+            onClick={toggleDarkMode}
+            className="p-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 text-white transition-all shadow-sm"
+            title={isDarkMode ? "Modo Claro" : "Modo Oscuro"}
+          >
+            {isDarkMode ? (
+              <Sun className="w-5 h-5" />
+            ) : (
+              <Moon className="w-5 h-5" />
+            )}
+          </button>
+
+          <div className="flex-1 lg:flex-none flex items-center gap-3 bg-white/10 pl-4 pr-2 py-1.5 rounded-2xl border border-white/10 shadow-sm group">
             <div className="flex flex-col items-start min-w-0">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">
+              <span className="text-[10px] font-black text-white/50 uppercase tracking-tighter leading-none mb-0.5">
                 Root Access
               </span>
-              <span className="text-sm font-bold text-slate-800 truncate max-w-[150px]">
+              <span className="text-sm font-bold text-white truncate max-w-[150px]">
                 {user.email.split("@")[0]}
               </span>
             </div>
-            <div className="p-2 rounded-xl bg-amber-50 text-amber-600 border border-amber-100">
+            <div className="p-2 rounded-xl bg-white/10 text-white/70 hover:text-white transition-all shadow-sm border border-white/10 bg-white/5">
               <Shield className="w-5 h-5" />
             </div>
           </div>
 
           <button
             onClick={() => setShowUpdates(true)}
-            className="p-3.5 rounded-2xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all duration-300 border border-indigo-100 shadow-sm group relative"
+            className="p-3.5 rounded-2xl bg-brand-accent/20 text-brand-accent hover:bg-brand-accent hover:text-white transition-all duration-300 border border-brand-accent/20 shadow-sm group relative"
             title="Novedades"
           >
             <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -428,13 +446,13 @@ export default function SuperAdminDashboard({
       />
 
       <div className="flex flex-col lg:flex-row gap-4 mb-6 sm:mb-8 justify-between items-start lg:items-center">
-        <div className="flex gap-1.5 sm:gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 w-full overflow-x-auto no-scrollbar sticky top-0 z-30">
+        <div className="flex gap-1.5 sm:gap-2 bg-white dark:bg-slate-900 p-1.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 w-full overflow-x-auto no-scrollbar sticky top-0 z-30">
           <button
             onClick={() => {
               setActiveTab("parking_lots");
               setSearchTerm("");
             }}
-            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "parking_lots" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}
+            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "parking_lots" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
           >
             <Building2 className="w-4 h-4" />
             Parqueaderos
@@ -444,7 +462,7 @@ export default function SuperAdminDashboard({
               setActiveTab("users");
               setSearchTerm("");
             }}
-            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "users" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}
+            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "users" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
           >
             <Users className="w-4 h-4" />
             Usuarios
@@ -454,7 +472,7 @@ export default function SuperAdminDashboard({
               setActiveTab("settings");
               setSearchTerm("");
             }}
-            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}
+            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
           >
             <Settings className="w-4 h-4" />
             Configuración
@@ -469,7 +487,7 @@ export default function SuperAdminDashboard({
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white shadow-sm text-sm min-h-[48px] lg:min-h-0"
+            className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-white dark:bg-slate-800 dark:text-white shadow-sm text-sm min-h-[48px] lg:min-h-0"
             placeholder={`Buscar ${activeTab === "parking_lots" ? "parqueaderos" : "usuarios"}...`}
           />
         </div>
@@ -482,10 +500,10 @@ export default function SuperAdminDashboard({
       ) : (
         <>
           {activeTab === "parking_lots" && (
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <Building2 className="w-5 h-5 text-indigo-600" />
+            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+              <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                <h2 className="text-lg font-bold text-brand-primary dark:text-white flex items-center gap-2 uppercase tracking-tight">
+                  <Building2 className="w-5 h-5 text-brand-accent" />
                   Parqueaderos Registrados
                 </h2>
                 <button
@@ -507,14 +525,14 @@ export default function SuperAdminDashboard({
 
                     setShowLotForm(true);
                   }}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-2"
+                  className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all shadow-md flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   Nuevo Parqueadero
                 </button>
               </div>
 
-              <div className="divide-y divide-slate-100 overflow-x-auto">
+              <div className="divide-y divide-slate-100 dark:divide-slate-800 overflow-x-auto">
                 {parkingLots
                   .filter(
                     (lot) =>
@@ -526,13 +544,13 @@ export default function SuperAdminDashboard({
                   .map((lot) => (
                     <div
                       key={lot.id}
-                      className={`p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 transition-colors ${lot.status === "suspended" ? "opacity-60" : ""}`}
+                      className={`p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${lot.status === "suspended" ? "opacity-60" : ""}`}
                     >
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-slate-800 text-lg truncate">
+                        <h3 className="font-semibold text-slate-800 dark:text-white text-lg truncate">
                           {lot.name}
                         </h3>
-                        <div className="text-sm text-slate-500 mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                        <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
                           <span className="truncate">
                             NIT: {lot.nit || "N/A"}
                           </span>
@@ -618,10 +636,10 @@ export default function SuperAdminDashboard({
           )}
 
           {activeTab === "users" && (
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <Users className="w-5 h-5 text-indigo-600" />
+            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                <h2 className="text-lg font-bold text-brand-primary dark:text-white flex items-center gap-2 uppercase tracking-tight">
+                  <Users className="w-5 h-5 text-brand-accent" />
                   Administradores y Vigilantes
                 </h2>
                 <button
@@ -633,14 +651,14 @@ export default function SuperAdminDashboard({
                     setUserLotId(parkingLots[0]?.id || "");
                     setShowUserForm(true);
                   }}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-2"
+                  className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all shadow-md flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   Nuevo Usuario
                 </button>
               </div>
 
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {users
                   .filter(
                     (u) =>
@@ -655,11 +673,11 @@ export default function SuperAdminDashboard({
                   .map((u) => (
                     <div
                       key={u.user_id}
-                      className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-slate-50 transition-colors"
+                      className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                     >
                       <div className="flex items-center gap-4 flex-1 min-w-0">
                         <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${u.role === "admin" ? "bg-purple-100 text-purple-600" : "bg-blue-100 text-blue-600"}`}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${u.role === "admin" ? "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400" : "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"}`}
                         >
                           {u.role === "admin" ? (
                             <Key className="w-5 h-5" />
@@ -668,12 +686,12 @@ export default function SuperAdminDashboard({
                           )}
                         </div>
                         <div className="min-w-0">
-                          <h3 className="font-semibold text-slate-800 truncate">
+                          <h3 className="font-semibold text-slate-800 dark:text-white truncate">
                             {u.email.split("@")[0]}
                           </h3>
-                          <div className="text-sm text-slate-500 mt-0.5 flex flex-wrap items-center gap-2">
+                          <div className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 flex flex-wrap items-center gap-2">
                             <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${u.role === "admin" ? "bg-purple-50 text-purple-700" : "bg-blue-50 text-blue-700"}`}
+                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${u.role === "admin" ? "bg-purple-50 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300" : "bg-blue-50 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300"}`}
                             >
                               {u.role === "admin"
                                 ? "Administrador"
@@ -722,10 +740,10 @@ export default function SuperAdminDashboard({
           )}
 
           {activeTab === "settings" && (
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="p-6 border-b border-slate-200 bg-slate-50">
-                <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-indigo-600" />
+            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+                <h2 className="text-lg font-bold text-brand-primary dark:text-white flex items-center gap-2 uppercase tracking-tight">
+                  <Settings className="w-5 h-5 text-brand-accent" />
                   Configuración Global del Sistema
                 </h2>
               </div>
@@ -741,7 +759,7 @@ export default function SuperAdminDashboard({
                       type="text"
                       value={globalAppName}
                       onChange={(e) => setGlobalAppName(e.target.value)}
-                      className="block w-full px-4 py-3 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white font-bold text-slate-800"
+                      className="block w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 font-bold text-slate-800 dark:text-white"
                       placeholder="Ej. NexoPark"
                     />
                     <p className="text-xs text-slate-500">Este nombre aparecerá en el encabezado y en los recibos generados.</p>
@@ -753,7 +771,7 @@ export default function SuperAdminDashboard({
                       Logo de la Plataforma
                     </label>
 
-                    <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
+                    <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] border-2 border-dashed border-slate-200 dark:border-slate-700">
                       <div className="relative group">
                         <div className="w-24 h-24 rounded-full overflow-hidden bg-white border-4 border-white shadow-lg shrink-0 flex items-center justify-center">
                           {newGlobalLogoFile ? (
@@ -795,7 +813,7 @@ export default function SuperAdminDashboard({
                         />
                         <label
                           htmlFor="global-logo-upload"
-                          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 cursor-pointer transition-all shadow-sm"
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-all shadow-sm"
                         >
                           <Plus className="w-4 h-4" />
                           Subir Nuevo Logo
@@ -807,11 +825,11 @@ export default function SuperAdminDashboard({
                     </div>
                   </div>
 
-                  <div className="pt-6 border-t border-slate-100">
+                  <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
                     <button
                       onClick={handleSaveGlobalSettings}
                       disabled={savingGlobalSettings}
-                      className="w-full sm:w-auto px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-indigo-600 transition-all shadow-xl hover:shadow-indigo-200 disabled:opacity-50 flex items-center justify-center gap-3 group"
+                      className="w-full sm:w-auto px-8 py-4 bg-brand-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:brightness-110 transition-all shadow-xl hover:shadow-brand-primary/20 disabled:opacity-50 flex items-center justify-center gap-3 group"
                     >
                       {savingGlobalSettings ? (
                         <>
@@ -841,21 +859,21 @@ export default function SuperAdminDashboard({
           onClick={() => setShowLotForm(false)}
         >
           <div
-            className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md my-auto animate-in fade-in zoom-in duration-300 relative border border-white/20 flex flex-col max-h-[90vh]"
+            className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-md my-auto animate-in fade-in zoom-in duration-300 relative border border-white/20 dark:border-slate-800 flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+                <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900">
                   <Building2 className="w-5 h-5" />
                 </div>
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
                   {editingLot ? "Editar Parqueadero" : "Nuevo Parqueadero"}
                 </h3>
               </div>
               <button
                 onClick={() => setShowLotForm(false)}
-                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
+                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-all"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -865,7 +883,7 @@ export default function SuperAdminDashboard({
               className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 custom-scrollbar"
             >
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Nombre *
                 </label>
                 <input
@@ -873,7 +891,7 @@ export default function SuperAdminDashboard({
                   required
                   value={lotName}
                   onChange={(e) => setLotName(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none bg-white dark:bg-slate-800 dark:text-white"
                 />
               </div>
               <div>
@@ -955,14 +973,14 @@ export default function SuperAdminDashboard({
                 <button
                   type="button"
                   onClick={() => setShowLotForm(false)}
-                  className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50"
+                  className="flex-1 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={formLoading}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50"
+                  className="flex-1 py-3 px-4 rounded-xl bg-brand-primary text-white font-black uppercase tracking-widest text-xs hover:brightness-110 disabled:opacity-50 transition-all shadow-lg"
                 >
                   Guardar
                 </button>
@@ -1079,7 +1097,7 @@ export default function SuperAdminDashboard({
                 <button
                   type="submit"
                   disabled={formLoading}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50"
+                  className="flex-1 py-3 px-4 rounded-xl bg-brand-accent text-white font-black uppercase tracking-widest text-[10px] hover:brightness-110 disabled:opacity-50 transition-all shadow-lg"
                 >
                   Guardar
                 </button>

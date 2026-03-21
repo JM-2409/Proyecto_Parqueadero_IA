@@ -23,6 +23,7 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [globalSettings, setGlobalSettings] = useState<{ app_name: string, logo_url: string | null }>({ app_name: 'NexoPark', logo_url: null });
 
   const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -60,6 +61,13 @@ export default function Home() {
         setGlobalSettings({ app_name: data.app_name, logo_url: data.logo_url });
       }
     });
+
+    // Dark Mode initialization
+    const storedDarkMode = localStorage.getItem('dark_mode') === 'true';
+    setIsDarkMode(storedDarkMode);
+    if (storedDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
 
     // Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -183,6 +191,17 @@ export default function Home() {
     await supabase.auth.signOut();
   };
 
+  const toggleDarkMode = () => {
+    const newDarkMode = !isDarkMode;
+    setIsDarkMode(newDarkMode);
+    localStorage.setItem('dark_mode', String(newDarkMode));
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -200,7 +219,7 @@ export default function Home() {
             <div className="px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
               <div className="flex items-center gap-4 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                 <div className="relative">
-                  <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-indigo-300 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
+                  <div className="absolute -inset-1 bg-gradient-to-tr from-brand-primary to-brand-accent rounded-full blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
                   <div className="relative w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md bg-white">
                     <img
                       src={globalSettings.logo_url || "/logo.png"}
@@ -216,14 +235,14 @@ export default function Home() {
               </div>
               
               <nav className="hidden md:flex items-center gap-1 bg-slate-100/50 p-1 rounded-2xl border border-slate-200/50">
-                <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-indigo-600 hover:bg-white rounded-xl transition-all">Características</button>
-                <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-indigo-600 hover:bg-white rounded-xl transition-all">Precios</button>
-                <button onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-indigo-600 hover:bg-white rounded-xl transition-all">Contacto</button>
+                <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-brand-accent hover:bg-white rounded-xl transition-all">Características</button>
+                <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-brand-accent hover:bg-white rounded-xl transition-all">Precios</button>
+                <button onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-brand-accent hover:bg-white rounded-xl transition-all">Contacto</button>
               </nav>
 
               <button
                 onClick={() => setShowLogin(true)}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 sm:px-8 py-2.5 sm:py-3 rounded-2xl font-black transition-all duration-300 shadow-lg shadow-indigo-200 hover:scale-[1.02] active:scale-95 text-xs sm:text-sm flex items-center gap-2 uppercase tracking-widest"
+                className="bg-brand-accent hover:brightness-110 text-white px-5 sm:px-8 py-2.5 sm:py-3 rounded-2xl font-black transition-all duration-300 shadow-lg shadow-brand-accent/20 hover:scale-[1.02] active:scale-95 text-xs sm:text-sm flex items-center gap-2 uppercase tracking-widest"
               >
                 <span>Acceso</span>
                 <ArrowRight className="w-4 h-4" />
@@ -234,7 +253,7 @@ export default function Home() {
           {/* Hero Section */}
           <section className="pt-24 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 mb-6">
-              El control total de tu <span className="text-indigo-600">parqueadero</span>
+              El control total de tu <span className="text-brand-accent">parqueadero</span>
             </h1>
             <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-10 leading-relaxed">
               Software en la nube diseñado para administrar estacionamientos de manera eficiente. Controla ingresos, salidas, tarifas, mensualidades y cierres de caja en tiempo real.
@@ -251,8 +270,8 @@ export default function Home() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid md:grid-cols-2 gap-12">
                 <div className="bg-white p-10 rounded-3xl shadow-sm border border-slate-100">
-                  <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6">
-                    <Target className="w-7 h-7 text-indigo-600" />
+                  <div className="w-14 h-14 bg-brand-accent/10 rounded-2xl flex items-center justify-center mb-6">
+                    <Target className="w-7 h-7 text-brand-accent" />
                   </div>
                   <h3 className="text-2xl font-bold mb-4">Nuestra Misión</h3>
                   <p className="text-slate-600 leading-relaxed">
@@ -281,17 +300,17 @@ export default function Home() {
               </div>
               <div className="grid md:grid-cols-3 gap-8">
                 <div className="p-6 border border-slate-100 rounded-2xl bg-white shadow-sm">
-                  <ShieldCheck className="w-10 h-10 text-indigo-600 mb-4" />
+                  <ShieldCheck className="w-10 h-10 text-brand-accent mb-4" />
                   <h4 className="text-xl font-bold mb-2">Control de Seguridad</h4>
                   <p className="text-slate-600">Registra placas, tipos de vehículos y novedades (rayones, golpes) con evidencia fotográfica al instante.</p>
                 </div>
                 <div className="p-6 border border-slate-100 rounded-2xl bg-white shadow-sm">
-                  <Clock className="w-10 h-10 text-indigo-600 mb-4" />
+                  <Clock className="w-10 h-10 text-brand-accent mb-4" />
                   <h4 className="text-xl font-bold mb-2">Tarifas Flexibles</h4>
                   <p className="text-slate-600">Configura cobros por minuto, hora, fracción, día o noche. El sistema calcula automáticamente el valor a pagar.</p>
                 </div>
                 <div className="p-6 border border-slate-100 rounded-2xl bg-white shadow-sm">
-                  <BarChart3 className="w-10 h-10 text-indigo-600 mb-4" />
+                  <BarChart3 className="w-10 h-10 text-brand-accent mb-4" />
                   <h4 className="text-xl font-bold mb-2">Reportes y Cierres</h4>
                   <p className="text-slate-600">Visualiza ingresos en tiempo real, realiza cierres de caja por turno y mantén un historial detallado de operaciones.</p>
                 </div>
@@ -317,32 +336,32 @@ export default function Home() {
                     <span className="text-slate-400">/mes</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-400" /> <span>Acceso completo</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-400" /> <span>Soporte básico</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-400" /> <span>Actualizaciones</span></li>
+                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Acceso completo</span></li>
+                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Soporte básico</span></li>
+                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Actualizaciones</span></li>
                   </ul>
-                  <a href="https://checkout.bold.co/payment/LNK_IL54FGTSDC" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors">
+                  <a href="https://checkout.bold.co/payment/LNK_IL54FGTSDC" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-brand-accent text-white font-semibold hover:brightness-110 transition-all">
                     Suscribirse
                   </a>
                 </div>
 
                 {/* Semestral */}
-                <div className="bg-indigo-600 rounded-3xl p-8 border border-indigo-500 flex flex-col relative transform md:-translate-y-4 shadow-2xl">
-                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-indigo-400 text-white px-3 py-1 rounded-full text-sm font-bold tracking-wide">
+                <div className="bg-brand-primary rounded-3xl p-8 border border-white/10 flex flex-col relative transform md:-translate-y-4 shadow-2xl">
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-brand-accent text-white px-3 py-1 rounded-full text-sm font-bold tracking-wide">
                     MÁS POPULAR
                   </div>
                   <h3 className="text-2xl font-bold mb-2">Semestral</h3>
-                  <p className="text-indigo-200 mb-6">Ahorra un 10%</p>
+                  <p className="text-brand-accent/80 mb-6">Ahorra un 10%</p>
                   <div className="mb-6">
                     <span className="text-4xl font-extrabold">$270.000</span>
-                    <span className="text-indigo-200">/6 meses</span>
+                    <span className="text-brand-accent/80">/6 meses</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-white" /> <span>Acceso completo</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-white" /> <span>Soporte prioritario</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-white" /> <span>Actualizaciones</span></li>
+                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Acceso completo</span></li>
+                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Soporte prioritario</span></li>
+                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Actualizaciones</span></li>
                   </ul>
-                  <a href="https://checkout.bold.co/payment/LNK_8O3EX4CD1E" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-white text-indigo-600 font-bold hover:bg-slate-50 transition-colors">
+                  <a href="https://checkout.bold.co/payment/LNK_8O3EX4CD1E" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-white text-brand-primary font-bold hover:bg-slate-50 transition-colors">
                     Suscribirse
                   </a>
                 </div>
@@ -356,11 +375,11 @@ export default function Home() {
                     <span className="text-slate-400">/año</span>
                   </div>
                   <ul className="space-y-4 mb-8 flex-1">
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-400" /> <span>Acceso completo</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-400" /> <span>Soporte 24/7</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-400" /> <span>Actualizaciones</span></li>
+                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Acceso completo</span></li>
+                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Soporte 24/7</span></li>
+                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Actualizaciones</span></li>
                   </ul>
-                  <a href="https://checkout.bold.co/payment/LNK_HEOP6AYS3L" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors">
+                  <a href="https://checkout.bold.co/payment/LNK_HEOP6AYS3L" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-brand-accent text-white font-semibold hover:brightness-110 transition-all">
                     Suscribirse
                   </a>
                 </div>
@@ -390,24 +409,24 @@ export default function Home() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">Nombre Completo</label>
-                    <input type="text" name="name" id="name" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ej. Juan Pérez" />
+                    <input type="text" name="name" id="name" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none transition-all" placeholder="Ej. Juan Pérez" />
                   </div>
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
-                    <input type="email" name="email" id="email" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="ejemplo@correo.com" />
+                    <input type="email" name="email" id="email" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none transition-all" placeholder="ejemplo@correo.com" />
                   </div>
                   <div>
                     <label htmlFor="phone" className="block text-sm font-medium text-slate-700 mb-1">Teléfono (Opcional)</label>
-                    <input type="tel" name="phone" id="phone" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="+57 300 000 0000" />
+                    <input type="tel" name="phone" id="phone" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none transition-all" placeholder="+57 300 000 0000" />
                   </div>
                   <div>
                     <label htmlFor="company" className="block text-sm font-medium text-slate-700 mb-1">Nombre del Parqueadero / Empresa</label>
-                    <input type="text" name="company" id="company" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ej. Parqueadero Central" />
+                    <input type="text" name="company" id="company" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none transition-all" placeholder="Ej. Parqueadero Central" />
                   </div>
                 </div>
                 <div>
                   <label htmlFor="request_type" className="block text-sm font-medium text-slate-700 mb-1">Tipo de Solicitud</label>
-                  <select name="request_type" id="request_type" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all bg-white">
+                  <select name="request_type" id="request_type" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none transition-all bg-white">
                     <option value="">Selecciona una opción...</option>
                     <option value="Información de planes">Información de planes</option>
                     <option value="Soporte técnico">Soporte técnico</option>
@@ -417,9 +436,9 @@ export default function Home() {
                 </div>
                 <div>
                   <label htmlFor="message" className="block text-sm font-medium text-slate-700 mb-1">Mensaje o Detalles Adicionales</label>
-                  <textarea name="message" id="message" rows={4} required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none" placeholder="Cuéntanos más sobre lo que necesitas..."></textarea>
+                  <textarea name="message" id="message" rows={4} required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none transition-all resize-none" placeholder="Cuéntanos más sobre lo que necesitas..."></textarea>
                 </div>
-                <button type="submit" disabled={isSubmittingContact} className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                <button type="submit" disabled={isSubmittingContact} className="w-full py-4 bg-brand-accent text-white rounded-xl font-bold hover:brightness-110 transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                   {isSubmittingContact ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -473,7 +492,7 @@ export default function Home() {
         <div className="max-w-md w-full bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-2xl border border-white p-8 sm:p-10 relative z-10 animate-in fade-in zoom-in duration-500">
           <button
             onClick={() => setShowLogin(false)}
-            className="absolute top-8 left-8 p-2 rounded-xl bg-slate-100 text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm transition-all active:scale-95"
+            className="absolute top-8 left-8 p-2 rounded-xl bg-slate-100 text-slate-400 hover:text-brand-accent hover:bg-white hover:shadow-sm transition-all active:scale-95"
             title="Volver"
           >
             <ArrowRight className="w-5 h-5 rotate-180" />
@@ -481,7 +500,7 @@ export default function Home() {
 
           <div className="text-center mb-10">
             <div className="relative inline-block group">
-              <div className="absolute -inset-2 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
+              <div className="absolute -inset-2 bg-gradient-to-tr from-brand-primary to-brand-accent rounded-full blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
               <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center mx-auto shadow-xl border-4 border-white overflow-hidden bg-white">
                 <img
                   src={globalSettings.logo_url || "/logo.png"}
@@ -511,14 +530,14 @@ export default function Home() {
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre de Usuario</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-slate-300 group-focus-within:text-indigo-500 transition-colors" />
+                  <User className="h-5 w-5 text-slate-300 group-focus-within:text-brand-accent transition-colors" />
                 </div>
                 <input
                   type="text"
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="block w-full pl-12 pr-4 py-4 bg-slate-100/50 border border-slate-200/50 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all font-bold text-slate-800 placeholder:text-slate-400"
+                  className="block w-full pl-12 pr-4 py-4 bg-slate-100/50 border border-slate-200/50 rounded-2xl focus:ring-4 focus:ring-brand-accent/10 focus:border-brand-accent outline-none transition-all font-bold text-slate-800 placeholder:text-slate-400"
                   placeholder="ej. guard1"
                 />
               </div>
@@ -528,14 +547,14 @@ export default function Home() {
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Contraseña Segura</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-slate-300 group-focus-within:text-indigo-500 transition-colors" />
+                  <Lock className="h-5 w-5 text-slate-300 group-focus-within:text-brand-accent transition-colors" />
                 </div>
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-12 pr-4 py-4 bg-slate-100/50 border border-slate-200/50 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all font-bold text-slate-800 placeholder:text-slate-400"
+                  className="block w-full pl-12 pr-4 py-4 bg-slate-100/50 border border-slate-200/50 rounded-2xl focus:ring-4 focus:ring-brand-accent/10 focus:border-brand-accent outline-none transition-all font-bold text-slate-800 placeholder:text-slate-400"
                   placeholder="••••••••"
                 />
               </div>
@@ -544,7 +563,7 @@ export default function Home() {
             <button
               type="submit"
               disabled={authLoading}
-              className="w-full py-4 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black transition-all duration-300 shadow-xl shadow-indigo-200 hover:shadow-indigo-300 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed uppercase tracking-widest text-sm"
+              className="w-full py-4 px-6 rounded-2xl bg-brand-accent hover:brightness-110 text-white font-black transition-all duration-300 shadow-xl shadow-brand-accent/20 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed uppercase tracking-widest text-sm"
             >
               {authLoading ? (
                 <Loader2 className="w-6 h-6 animate-spin" />
@@ -578,7 +597,7 @@ export default function Home() {
           </div>
           <h1 className="text-3xl font-black text-slate-900 mb-4 tracking-tighter uppercase">Suscripción Expirada</h1>
           <p className="text-slate-500 mb-10 leading-relaxed font-medium">
-            El tiempo de uso de la plataforma ha culminado. Para continuar utilizando <strong className="text-indigo-600 font-black">{globalSettings.app_name}</strong>, por favor renueva tu suscripción.
+            El tiempo de uso de la plataforma ha culminado. Para continuar utilizando <strong className="text-brand-accent font-black">{globalSettings.app_name}</strong>, por favor renueva tu suscripción.
           </p>
           
           <div className="space-y-4">
@@ -586,7 +605,7 @@ export default function Home() {
               href="https://checkout.bold.co/payment/LNK_IL54FGTSDC"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full block text-center py-4 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black transition-all duration-300 shadow-xl shadow-indigo-200 hover:shadow-indigo-300 hover:scale-[1.02] active:scale-95 uppercase tracking-widest text-sm"
+              className="w-full block text-center py-4 px-6 rounded-2xl bg-brand-accent hover:brightness-110 text-white font-black transition-all duration-300 shadow-xl shadow-brand-accent/20 hover:scale-[1.02] active:scale-95 uppercase tracking-widest text-sm"
             >
               Renovar Suscripción
             </a>
@@ -604,9 +623,14 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-12 pt-6">
+    <main className="min-h-screen bg-brand-bg/20 dark:bg-slate-950 pb-12 pt-6 transition-colors duration-300">
       {viewMode === 'superadmin' ? (
-        <SuperAdminDashboard user={user} onLogout={handleLogout} />
+        <SuperAdminDashboard
+          user={user}
+          onLogout={handleLogout}
+          isDarkMode={isDarkMode}
+          toggleDarkMode={toggleDarkMode}
+        />
       ) : viewMode === 'admin' ? (
         <AdminDashboard 
           user={user} 
@@ -615,6 +639,8 @@ export default function Home() {
           parkingLotId={parkingLotId} 
           onSwitchView={role === 'admin' ? setViewMode : undefined}
           currentView={viewMode}
+          isDarkMode={isDarkMode}
+          toggleDarkMode={toggleDarkMode}
         />
       ) : (
         <GuardDashboard 
@@ -623,6 +649,8 @@ export default function Home() {
           parkingLotId={parkingLotId} 
           onSwitchView={role === 'admin' ? setViewMode : undefined}
           currentView={viewMode as 'admin' | 'guard'}
+          isDarkMode={isDarkMode}
+          toggleDarkMode={toggleDarkMode}
         />
       )}
     </main>

@@ -27,6 +27,8 @@ import {
   Search,
   UserCircle,
   Sparkles,
+  Sun,
+  Moon,
 } from "lucide-react";
 import UpdatesModal from "./UpdatesModal";
 import { format, differenceInMinutes, subDays, parseISO } from "date-fns";
@@ -48,6 +50,8 @@ export default function AdminDashboard({
   parkingLotId,
   onSwitchView,
   currentView,
+  isDarkMode,
+  toggleDarkMode,
 }: {
   user: any;
   onLogout: () => void;
@@ -55,6 +59,8 @@ export default function AdminDashboard({
   parkingLotId: string | null;
   onSwitchView?: (view: "admin" | "guard") => void;
   currentView?: "admin" | "guard";
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
 }) {
   const [activeTab, setActiveTab] = useState<
     "dashboard" | "users" | "rates" | "settings" | "private_spots"
@@ -1038,9 +1044,9 @@ export default function AdminDashboard({
   const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-6 pb-20">
+    <div className="max-w-7xl mx-auto p-4 md:p-6 pb-20 transition-colors duration-300">
       {/* Header Rediseñado */}
-      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-white/80 backdrop-blur-2xl border border-white shadow-xl relative overflow-hidden transition-all duration-300 p-4 sm:p-5 rounded-[2.5rem]">
+      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-brand-primary dark:bg-slate-900 backdrop-blur-2xl border border-white/10 shadow-2xl relative overflow-hidden transition-all duration-300 p-4 sm:p-5 rounded-[2.5rem]">
         {/* Lado Izquierdo: Branding */}
         <div className="flex items-center gap-4 group">
           <div className="relative">
@@ -1057,11 +1063,11 @@ export default function AdminDashboard({
             </div>
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 truncate leading-none mb-1">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white truncate leading-none mb-1">
               {parkingLotName || globalAppName}
             </h1>
-            <div className="flex items-center gap-1.5 text-slate-500">
-              <Key className="w-3.5 h-3.5 text-indigo-600" />
+            <div className="flex items-center gap-1.5 text-white/70">
+              <Key className="w-3.5 h-3.5 text-brand-accent" />
               <p className="text-xs sm:text-sm font-semibold truncate uppercase tracking-wider opacity-80">
                 Gestión Administrativa
               </p>
@@ -1071,18 +1077,30 @@ export default function AdminDashboard({
 
         {/* Lado Derecho: Acciones y Usuario */}
         <div className="flex flex-col sm:flex-row items-center gap-3 lg:gap-4">
+          <button
+            onClick={toggleDarkMode}
+            className="p-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 text-white transition-all shadow-sm"
+            title={isDarkMode ? "Modo Claro" : "Modo Oscuro"}
+          >
+            {isDarkMode ? (
+              <Sun className="w-5 h-5" />
+            ) : (
+              <Moon className="w-5 h-5" />
+            )}
+          </button>
+
           {/* Selector de Vista (Si aplica) */}
           {onSwitchView && (
-            <div className="bg-slate-50/50 p-1 rounded-2xl border border-slate-100 flex shadow-inner w-full sm:w-auto">
+            <div className="bg-white/10 p-1 rounded-2xl border border-white/10 flex shadow-inner w-full sm:w-auto">
               <button
                 onClick={() => onSwitchView("admin")}
-                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all ${currentView === "admin" ? "bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700"}`}
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all ${currentView === "admin" ? "bg-white text-brand-primary shadow-sm" : "text-white/60 hover:text-white"}`}
               >
                 Admin
               </button>
               <button
                 onClick={() => onSwitchView("guard")}
-                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all ${currentView === "guard" ? "bg-white text-emerald-600 shadow-sm ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700"}`}
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all ${currentView === "guard" ? "bg-white text-emerald-600 shadow-sm" : "text-white/60 hover:text-white"}`}
               >
                 Vigilancia
               </button>
@@ -1091,23 +1109,23 @@ export default function AdminDashboard({
 
           {/* Perfil de Admin y Logout */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="flex-1 sm:flex-none flex items-center gap-3 bg-white pl-4 pr-2 py-1.5 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="flex-1 sm:flex-none flex items-center gap-3 bg-white/10 pl-4 pr-2 py-1.5 rounded-2xl border border-white/10 shadow-sm group">
               <div className="flex flex-col items-start min-w-0">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">
+                <span className="text-[10px] font-black text-white/50 uppercase tracking-tighter leading-none mb-0.5">
                   Sesión Iniciada
                 </span>
-                <span className="text-sm font-bold text-slate-800 truncate max-w-[120px]">
+                <span className="text-sm font-bold text-white truncate max-w-[120px]">
                   {user.email.split("@")[0]}
                 </span>
               </div>
-              <div className="p-2 rounded-xl bg-slate-50 text-indigo-600 border border-slate-100">
+              <div className="p-2 rounded-xl bg-white/10 text-white/70 border border-white/10">
                 <UserCircle className="w-5 h-5" />
               </div>
             </div>
 
             <button
               onClick={() => setShowUpdates(true)}
-              className="p-3.5 rounded-2xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all duration-300 border border-indigo-100 shadow-sm group relative"
+              className="p-3.5 rounded-2xl bg-brand-accent/20 text-brand-accent hover:bg-brand-accent hover:text-white transition-all duration-300 border border-brand-accent/20 shadow-sm group relative"
               title="Novedades"
             >
               <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -1132,38 +1150,38 @@ export default function AdminDashboard({
       />
 
       {/* Navigation Tabs */}
-      <div className="flex gap-1.5 sm:gap-2 mb-6 sm:mb-8 bg-white p-1.5 sm:p-2 rounded-2xl shadow-sm border border-slate-200 w-full overflow-x-auto no-scrollbar scroll-smooth sticky top-0 z-30">
+      <div className="flex gap-1.5 sm:gap-2 mb-6 sm:mb-8 bg-white dark:bg-slate-900 p-1.5 sm:p-2 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 w-full overflow-x-auto no-scrollbar scroll-smooth sticky top-0 z-30">
         <button
           onClick={() => setActiveTab("dashboard")}
-          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "dashboard" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "dashboard" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
         >
           <BarChart3 className="w-4 h-4" />
           Resumen
         </button>
         <button
           onClick={() => setActiveTab("users")}
-          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "users" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "users" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
         >
           <Users className="w-4 h-4" />
           Usuarios
         </button>
         <button
           onClick={() => setActiveTab("rates")}
-          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "rates" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "rates" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
         >
           <DollarSign className="w-4 h-4" />
           Tarifas
         </button>
         <button
           onClick={() => setActiveTab("private_spots")}
-          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "private_spots" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "private_spots" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
         >
           <Car className="w-4 h-4" />
           Privados
         </button>
         <button
           onClick={() => setActiveTab("settings")}
-          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
         >
           <Settings className="w-4 h-4" />
           Ajustes
@@ -1174,30 +1192,30 @@ export default function AdminDashboard({
         <>
           {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-5">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-5">
               <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center">
                 <DollarSign className="w-7 h-7 text-emerald-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-500 mb-1">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-tight">
                   Ingresos Hoy
                 </p>
-                <h3 className="text-2xl font-bold text-slate-800">
+                <h3 className="text-2xl font-black text-brand-primary dark:text-brand-accent">
                   {formatCurrency(stats.totalRevenue)}
                 </h3>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-5">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center">
-                <Car className="w-7 h-7 text-indigo-600" />
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-5">
+              <div className="w-14 h-14 rounded-2xl bg-brand-bg/50 dark:bg-brand-primary/20 flex items-center justify-center">
+                <Car className="w-7 h-7 text-brand-primary dark:text-brand-accent" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-slate-500 mb-1">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-tight">
                   Vehículos Activos
                 </p>
                 <div className="flex items-end gap-3">
-                  <h3 className="text-2xl font-bold text-slate-800">
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-white">
                     {stats.activeVehicles}
                   </h3>
                   <div className="flex gap-3 text-xs text-slate-500 mb-1">
@@ -1239,7 +1257,7 @@ export default function AdminDashboard({
           {/* Dashboard Charts & Filters Section */}
           <div className="mb-8 space-y-6">
             {/* Improved Filter Bar */}
-            <div className="bg-white/80 backdrop-blur-2xl rounded-3xl p-5 border border-white shadow-xl flex flex-col lg:flex-row justify-between items-center gap-6">
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-3xl p-5 border border-white dark:border-slate-800 shadow-xl flex flex-col lg:flex-row justify-between items-center gap-6">
               <div className="flex flex-wrap items-center justify-center gap-2">
                 {[
                   { label: "Hoy", val: 1 },
@@ -1256,7 +1274,7 @@ export default function AdminDashboard({
                 ))}
               </div>
 
-              <div className="flex items-center gap-3 bg-slate-50/50 p-2 rounded-2xl border border-slate-100 shadow-inner">
+              <div className="flex items-center gap-3 bg-slate-50/50 dark:bg-slate-800/50 p-2 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-inner">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter ml-2">
                     Desde
@@ -1265,10 +1283,10 @@ export default function AdminDashboard({
                     type="date"
                     value={chartStartDate}
                     onChange={(e) => setChartStartDate(e.target.value)}
-                    className="bg-transparent border-none text-xs font-bold text-slate-700 focus:ring-0 outline-none p-1 cursor-pointer"
+                    className="bg-transparent border-none text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-0 outline-none p-1 cursor-pointer"
                   />
                 </div>
-                <div className="w-px h-4 bg-slate-200"></div>
+                <div className="w-px h-4 bg-slate-200 dark:bg-slate-700"></div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">
                     Hasta
@@ -1277,7 +1295,7 @@ export default function AdminDashboard({
                     type="date"
                     value={chartEndDate}
                     onChange={(e) => setChartEndDate(e.target.value)}
-                    className="bg-transparent border-none text-xs font-bold text-slate-700 focus:ring-0 outline-none p-1 cursor-pointer"
+                    className="bg-transparent border-none text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-0 outline-none p-1 cursor-pointer"
                   />
                 </div>
               </div>
@@ -1286,7 +1304,7 @@ export default function AdminDashboard({
             {/* Split Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Revenue Chart */}
-              <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] p-6 border border-white shadow-2xl relative overflow-hidden group">
+              <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-[2.5rem] p-6 border border-white dark:border-slate-800 shadow-2xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
                   <DollarSign className="w-24 h-24 text-indigo-600" />
                 </div>
@@ -1377,7 +1395,7 @@ export default function AdminDashboard({
                       <Area
                         type="monotone"
                         dataKey="Ingresos"
-                        stroke="#6366f1"
+                        stroke={isDarkMode ? "#1E9A86" : "#1A4B6B"}
                         strokeWidth={4}
                         fillOpacity={1}
                         fill="url(#colorRev)"
@@ -1501,8 +1519,8 @@ export default function AdminDashboard({
           </div>
 
           {/* Historial Table */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-4 sm:p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50 dark:bg-slate-800/50">
               <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                 <History className="w-5 h-5 text-slate-500" />
                 Historial General
@@ -1558,7 +1576,7 @@ export default function AdminDashboard({
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {loading ? (
                     <tr>
                       <td
@@ -1818,7 +1836,7 @@ export default function AdminDashboard({
             </h2>
             <button
               onClick={openNewUserForm}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm"
+              className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all shadow-md flex items-center gap-2"
             >
               <UserPlus className="w-4 h-4" />
               Nuevo Usuario
@@ -1923,7 +1941,7 @@ export default function AdminDashboard({
             </h2>
             <button
               onClick={openNewRateForm}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm"
+              className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all shadow-md flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               Nueva Tarifa
@@ -2154,7 +2172,7 @@ export default function AdminDashboard({
                 <div className="md:col-span-2 lg:col-span-3 flex justify-end mt-2">
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium transition-colors"
+                    className="px-6 py-3 bg-brand-primary text-white rounded-xl font-black uppercase tracking-widest text-xs hover:brightness-110 transition-all shadow-lg"
                   >
                     Asignar Espacio
                   </button>
@@ -2305,7 +2323,7 @@ export default function AdminDashboard({
               <button
                 onClick={saveSuperSettings}
                 disabled={savingSuperSettings}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 disabled:opacity-50 transition-all shadow-md"
               >
                 {savingSuperSettings ? "Guardando..." : "Guardar Cambios"}
               </button>
@@ -2410,7 +2428,7 @@ export default function AdminDashboard({
               <button
                 onClick={saveCapacitySettings}
                 disabled={savingSettings}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 disabled:opacity-50 transition-all shadow-md"
               >
                 {savingSettings ? "Guardando..." : "Guardar Cambios"}
               </button>
@@ -2584,7 +2602,7 @@ export default function AdminDashboard({
               <button
                 onClick={saveGuardPermissions}
                 disabled={savingSettings}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 disabled:opacity-50 transition-all shadow-md"
               >
                 {savingSettings ? "Guardando..." : "Guardar Permisos"}
               </button>
@@ -2654,7 +2672,7 @@ export default function AdminDashboard({
               <button
                 onClick={saveRevenueSettings}
                 disabled={savingSettings}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 disabled:opacity-50 transition-all shadow-md"
               >
                 {savingSettings ? "Guardando..." : "Guardar Cambios"}
               </button>
@@ -2903,7 +2921,7 @@ export default function AdminDashboard({
               <button
                 onClick={savePrivateSpotFields}
                 disabled={savingSettings}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 disabled:opacity-50 transition-all shadow-md"
               >
                 {savingSettings ? "Guardando..." : "Guardar Cambios"}
               </button>
@@ -3008,7 +3026,7 @@ export default function AdminDashboard({
               <button
                 onClick={saveSettings}
                 disabled={savingSettings}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 disabled:opacity-50 transition-all shadow-md"
               >
                 {savingSettings ? "Guardando..." : "Guardar Cambios"}
               </button>
@@ -3193,7 +3211,7 @@ export default function AdminDashboard({
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+                    className="px-6 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all shadow-md"
                   >
                     Guardar Cambios
                   </button>
@@ -3307,7 +3325,7 @@ export default function AdminDashboard({
                   <button
                     type="submit"
                     disabled={formLoading}
-                    className="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-brand-primary text-white font-black uppercase tracking-widest text-xs hover:brightness-110 disabled:opacity-50 transition-all shadow-md"
                   >
                     {formLoading ? "Guardando..." : "Guardar"}
                   </button>
@@ -3476,18 +3494,18 @@ export default function AdminDashboard({
                   </label>
                 </div>
 
-                <div className="flex gap-3 pt-4 mt-2 border-t border-slate-100">
+                <div className="flex gap-3 pt-4 mt-2 border-t border-slate-100 dark:border-slate-800">
                   <button
                     type="button"
                     onClick={() => setShowRateForm(false)}
-                    className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors"
+                    className="flex-1 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={rateFormLoading}
-                    className="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                    className="flex-1 py-3 px-4 rounded-xl bg-brand-primary text-white font-black uppercase tracking-widest text-xs hover:brightness-110 disabled:opacity-50 transition-all shadow-lg"
                   >
                     {rateFormLoading ? "Guardando..." : "Guardar"}
                   </button>

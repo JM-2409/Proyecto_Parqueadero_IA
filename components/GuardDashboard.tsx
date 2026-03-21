@@ -36,12 +36,16 @@ export default function GuardDashboard({
   parkingLotId,
   onSwitchView,
   currentView,
+  isDarkMode,
+  toggleDarkMode,
 }: {
   user: any;
   onLogout: () => void;
   parkingLotId: string | null;
   onSwitchView?: (view: "admin" | "guard") => void;
   currentView?: "admin" | "guard";
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
 }) {
   const [activeTab, setActiveTab] = useState<"active" | "history">("active");
   const [mobileView, setMobileView] = useState<"entry" | "list">("entry");
@@ -91,7 +95,6 @@ export default function GuardDashboard({
   const [currentTime, setCurrentTime] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState("");
   const [autoCompleted, setAutoCompleted] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const plateInputRef = useRef<HTMLInputElement>(null);
 
@@ -123,12 +126,6 @@ export default function GuardDashboard({
     } else {
       setShowGuardModal(true);
     }
-
-    const storedDarkMode = localStorage.getItem("dark_mode") === "true";
-    setIsDarkMode(storedDarkMode);
-    if (storedDarkMode) {
-      document.documentElement.classList.add("dark");
-    }
   }, []);
 
   useEffect(() => {
@@ -143,17 +140,6 @@ export default function GuardDashboard({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
-
-  const toggleDarkMode = () => {
-    const newDarkMode = !isDarkMode;
-    setIsDarkMode(newDarkMode);
-    localStorage.setItem("dark_mode", String(newDarkMode));
-    if (newDarkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  };
 
   useEffect(() => {
     const allowCars = capacitySettings?.allow_cars !== false;
@@ -1097,7 +1083,7 @@ export default function GuardDashboard({
         {/* Lado Izquierdo: Branding */}
         <div className="flex items-center gap-4 group">
           <div className="relative">
-            <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-indigo-300 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-300"></div>
+            <div className="absolute -inset-1 bg-gradient-to-tr from-brand-primary to-brand-accent rounded-full blur opacity-25 group-hover:opacity-40 transition duration-300"></div>
             <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square bg-white">
               <img
                 src={globalLogoUrl || "/logo.png"}
@@ -1130,13 +1116,13 @@ export default function GuardDashboard({
               <div className="bg-white dark:bg-slate-800 rounded-xl p-1 flex border border-slate-200 dark:border-slate-700 shadow-sm shrink-0">
                 <button
                   onClick={() => onSwitchView("admin")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentView === "admin" ? "bg-indigo-600 text-white shadow-md" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentView === "admin" ? "bg-brand-primary text-white shadow-md" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"}`}
                 >
                   Admin
                 </button>
                 <button
                   onClick={() => onSwitchView("guard")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentView === "guard" ? "bg-indigo-600 text-white shadow-md" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentView === "guard" ? "bg-brand-primary text-white shadow-md" : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white"}`}
                 >
                   Vigilancia
                 </button>
@@ -1144,7 +1130,7 @@ export default function GuardDashboard({
             )}
             <button
               onClick={() => setShowPrivateSpots(true)}
-              className="px-4 py-2 rounded-xl flex items-center gap-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 border border-slate-200 dark:border-slate-700 transition-all font-bold text-xs shadow-sm shrink-0"
+              className="px-4 py-2 rounded-xl flex items-center gap-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-accent/10 dark:hover:bg-brand-accent/20 hover:text-brand-accent border border-slate-200 dark:border-slate-700 transition-all font-bold text-xs shadow-sm shrink-0"
             >
               <Car className="w-3.5 h-3.5" />
               <span>Privados</span>
@@ -1219,14 +1205,14 @@ export default function GuardDashboard({
       <div className="lg:hidden mb-8 bg-white dark:bg-slate-900 rounded-2xl p-1.5 flex border border-slate-200 dark:border-slate-800 shadow-sm">
         <button
           onClick={() => setMobileView("entry")}
-          className={`flex-1 py-3.5 rounded-xl text-sm font-semibold transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === "entry" ? "bg-indigo-600 text-white shadow-md transform scale-[1.02]" : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
+          className={`flex-1 py-3.5 rounded-xl text-sm font-semibold transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === "entry" ? "bg-brand-primary text-white shadow-md transform scale-[1.02]" : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
         >
           <Plus className="w-4 h-4" />
           Registrar Ingreso
         </button>
         <button
           onClick={() => setMobileView("list")}
-          className={`flex-1 py-3.5 rounded-xl text-sm font-semibold transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === "list" ? "bg-indigo-600 text-white shadow-md transform scale-[1.02]" : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
+          className={`flex-1 py-3.5 rounded-xl text-sm font-semibold transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === "list" ? "bg-brand-primary text-white shadow-md transform scale-[1.02]" : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
         >
           <Car className="w-4 h-4" />
           Vehículos Activos
@@ -1309,7 +1295,7 @@ export default function GuardDashboard({
                     <button
                       type="button"
                       onClick={() => setType("car")}
-                      className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === "car" ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
+                      className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === "car" ? "border-brand-primary bg-brand-primary/10 text-brand-primary dark:text-brand-accent dark:border-brand-accent" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
                     >
                       <Car className="w-6 h-6" />
                       <span className="font-medium text-sm">Carro</span>
@@ -1328,7 +1314,7 @@ export default function GuardDashboard({
                     <button
                       type="button"
                       onClick={() => setType("motorcycle")}
-                      className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === "motorcycle" ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
+                      className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === "motorcycle" ? "border-brand-primary bg-brand-primary/10 text-brand-primary dark:text-brand-accent dark:border-brand-accent" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
                     >
                       <Motorbike className="w-6 h-6" />
                       <span className="font-medium text-sm">Moto</span>
@@ -1348,7 +1334,7 @@ export default function GuardDashboard({
                     <button
                       type="button"
                       onClick={() => setType("bicycle")}
-                      className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === "bicycle" ? "border-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
+                      className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === "bicycle" ? "border-brand-primary bg-brand-primary/10 text-brand-primary dark:text-brand-accent dark:border-brand-accent" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
                     >
                       <Bike className="w-6 h-6" />
                       <span className="font-medium text-sm">Bicicleta</span>
@@ -1389,7 +1375,7 @@ export default function GuardDashboard({
                           [field.id]: e.target.value,
                         })
                       }
-                      className="block w-full px-3 py-3 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 dark:text-white"
+                      className="block w-full px-3 py-3 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 dark:text-white"
                       placeholder={`Ingrese ${field.label.toLowerCase()}`}
                     />
                   </div>
@@ -1477,7 +1463,7 @@ export default function GuardDashboard({
                         >
                           <div className="flex items-center gap-4">
                             <div
-                              className={`p-3 rounded-xl ${session.vehicle_type === "car" ? "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400" : session.vehicle_type === "motorcycle" ? "bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400" : "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"}`}
+                              className={`p-3 rounded-xl ${session.vehicle_type === "car" ? "bg-brand-primary/10 dark:bg-brand-primary/20 text-brand-primary dark:text-brand-accent" : session.vehicle_type === "motorcycle" ? "bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400" : "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"}`}
                             >
                               {session.vehicle_type === "car" ? (
                                 <Car className="w-6 h-6" />
@@ -1551,7 +1537,7 @@ export default function GuardDashboard({
                                         return (
                                           <span
                                             key={key}
-                                            className={`${isNameField ? "bg-indigo-50 text-indigo-700" : "bg-slate-100 text-slate-700"} px-2 py-0.5 rounded-md font-medium`}
+                                            className={`${isNameField ? "bg-brand-accent/10 text-brand-accent" : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"} px-2 py-0.5 rounded-md font-medium`}
                                           >
                                             {isNameField
                                               ? String(value)
@@ -1684,8 +1670,8 @@ export default function GuardDashboard({
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200 border border-white/20 dark:border-slate-800">
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
-              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <Car className="w-6 h-6 text-indigo-600" />
+              <h2 className="text-xl font-bold text-brand-primary dark:text-white flex items-center gap-2">
+                <Car className="w-6 h-6 text-brand-accent" />
                 Parqueaderos Privados
               </h2>
               <button
@@ -1706,14 +1692,14 @@ export default function GuardDashboard({
                     value={privateSpotsSearch}
                     onChange={(e) => setPrivateSpotsSearch(e.target.value)}
                     placeholder="Buscar por placa, propietario o espacio..."
-                    className="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white dark:bg-slate-800 dark:text-white"
+                    className="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none bg-white dark:bg-slate-800 dark:text-white"
                   />
                 </div>
                 <div className="sm:w-48">
                   <select
                     value={privateSpotsSort}
                     onChange={(e) => setPrivateSpotsSort(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white dark:bg-slate-800 dark:text-white"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none bg-white dark:bg-slate-800 dark:text-white"
                   >
                     {privateSpotFields
                       .filter((f) => f.enabled)
@@ -1760,15 +1746,15 @@ export default function GuardDashboard({
                           key={spot.id}
                           className="border border-slate-200 dark:border-slate-700 rounded-2xl p-4 relative overflow-hidden group bg-white dark:bg-slate-800"
                         >
-                          <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-50 dark:bg-indigo-900/20 rounded-bl-full -z-10"></div>
+                          <div className="absolute top-0 right-0 w-16 h-16 bg-brand-accent/5 dark:bg-brand-accent/10 rounded-bl-full -z-10"></div>
                           <div className="flex justify-between items-start mb-3">
-                            <span className="text-2xl font-bold text-indigo-900 dark:text-indigo-400">
+                            <span className="text-2xl font-bold text-brand-primary dark:text-brand-accent">
                               {spot.spotNumber || "N/A"}
                             </span>
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => setEditingSpot(spot)}
-                                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                  className="p-1.5 text-slate-400 hover:text-brand-accent hover:bg-brand-accent/10 dark:hover:bg-brand-accent/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                                 title="Editar"
                               >
                                 <Edit2 className="w-4 h-4" />
@@ -1872,7 +1858,7 @@ export default function GuardDashboard({
                         name={field.id}
                         defaultValue={editingSpot[field.id]}
                         required={field.required}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                        className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none bg-white"
                       >
                         <option value="car">Carro</option>
                         <option value="motorcycle">Moto</option>
@@ -1884,7 +1870,7 @@ export default function GuardDashboard({
                         name={field.id}
                         defaultValue={editingSpot[field.id]}
                         required={field.required}
-                        className={`w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none ${field.id === "licensePlate" ? "uppercase" : ""}`}
+                        className={`w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none ${field.id === "licensePlate" ? "uppercase" : ""}`}
                       />
                     )}
                   </div>
@@ -1899,7 +1885,7 @@ export default function GuardDashboard({
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+                  className="px-6 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all shadow-md"
                 >
                   Guardar
                 </button>
@@ -2145,12 +2131,12 @@ export default function GuardDashboard({
             </button>
             <div className="p-6 text-center overflow-y-auto">
               <div
-                className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${confirmAmount ? "bg-emerald-50 dark:bg-emerald-900/20" : "bg-indigo-50 dark:bg-indigo-900/20"}`}
+                className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${confirmAmount ? "bg-emerald-50 dark:bg-emerald-900/20" : "bg-brand-accent/10"}`}
               >
                 {confirmAmount ? (
                   <DollarSign className="w-8 h-8 text-emerald-600" />
                 ) : (
-                  <CheckCircle className="w-8 h-8 text-indigo-600" />
+                  <CheckCircle className="w-8 h-8 text-brand-accent" />
                 )}
               </div>
               <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-1">
@@ -2217,11 +2203,11 @@ export default function GuardDashboard({
                   </div>
                 </div>
               ) : (
-                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 mb-6">
-                  <p className="text-emerald-800 mb-2">
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl p-6 mb-6">
+                  <p className="text-emerald-800 dark:text-emerald-400 mb-2">
                     ¿Confirma que ha recibido el pago exacto de:
                   </p>
-                  <p className="text-4xl font-bold text-emerald-600">
+                  <p className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
                     {formatCurrency(currentCost)}?
                   </p>
                 </div>
@@ -2260,8 +2246,8 @@ export default function GuardDashboard({
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
           <div className="bg-white rounded-3xl shadow-xl max-w-sm w-full overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="p-6 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-indigo-50">
-                <Shield className="w-8 h-8 text-indigo-600" />
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-brand-accent/10">
+                <Shield className="w-8 h-8 text-brand-accent" />
               </div>
               <h2 className="text-2xl font-bold text-slate-800 mb-2">
                 Turno de Guarda
@@ -2283,7 +2269,7 @@ export default function GuardDashboard({
                     onKeyDown={(e) =>
                       e.key === "Enter" && handleSaveGuardName()
                     }
-                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all bg-slate-50 focus:bg-white"
                     placeholder="Ej. Juan Pérez"
                     autoFocus
                   />
@@ -2292,7 +2278,7 @@ export default function GuardDashboard({
                 <button
                   onClick={handleSaveGuardName}
                   disabled={!tempGuardName.trim()}
-                  className="w-full py-3 px-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                  className="w-full py-3 px-4 rounded-xl bg-brand-accent text-white font-black uppercase tracking-widest text-[10px] hover:brightness-110 disabled:opacity-50 transition-all shadow-md"
                 >
                   Iniciar Turno
                 </button>
