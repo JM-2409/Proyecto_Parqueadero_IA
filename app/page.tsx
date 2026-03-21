@@ -6,6 +6,7 @@ import GuardDashboard from '@/components/GuardDashboard';
 import AdminDashboard from '@/components/AdminDashboard';
 import SuperAdminDashboard from '@/components/SuperAdminDashboard';
 import { Car, User, Lock, Loader2, Target, Eye, ShieldCheck, Clock, BarChart3, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function Home() {
   const [user, setUser] = useState<any>(null);
@@ -15,6 +16,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
   const [subscriptionExpired, setSubscriptionExpired] = useState(false);
+  const [isSubmittingContact, setIsSubmittingContact] = useState(false);
   
   // Auth form state
   const [username, setUsername] = useState('');
@@ -22,6 +24,34 @@ export default function Home() {
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [globalSettings, setGlobalSettings] = useState<{ app_name: string, logo_url: string | null }>({ app_name: 'NexoPark', logo_url: null });
+
+  const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmittingContact(true);
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+
+    try {
+      const response = await fetch("https://formspree.io/f/xyzpjjdy", {
+        method: "POST",
+        body: formData,
+        headers: {
+          Accept: "application/json",
+        },
+      });
+
+      if (response.ok) {
+        toast.success("¡Mensaje enviado correctamente! Nos pondremos en contacto pronto.");
+        form.reset();
+      } else {
+        toast.error("Hubo un problema al enviar el mensaje. Por favor, intenta de nuevo.");
+      }
+    } catch (error) {
+      toast.error("Error de red al enviar el mensaje.");
+    } finally {
+      setIsSubmittingContact(false);
+    }
+  };
 
   useEffect(() => {
     // Fetch global settings
@@ -356,23 +386,48 @@ export default function Home() {
                 <h2 className="text-3xl font-bold text-slate-900 mb-4">Contáctanos</h2>
                 <p className="text-lg text-slate-600">¿Tienes dudas o necesitas un plan personalizado? Escríbenos.</p>
               </div>
-              <form action="https://formspree.io/f/xyzpjjdy" method="POST" className="space-y-6 bg-slate-50 p-8 rounded-3xl border border-slate-100 shadow-sm">
+              <form onSubmit={handleContactSubmit} className="space-y-6 bg-slate-50 p-8 rounded-3xl border border-slate-100 shadow-sm">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
-                    <input type="text" name="name" id="name" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                    <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">Nombre Completo</label>
+                    <input type="text" name="name" id="name" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ej. Juan Pérez" />
                   </div>
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">Email</label>
-                    <input type="email" name="email" id="email" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" />
+                    <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
+                    <input type="email" name="email" id="email" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="ejemplo@correo.com" />
+                  </div>
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-medium text-slate-700 mb-1">Teléfono (Opcional)</label>
+                    <input type="tel" name="phone" id="phone" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="+57 300 000 0000" />
+                  </div>
+                  <div>
+                    <label htmlFor="company" className="block text-sm font-medium text-slate-700 mb-1">Nombre del Parqueadero / Empresa</label>
+                    <input type="text" name="company" id="company" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ej. Parqueadero Central" />
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-slate-700 mb-1">Mensaje</label>
-                  <textarea name="message" id="message" rows={4} required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none"></textarea>
+                  <label htmlFor="request_type" className="block text-sm font-medium text-slate-700 mb-1">Tipo de Solicitud</label>
+                  <select name="request_type" id="request_type" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all bg-white">
+                    <option value="">Selecciona una opción...</option>
+                    <option value="Información de planes">Información de planes</option>
+                    <option value="Soporte técnico">Soporte técnico</option>
+                    <option value="Plan personalizado">Plan personalizado</option>
+                    <option value="Otro">Otro</option>
+                  </select>
                 </div>
-                <button type="submit" className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-sm">
-                  Enviar Mensaje
+                <div>
+                  <label htmlFor="message" className="block text-sm font-medium text-slate-700 mb-1">Mensaje o Detalles Adicionales</label>
+                  <textarea name="message" id="message" rows={4} required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none" placeholder="Cuéntanos más sobre lo que necesitas..."></textarea>
+                </div>
+                <button type="submit" disabled={isSubmittingContact} className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                  {isSubmittingContact ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    "Enviar Solicitud"
+                  )}
                 </button>
               </form>
             </div>

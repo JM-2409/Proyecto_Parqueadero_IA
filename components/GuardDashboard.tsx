@@ -1,4 +1,5 @@
 "use client";
+import { toast } from 'sonner';
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/lib/supabase";
@@ -257,7 +258,7 @@ export default function GuardDashboard({
         { onConflict: "key,parking_lot_id" },
       );
     if (error) {
-      alert("Error al guardar parqueaderos privados: " + error.message);
+      toast.error("Error al guardar parqueaderos privados: " + error.message);
     } else {
       setPrivateSpots(updatedSpots);
       setEditingSpot(null);
@@ -399,7 +400,7 @@ export default function GuardDashboard({
     if (capacitySettings?.enforce) {
       const isAllowed = capacitySettings[`allow_${type}s`];
       if (!isAllowed) {
-        alert(
+        toast.error(
           `El ingreso de ${type === "car" ? "carros" : type === "motorcycle" ? "motos" : "bicicletas"} no está permitido.`,
         );
         setLoading(false);
@@ -417,7 +418,7 @@ export default function GuardDashboard({
           .eq("parking_lot_id", parkingLotId);
 
         if (count !== null && count >= capacity) {
-          alert(
+          toast.error(
             `Capacidad máxima alcanzada para ${type === "car" ? "carros" : type === "motorcycle" ? "motos" : "bicicletas"}. No se puede ingresar.`,
           );
           setLoading(false);
@@ -436,7 +437,7 @@ export default function GuardDashboard({
       .single();
 
     if (existing) {
-      alert("Este vehículo ya se encuentra en el parqueadero.");
+      toast.error("Este vehículo ya se encuentra en el parqueadero.");
       setLoading(false);
       return;
     }
@@ -496,16 +497,16 @@ export default function GuardDashboard({
       setEntryNoveltyPhoto(null);
       setMobileView("list");
       fetchActiveSessions();
-      alert(
+      toast.success(
         `Ingreso registrado exitosamente.\nNúmero de Recibo: ${newSession.ticket_number}`,
       );
     } else {
       if (error?.code === "23505") {
-        alert(
+        toast.error(
           "Este vehículo ya se encuentra en el parqueadero (sesión activa).",
         );
       } else {
-        alert(
+        toast.error(
           `Error al registrar ingreso: ${error?.message || "Error desconocido"}`,
         );
       }
@@ -703,7 +704,7 @@ export default function GuardDashboard({
         fetchTotalRevenue(revenueSettings.last_closing);
       }
     } else {
-      alert("Error al registrar salida.");
+      toast.error("Error al registrar salida.");
     }
     setLoading(false);
   };
@@ -750,7 +751,7 @@ export default function GuardDashboard({
       );
     } catch (error) {
       console.error("Error al compartir", error);
-      alert("Hubo un error al preparar el mensaje.");
+      toast.error("Hubo un error al preparar el mensaje.");
     } finally {
       setIsSharing(false);
     }
@@ -758,7 +759,7 @@ export default function GuardDashboard({
 
   const handleSaveGuardName = () => {
     if (!tempGuardName.trim()) {
-      alert("Por favor, ingresa tu nombre.");
+      toast.error("Por favor, ingresa tu nombre.");
       return;
     }
     setGuardName(tempGuardName);
@@ -795,7 +796,7 @@ export default function GuardDashboard({
 
   const handleSaveNovelty = async () => {
     if (!newNoveltyObservation.trim()) {
-      alert("Por favor, ingresa una observación.");
+      toast.error("Por favor, ingresa una observación.");
       return;
     }
 
@@ -837,9 +838,9 @@ export default function GuardDashboard({
       setNovelties([newNovelty, ...novelties]);
       setNewNoveltyObservation("");
       setNewNoveltyPhoto(null);
-      alert("Novedad registrada exitosamente.");
+      toast.success("Novedad registrada exitosamente.");
     } else {
-      alert("Error al registrar la novedad.");
+      toast.error("Error al registrar la novedad.");
     }
     setNoveltyLoading(false);
   };

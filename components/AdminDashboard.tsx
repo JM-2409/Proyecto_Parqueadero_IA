@@ -1,4 +1,5 @@
 "use client";
+import { toast } from 'sonner';
 
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/lib/supabase";
@@ -286,9 +287,9 @@ export default function AdminDashboard({
         { onConflict: "key,parking_lot_id" },
       );
     if (error) {
-      alert("Error al guardar configuración de capacidad: " + error.message);
+      toast.error("Error al guardar configuración de capacidad: " + error.message);
     } else {
-      alert("Configuración de capacidad guardada exitosamente.");
+      toast.success("Configuración de capacidad guardada exitosamente.");
     }
     setSavingSettings(false);
   };
@@ -306,9 +307,9 @@ export default function AdminDashboard({
         { onConflict: "key,parking_lot_id" },
       );
     if (error) {
-      alert("Error al guardar configuración de ingresos: " + error.message);
+      toast.error("Error al guardar configuración de ingresos: " + error.message);
     } else {
-      alert("Configuración de ingresos guardada exitosamente.");
+      toast.success("Configuración de ingresos guardada exitosamente.");
     }
     setSavingSettings(false);
   };
@@ -326,9 +327,9 @@ export default function AdminDashboard({
         { onConflict: "key,parking_lot_id" },
       );
     if (error) {
-      alert("Error al guardar permisos de guardas: " + error.message);
+      toast.error("Error al guardar permisos de guardas: " + error.message);
     } else {
-      alert("Permisos de guardas guardados exitosamente.");
+      toast.success("Permisos de guardas guardados exitosamente.");
     }
     setSavingSettings(false);
   };
@@ -359,9 +360,9 @@ export default function AdminDashboard({
         { onConflict: "key,parking_lot_id" },
       );
     if (error) {
-      alert("Error al realizar el cierre de caja: " + error.message);
+      toast.error("Error al realizar el cierre de caja: " + error.message);
     } else {
-      alert("Cierre de caja realizado exitosamente.");
+      toast.success("Cierre de caja realizado exitosamente.");
       fetchData(); // Refresh stats
     }
     setSavingSettings(false);
@@ -380,7 +381,7 @@ export default function AdminDashboard({
         { onConflict: "key,parking_lot_id" },
       );
     if (error) {
-      alert("Error al guardar vehículos especiales: " + error.message);
+      toast.error("Error al guardar vehículos especiales: " + error.message);
     } else {
       setSpecialVehicles(updatedVehicles);
     }
@@ -417,7 +418,7 @@ export default function AdminDashboard({
         { onConflict: "key,parking_lot_id" },
       );
     if (error) {
-      alert("Error al guardar parqueaderos privados: " + error.message);
+      toast.error("Error al guardar parqueaderos privados: " + error.message);
     } else {
       setPrivateSpots(updatedSpots);
     }
@@ -430,14 +431,14 @@ export default function AdminDashboard({
 
     // Check for empty labels
     if (labels.some((l) => l === "")) {
-      alert("Error: No se pueden guardar campos con nombres vacíos.");
+      toast.error("Error: No se pueden guardar campos con nombres vacíos.");
       return;
     }
 
     // Check for duplicates
     const uniqueLabels = new Set(labels);
     if (uniqueLabels.size !== labels.length) {
-      alert(
+      toast.error(
         "Error: Existen campos con nombres duplicados. Por favor, usa nombres únicos.",
       );
       return;
@@ -463,10 +464,10 @@ export default function AdminDashboard({
         { onConflict: "key,parking_lot_id" },
       );
     if (error) {
-      alert("Error al guardar configuración: " + error.message);
+      toast.error("Error al guardar configuración: " + error.message);
     } else {
       setEntryFields(processedFields); // Update state to reflect enforced changes
-      alert("Configuración guardada exitosamente.");
+      toast.success("Configuración guardada exitosamente.");
     }
     setSavingSettings(false);
   };
@@ -492,7 +493,7 @@ export default function AdminDashboard({
         finalLogoUrl = publicUrlData.publicUrl;
         setParkingLotLogo(finalLogoUrl);
       } else {
-        alert("Error al subir el logo: " + uploadError.message);
+        toast.error("Error al subir el logo: " + uploadError.message);
       }
     }
 
@@ -507,10 +508,10 @@ export default function AdminDashboard({
       .eq("id", parkingLotId);
 
     if (error) {
-      alert("Error al guardar configuración: " + error.message);
+      toast.error("Error al guardar configuración: " + error.message);
     } else {
       setNewLogoFile(null);
-      alert("Configuración guardada exitosamente.");
+      toast.success("Configuración guardada exitosamente.");
     }
     setSavingSuperSettings(false);
   };
@@ -564,12 +565,12 @@ export default function AdminDashboard({
   const savePrivateSpotFields = async () => {
     const labels = privateSpotFields.map((f) => f.label.trim().toLowerCase());
     if (labels.some((l) => l === "")) {
-      alert("Error: No se pueden guardar campos con nombres vacíos.");
+      toast.error("Error: No se pueden guardar campos con nombres vacíos.");
       return;
     }
     const uniqueLabels = new Set(labels);
     if (uniqueLabels.size !== labels.length) {
-      alert(
+      toast.error(
         "Error: Existen campos con nombres duplicados. Por favor, usa nombres únicos.",
       );
       return;
@@ -587,11 +588,11 @@ export default function AdminDashboard({
         { onConflict: "key,parking_lot_id" },
       );
     if (error) {
-      alert(
+      toast.error(
         "Error al guardar configuración de campos privados: " + error.message,
       );
     } else {
-      alert("Configuración de campos privados guardada exitosamente.");
+      toast.success("Configuración de campos privados guardada exitosamente.");
     }
     setSavingSettings(false);
   };
@@ -750,7 +751,7 @@ export default function AdminDashboard({
 
   const handleAdminCheckout = async () => {
     if (!adminCheckoutSession || !adminCheckoutObservation.trim()) {
-      alert("Por favor, ingresa una observación.");
+      toast.error("Por favor, ingresa una observación.");
       return;
     }
 
@@ -779,7 +780,7 @@ export default function AdminDashboard({
     setAdminCheckoutLoading(false);
 
     if (error) {
-      alert("Error al procesar la salida: " + error.message);
+      toast.error("Error al procesar la salida: " + error.message);
     } else {
       setAdminCheckoutSession(null);
       setAdminCheckoutObservation("");
@@ -802,7 +803,7 @@ export default function AdminDashboard({
       setUsersList(data);
     } catch (err: any) {
       console.error(err);
-      alert("Error al cargar usuarios");
+      toast.error("Error al cargar usuarios");
     }
     setLoadingUsers(false);
   };
@@ -816,7 +817,7 @@ export default function AdminDashboard({
       .order("created_at", { ascending: false });
     if (error) {
       console.error(error);
-      alert("Error al cargar tarifas");
+      toast.error("Error al cargar tarifas");
     } else {
       setRatesList(data || []);
     }
@@ -892,7 +893,7 @@ export default function AdminDashboard({
       if (!res.ok) throw new Error(data.error);
       fetchUsers();
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setDeletingUserId(null);
     }
@@ -929,7 +930,7 @@ export default function AdminDashboard({
       setShowRateForm(false);
       fetchRates();
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setRateFormLoading(false);
     }
@@ -945,7 +946,7 @@ export default function AdminDashboard({
       .from("rates")
       .delete()
       .eq("id", deletingRateId);
-    if (error) alert(error.message);
+    if (error) toast.error(error.message);
     else fetchRates();
     setDeletingRateId(null);
   };

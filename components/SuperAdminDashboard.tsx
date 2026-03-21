@@ -1,4 +1,5 @@
 "use client";
+import { toast } from 'sonner';
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
@@ -168,7 +169,7 @@ export default function SuperAdminDashboard({
       fetchData();
     } catch (err: any) {
       console.error(err);
-      alert("Error al guardar el parqueadero: " + err.message);
+      toast.error("Error al guardar el parqueadero: " + err.message);
     } finally {
       setFormLoading(false);
     }
@@ -234,7 +235,7 @@ export default function SuperAdminDashboard({
       fetchData();
     } catch (err) {
       console.error(err);
-      alert("Error al guardar el usuario");
+      toast.error("Error al guardar el usuario");
     } finally {
       setFormLoading(false);
     }
@@ -269,7 +270,7 @@ export default function SuperAdminDashboard({
       setDeletingLot(null);
       fetchData();
     } catch (err: any) {
-      alert("Error al eliminar parqueadero: " + err.message);
+      toast.error("Error al eliminar parqueadero: " + err.message);
     } finally {
       setFormLoading(false);
     }
@@ -322,11 +323,11 @@ export default function SuperAdminDashboard({
       setGlobalLogoUrl(finalLogoUrl);
       setNewGlobalLogoFile(null);
 
-      alert(
+      toast.error(
         "Configuración global guardada exitosamente. Recarga la página para ver los cambios.",
       );
     } catch (err: any) {
-      alert(err.message);
+      toast.error(err.message);
     } finally {
       setSavingGlobalSettings(false);
     }
@@ -350,7 +351,7 @@ export default function SuperAdminDashboard({
       setDeletingUser(null);
       fetchData();
     } catch (err: any) {
-      alert("Error al eliminar usuario: " + err.message);
+      toast.error("Error al eliminar usuario: " + err.message);
     } finally {
       setFormLoading(false);
     }

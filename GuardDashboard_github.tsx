@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -166,7 +167,7 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
       .from('settings')
       .upsert({ key: 'private_spots', value: updatedSpots, parking_lot_id: parkingLotId }, { onConflict: 'key,parking_lot_id' });
     if (error) {
-      alert('Error al guardar parqueaderos privados: ' + error.message);
+      toast.error('Error al guardar parqueaderos privados: ' + error.message);
     } else {
       setPrivateSpots(updatedSpots);
       setEditingSpot(null);
@@ -284,7 +285,7 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
     if (capacitySettings?.enforce) {
       const isAllowed = capacitySettings[`allow_${type}s`];
       if (!isAllowed) {
-        alert(`El ingreso de ${type === 'car' ? 'carros' : type === 'motorcycle' ? 'motos' : 'bicicletas'} no está permitido.`);
+        toast.error(`El ingreso de ${type === 'car' ? 'carros' : type === 'motorcycle' ? 'motos' : 'bicicletas'} no está permitido.`);
         setLoading(false);
         return;
       }
@@ -300,7 +301,7 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
           .eq('parking_lot_id', parkingLotId);
 
         if (count !== null && count >= capacity) {
-          alert(`Capacidad máxima alcanzada para ${type === 'car' ? 'carros' : type === 'motorcycle' ? 'motos' : 'bicicletas'}. No se puede ingresar.`);
+          toast.error(`Capacidad máxima alcanzada para ${type === 'car' ? 'carros' : type === 'motorcycle' ? 'motos' : 'bicicletas'}. No se puede ingresar.`);
           setLoading(false);
           return;
         }
@@ -317,7 +318,7 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
       .single();
       
     if (existing) {
-      alert('Este vehículo ya se encuentra en el parqueadero.');
+      toast.error('Este vehículo ya se encuentra en el parqueadero.');
       setLoading(false);
       return;
     }
@@ -373,12 +374,12 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
       setEntryNoveltyPhoto(null);
       setMobileView('list');
       fetchActiveSessions();
-      alert(`Ingreso registrado exitosamente.\nNúmero de Recibo: ${newSession.ticket_number}`);
+      toast.error(`Ingreso registrado exitosamente.\nNúmero de Recibo: ${newSession.ticket_number}`);
     } else {
       if (error?.code === '23505') {
-        alert('Este vehículo ya se encuentra en el parqueadero (sesión activa).');
+        toast.error('Este vehículo ya se encuentra en el parqueadero (sesión activa).');
       } else {
-        alert(`Error al registrar ingreso: ${error?.message || 'Error desconocido'}`);
+        toast.error(`Error al registrar ingreso: ${error?.message || 'Error desconocido'}`);
       }
     }
     setLoading(false);
@@ -547,7 +548,7 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
         fetchTotalRevenue(revenueSettings.last_closing);
       }
     } else {
-      alert('Error al registrar salida.');
+      toast.error('Error al registrar salida.');
     }
     setLoading(false);
   };
@@ -613,7 +614,7 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
       window.open(`https://wa.me/${whatsappNumber}?text=${encodedMessage}`, '_blank');
     } catch (error) {
       console.error('Error al compartir', error);
-      alert('Hubo un error al preparar el mensaje.');
+      toast.error('Hubo un error al preparar el mensaje.');
     } finally {
       setIsSharing(false);
     }
@@ -621,7 +622,7 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
 
   const handleSaveGuardName = () => {
     if (!tempGuardName.trim()) {
-      alert('Por favor, ingresa tu nombre.');
+      toast.error('Por favor, ingresa tu nombre.');
       return;
     }
     setGuardName(tempGuardName);
@@ -655,7 +656,7 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
 
   const handleSaveNovelty = async () => {
     if (!newNoveltyObservation.trim()) {
-      alert('Por favor, ingresa una observación.');
+      toast.error('Por favor, ingresa una observación.');
       return;
     }
     
@@ -696,9 +697,9 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
       setNovelties([newNovelty, ...novelties]);
       setNewNoveltyObservation('');
       setNewNoveltyPhoto(null);
-      alert('Novedad registrada exitosamente.');
+      toast.error('Novedad registrada exitosamente.');
     } else {
-      alert('Error al registrar la novedad.');
+      toast.error('Error al registrar la novedad.');
     }
     setNoveltyLoading(false);
   };
@@ -747,7 +748,7 @@ export default function GuardDashboard({ user, onLogout, parkingLotId, onSwitchV
       }
     } catch (error) {
       console.error('Error al compartir imagen', error);
-      alert('Hubo un error al generar la imagen.');
+      toast.error('Hubo un error al generar la imagen.');
     } finally {
       setIsSharing(false);
     }
