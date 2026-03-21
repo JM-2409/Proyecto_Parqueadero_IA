@@ -23,9 +23,6 @@ import {
   Plus,
   Building2,
   X,
-  CheckCircle,
-  Loader2,
-  Zap,
   Search,
   UserCircle,
   Sparkles,
@@ -141,8 +138,6 @@ export default function AdminDashboard({
   // Global settings state
   const [globalAppName, setGlobalAppName] = useState("NexoPark");
   const [globalLogoUrl, setGlobalLogoUrl] = useState<string | null>(null);
-  const [logoVersion, setLogoVersion] = useState(Date.now());
-  const [logoError, setLogoError] = useState(false);
 
   // User form state
   const [username, setUsername] = useState("");
@@ -614,7 +609,6 @@ export default function AdminDashboard({
     if (globalData) {
       setGlobalAppName(globalData.app_name);
       setGlobalLogoUrl(globalData.logo_url);
-      setLogoVersion(Date.now());
     }
 
     // Fetch revenue settings to get last closing time
@@ -1049,18 +1043,16 @@ export default function AdminDashboard({
         {/* Lado Izquierdo: Branding */}
         <div className="flex items-center gap-4 group">
           <div className="relative">
-            <div className="absolute -inset-1.5 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center shadow-xl shrink-0 aspect-square bg-white">
-              {!logoError ? (
-                <img
-                  src={globalLogoUrl ? (globalLogoUrl.includes('?') ? `${globalLogoUrl}&v=${logoVersion}` : `${globalLogoUrl}?v=${logoVersion}`) : `/logo.png?v=${logoVersion}`}
-                  alt="Logo"
-                  className="w-full h-full object-cover transform transition duration-700 group-hover:scale-110"
-                  onError={() => setLogoError(true)}
-                />
-              ) : (
-                <Car className="w-8 h-8 text-indigo-600 group-hover:scale-110 transition-transform" />
-              )}
+            <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-600 to-purple-400 rounded-full blur opacity-20 group-hover:opacity-35 transition duration-300"></div>
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square bg-white">
+              <img
+                src={globalLogoUrl || "/logo.png"}
+                alt="Logo"
+                className="w-full h-full object-cover transform transition duration-500 group-hover:scale-110"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/logo.png";
+                }}
+              />
             </div>
           </div>
           <div className="min-w-0">
@@ -1139,38 +1131,38 @@ export default function AdminDashboard({
       />
 
       {/* Navigation Tabs */}
-      <div className="flex gap-1.5 sm:gap-2 mb-6 sm:mb-8 bg-white/70 backdrop-blur-xl p-2 rounded-3xl shadow-lg border border-white/50 w-full overflow-x-auto no-scrollbar scroll-smooth sticky top-0 z-30">
+      <div className="flex gap-1.5 sm:gap-2 mb-6 sm:mb-8 bg-white p-1.5 sm:p-2 rounded-2xl shadow-sm border border-slate-200 w-full overflow-x-auto no-scrollbar scroll-smooth sticky top-0 z-30">
         <button
           onClick={() => setActiveTab("dashboard")}
-          className={`px-5 py-2.5 rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-[11px] flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "dashboard" ? "bg-indigo-600 text-white shadow-lg ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "dashboard" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
         >
           <BarChart3 className="w-4 h-4" />
-          Historia
+          Resumen
         </button>
         <button
           onClick={() => setActiveTab("users")}
-          className={`px-5 py-2.5 rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-[11px] flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "users" ? "bg-indigo-600 text-white shadow-lg ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "users" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
         >
           <Users className="w-4 h-4" />
           Usuarios
         </button>
         <button
           onClick={() => setActiveTab("rates")}
-          className={`px-5 py-2.5 rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-[11px] flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "rates" ? "bg-indigo-600 text-white shadow-lg ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "rates" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
         >
           <DollarSign className="w-4 h-4" />
           Tarifas
         </button>
         <button
           onClick={() => setActiveTab("private_spots")}
-          className={`px-5 py-2.5 rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-[11px] flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "private_spots" ? "bg-indigo-600 text-white shadow-lg ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "private_spots" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
         >
           <Car className="w-4 h-4" />
           Privados
         </button>
         <button
           onClick={() => setActiveTab("settings")}
-          className={`px-5 py-2.5 rounded-2xl font-black uppercase tracking-widest text-[10px] sm:text-[11px] flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-indigo-600 text-white shadow-lg ring-4 ring-indigo-50" : "text-slate-500 hover:text-indigo-600 hover:bg-white"}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
         >
           <Settings className="w-4 h-4" />
           Ajustes
@@ -1181,46 +1173,46 @@ export default function AdminDashboard({
         <>
           {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white/80 backdrop-blur-2xl p-6 rounded-[2rem] shadow-xl border border-white flex items-center gap-5 transition-all hover:scale-[1.02] duration-300">
-              <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center shadow-inner">
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-5">
+              <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center">
                 <DollarSign className="w-7 h-7 text-emerald-600" />
               </div>
               <div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
+                <p className="text-sm font-medium text-slate-500 mb-1">
                   Ingresos Hoy
                 </p>
-                <h3 className="text-2xl font-black text-slate-900">
+                <h3 className="text-2xl font-bold text-slate-800">
                   {formatCurrency(stats.totalRevenue)}
                 </h3>
               </div>
             </div>
 
-            <div className="bg-white/80 backdrop-blur-2xl p-6 rounded-[2rem] shadow-xl border border-white flex items-center gap-5 transition-all hover:scale-[1.02] duration-300">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center shadow-inner">
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-5">
+              <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center">
                 <Car className="w-7 h-7 text-indigo-600" />
               </div>
               <div className="flex-1">
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
+                <p className="text-sm font-medium text-slate-500 mb-1">
                   Vehículos Activos
                 </p>
                 <div className="flex items-end gap-3">
-                  <h3 className="text-2xl font-black text-slate-900">
+                  <h3 className="text-2xl font-bold text-slate-800">
                     {stats.activeVehicles}
                   </h3>
                   <div className="flex gap-3 text-xs text-slate-500 mb-1">
-                    <span title="Carros" className="flex items-center gap-1 font-bold">
-                      <Car className="w-3.5 h-3.5" /> {stats.activeCars}
+                    <span title="Carros" className="flex items-center gap-1">
+                      <Car className="w-3 h-3" /> {stats.activeCars}
                     </span>
-                    <span title="Motos" className="flex items-center gap-1 font-bold">
-                      <Motorbike className="w-3.5 h-3.5" />{" "}
+                    <span title="Motos" className="flex items-center gap-1">
+                      <Motorbike className="w-3 h-3" />{" "}
                       {stats.activeMotorcycles}
                     </span>
                     {stats.activeBicycles > 0 && (
                       <span
                         title="Bicicletas"
-                        className="flex items-center gap-1 font-bold"
+                        className="flex items-center gap-1"
                       >
-                        <Bike className="w-3.5 h-3.5" /> {stats.activeBicycles}
+                        <Bike className="w-3 h-3" /> {stats.activeBicycles}
                       </span>
                     )}
                   </div>
@@ -1228,15 +1220,15 @@ export default function AdminDashboard({
               </div>
             </div>
 
-            <div className="bg-white/80 backdrop-blur-2xl p-6 rounded-[2rem] shadow-xl border border-white flex items-center gap-5 transition-all hover:scale-[1.02] duration-300">
-              <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center shadow-inner">
+            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-5">
+              <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center">
                 <History className="w-7 h-7 text-blue-600" />
               </div>
               <div>
-                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">
+                <p className="text-sm font-medium text-slate-500 mb-1">
                   Total Ingresos Hoy
                 </p>
-                <h3 className="text-2xl font-black text-slate-900">
+                <h3 className="text-2xl font-bold text-slate-800">
                   {stats.totalToday}
                 </h3>
               </div>
@@ -1508,10 +1500,10 @@ export default function AdminDashboard({
           </div>
 
           {/* Historial Table */}
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
-            <div className="p-5 sm:p-8 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50/50">
-              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                <History className="w-6 h-6 text-slate-400" />
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-4 sm:p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <History className="w-5 h-5 text-slate-500" />
                 Historial General
               </h2>
               <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 w-full sm:w-auto">
@@ -1542,25 +1534,25 @@ export default function AdminDashboard({
               </div>
             </div>
 
-            <div className="overflow-x-auto -mx-px custom-scrollbar pb-4">
-              <table className="w-full text-left border-collapse min-w-[1100px]">
+            <div className="overflow-x-auto -mx-px">
+              <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
-                    <th className="px-6 py-4">Recibo</th>
-                    <th className="px-6 py-4">Placa</th>
-                    <th className="px-6 py-4">Tipo</th>
-                    <th className="px-6 py-4">Detalles</th>
-                    <th className="px-6 py-4">Ingreso</th>
-                    <th className="px-6 py-4">Salida</th>
-                    <th className="px-6 py-4">Tiempo</th>
-                    <th className="px-6 py-4">Tarifa</th>
-                    <th className="px-6 py-4 text-right">
+                  <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
+                    <th className="px-6 py-4 font-medium">Recibo</th>
+                    <th className="px-6 py-4 font-medium">Placa</th>
+                    <th className="px-6 py-4 font-medium">Tipo</th>
+                    <th className="px-6 py-4 font-medium">Detalles</th>
+                    <th className="px-6 py-4 font-medium">Ingreso</th>
+                    <th className="px-6 py-4 font-medium">Salida</th>
+                    <th className="px-6 py-4 font-medium">Tiempo</th>
+                    <th className="px-6 py-4 font-medium">Tarifa</th>
+                    <th className="px-6 py-4 font-medium text-right">
                       Valor Pagado
                     </th>
-                    <th className="px-6 py-4 text-center">
+                    <th className="px-6 py-4 font-medium text-center">
                       Estado
                     </th>
-                    <th className="px-6 py-4 text-center">
+                    <th className="px-6 py-4 font-medium text-center">
                       Acciones
                     </th>
                   </tr>
@@ -1569,29 +1561,21 @@ export default function AdminDashboard({
                   {loading ? (
                     <tr>
                       <td
-                        colSpan={11}
-                        className="px-6 py-20 text-center"
+                        colSpan={10}
+                        className="px-6 py-12 text-center text-slate-500"
                       >
-                        <div className="flex flex-col items-center gap-3">
-                          <Sparkles className="w-10 h-10 text-indigo-600 animate-pulse" />
-                          <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Cargando datos...</p>
-                        </div>
+                        Cargando datos...
                       </td>
                     </tr>
                   ) : filteredHistory.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={11}
-                        className="px-6 py-20 text-center"
+                        colSpan={10}
+                        className="px-6 py-12 text-center text-slate-500"
                       >
-                        <div className="flex flex-col items-center gap-3 opacity-30">
-                          <Search className="w-12 h-12 text-slate-400" />
-                          <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">
-                            {searchHistory
-                              ? "No se encontraron registros con esa búsqueda."
-                              : "No hay registros en el sistema."}
-                          </p>
-                        </div>
+                        {searchHistory
+                          ? "No se encontraron registros con esa búsqueda."
+                          : "No hay registros en el sistema."}
                       </td>
                     </tr>
                   ) : (
@@ -1611,39 +1595,31 @@ export default function AdminDashboard({
                       return (
                         <tr
                           key={session.id}
-                          className="group hover:bg-indigo-50/30 transition-all duration-300"
+                          className="hover:bg-slate-50 transition-colors"
                         >
-                          <td className="px-6 py-5 font-mono text-slate-400 text-[11px] font-bold">
+                          <td className="px-6 py-4 font-mono text-slate-500 text-sm">
                             {session.ticket_number
                               ? `#${session.ticket_number}`
                               : "-"}
                           </td>
-                          <td className="px-6 py-5">
-                            <span className="font-mono font-black text-slate-900 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 text-sm tracking-widest group-hover:bg-white group-hover:shadow-sm transition-all">
-                              {session.license_plate}
-                            </span>
+                          <td className="px-6 py-4 font-mono font-bold text-slate-800">
+                            {session.license_plate}
                           </td>
-                          <td className="px-6 py-5">
-                            <div className="flex items-center gap-2.5">
-                              <div className={`p-2 rounded-lg ${
-                                session.vehicle_type === "car" ? "bg-blue-50 text-blue-600" :
-                                session.vehicle_type === "motorcycle" ? "bg-orange-50 text-orange-600" :
-                                "bg-emerald-50 text-emerald-600"
-                              }`}>
-                                {session.vehicle_type === "car" ? (
-                                  <Car className="w-3.5 h-3.5" />
-                                ) : session.vehicle_type === "motorcycle" ? (
-                                  <Motorbike className="w-3.5 h-3.5" />
-                                ) : (
-                                  <Bike className="w-3.5 h-3.5" />
-                                )}
-                              </div>
-                              <span className="capitalize text-[11px] font-black text-slate-500 uppercase tracking-tighter">
+                          <td className="px-6 py-4">
+                            <div className="flex items-center gap-2 text-slate-600">
+                              {session.vehicle_type === "car" ? (
+                                <Car className="w-4 h-4 text-blue-500" />
+                              ) : session.vehicle_type === "motorcycle" ? (
+                                <Motorbike className="w-4 h-4 text-orange-500" />
+                              ) : (
+                                <Bike className="w-4 h-4 text-green-500" />
+                              )}
+                              <span className="capitalize text-sm">
                                 {session.vehicle_type === "car"
                                   ? "Carro"
                                   : session.vehicle_type === "motorcycle"
                                     ? "Moto"
-                                    : "Bici"}
+                                    : "Bicicleta"}
                               </span>
                             </div>
                           </td>
@@ -1708,47 +1684,47 @@ export default function AdminDashboard({
                               </span>
                             )}
                           </td>
-                          <td className="px-6 py-4 text-xs font-bold text-slate-600 whitespace-nowrap">
+                          <td className="px-6 py-4 text-sm text-slate-600">
                             {format(
                               new Date(session.entry_time),
-                              "dd/MM/yy hh:mm a",
+                              "dd/MM/yy h:mm a",
                             )}
                           </td>
-                          <td className="px-6 py-4 text-xs font-bold text-slate-600 whitespace-nowrap">
+                          <td className="px-6 py-4 text-sm text-slate-600">
                             {isCompleted
                               ? format(
                                   new Date(session.exit_time),
-                                  "dd/MM/yy hh:mm a",
+                                  "dd/MM/yy h:mm a",
                                 )
                               : "-"}
                           </td>
-                          <td className="px-6 py-4 text-xs font-black text-indigo-600 uppercase">
+                          <td className="px-6 py-4 text-sm text-slate-600">
                             {mins} min
                           </td>
-                          <td className="px-6 py-4 text-xs font-bold text-slate-500 italic">
+                          <td className="px-6 py-4 text-sm text-slate-600">
                             {session.rate_name || "-"}
                           </td>
-                          <td className="px-6 py-4 text-right font-black text-slate-900">
+                          <td className="px-6 py-4 text-right font-medium text-slate-800">
                             {isCompleted
                               ? formatCurrency(session.amount_paid)
                               : "-"}
                           </td>
                           <td className="px-6 py-4 text-center">
                             <span
-                              className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                 isCompleted
-                                  ? "bg-emerald-50 text-emerald-600 border border-emerald-100"
-                                  : "bg-indigo-50 text-indigo-600 border border-indigo-100"
+                                  ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                  : "bg-amber-50 text-amber-700 border border-amber-200"
                               }`}
                             >
-                              {isCompleted ? "Completado" : "En Patio"}
+                              {isCompleted ? "Completado" : "Activo"}
                             </span>
                           </td>
                           <td className="px-6 py-4 text-center">
                             {!isCompleted && (
                               <button
                                 onClick={() => setAdminCheckoutSession(session)}
-                                className="px-4 py-2 bg-rose-50 text-rose-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-rose-600 hover:text-white transition-all shadow-sm border border-rose-100"
+                                className="px-3 py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-medium hover:bg-red-100 transition-colors"
                               >
                                 Forzar Salida
                               </button>
@@ -1833,8 +1809,8 @@ export default function AdminDashboard({
       )}
 
       {activeTab === "users" && (
-        <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
-          <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
             <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
               <Users className="w-5 h-5 text-slate-500" />
               Gestión de Usuarios
@@ -1851,11 +1827,11 @@ export default function AdminDashboard({
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                  <tr className="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
-                    <th className="px-6 py-4">Usuario</th>
-                    <th className="px-6 py-4">Rol</th>
-                    <th className="px-6 py-4">Fecha Creación</th>
-                    <th className="px-6 py-4 text-right">Acciones</th>
+                <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
+                  <th className="px-6 py-4 font-medium">Usuario</th>
+                  <th className="px-6 py-4 font-medium">Rol</th>
+                  <th className="px-6 py-4 font-medium">Fecha Creación</th>
+                  <th className="px-6 py-4 font-medium text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -1938,8 +1914,8 @@ export default function AdminDashboard({
       )}
 
       {activeTab === "rates" && (
-        <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
-          <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
             <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
               <Settings className="w-5 h-5 text-slate-500" />
               Gestión de Tarifas
@@ -1956,13 +1932,13 @@ export default function AdminDashboard({
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                  <tr className="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
-                    <th className="px-6 py-4">Nombre</th>
-                    <th className="px-6 py-4">Vehículo</th>
-                    <th className="px-6 py-4">Tipo de Cobro</th>
-                    <th className="px-6 py-4">Valor</th>
-                    <th className="px-6 py-4 text-center">Estado</th>
-                    <th className="px-6 py-4 text-right">Acciones</th>
+                <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
+                  <th className="px-6 py-4 font-medium">Nombre</th>
+                  <th className="px-6 py-4 font-medium">Vehículo</th>
+                  <th className="px-6 py-4 font-medium">Tipo de Cobro</th>
+                  <th className="px-6 py-4 font-medium">Valor</th>
+                  <th className="px-6 py-4 font-medium text-center">Estado</th>
+                  <th className="px-6 py-4 font-medium text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -2075,32 +2051,24 @@ export default function AdminDashboard({
       )}
 
       {activeTab === "private_spots" && (
-        <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-            <h2 className="text-xl font-black text-slate-900 flex items-center gap-3">
-              <div className="p-2 bg-emerald-100 rounded-xl">
-                <Car className="w-6 h-6 text-emerald-600" />
-              </div>
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+            <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+              <Car className="w-5 h-5 text-indigo-600" />
               Gestión de Parqueaderos Privados
             </h2>
           </div>
-          <div className="p-6 sm:p-8">
-            <div className="mb-10 p-6 sm:p-8 bg-gradient-to-br from-slate-50 to-white rounded-[2.5rem] border border-slate-200/60 shadow-inner relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-8 opacity-5">
-                <Plus className="w-32 h-32 text-indigo-600" />
-              </div>
-              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6 relative z-10">
-                <div>
-                  <h3 className="text-lg font-black text-slate-800 tracking-tight">
-                    Asignar Nuevo Parqueadero
-                  </h3>
-                  <p className="text-sm text-slate-500 font-medium mt-1">Completa los datos para reservar un espacio privado.</p>
-                </div>
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto shrink-0">
+          <div className="p-6">
+            <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4">
+                <h3 className="font-medium text-slate-800">
+                  Asignar Nuevo Parqueadero
+                </h3>
+                <div className="flex items-center gap-2">
                   <select
                     value={bulkClearColumn}
                     onChange={(e) => setBulkClearColumn(e.target.value)}
-                    className="px-4 py-2.5 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-red-500 outline-none bg-white text-[11px] font-bold text-slate-700 min-h-[48px] sm:min-h-0 max-w-full sm:max-w-[200px] truncate"
+                    className="px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-sm"
                   >
                     <option value="">Seleccionar columna a vaciar...</option>
                     {privateSpotFields
@@ -2114,7 +2082,7 @@ export default function AdminDashboard({
                   <button
                     onClick={handleBulkClear}
                     disabled={!bulkClearColumn}
-                    className="px-6 py-2.5 bg-red-50 text-red-600 rounded-2xl hover:bg-red-600 hover:text-white font-black transition-all duration-300 disabled:opacity-30 text-[10px] uppercase tracking-widest border border-red-100 shadow-sm min-h-[48px] sm:min-h-0"
+                    className="px-4 py-2 bg-red-100 text-red-700 rounded-xl hover:bg-red-200 font-medium transition-colors disabled:opacity-50 text-sm"
                   >
                     Vaciar Columna
                   </button>
@@ -2182,13 +2150,12 @@ export default function AdminDashboard({
                       )}
                     </div>
                   ))}
-                <div className="md:col-span-2 lg:col-span-3 flex justify-end mt-4">
+                <div className="md:col-span-2 lg:col-span-3 flex justify-end mt-2">
                   <button
                     type="submit"
-                    className="w-full sm:w-auto px-8 py-4 bg-emerald-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-100 hover:shadow-emerald-200 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
+                    className="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium transition-colors"
                   >
-                    <span>Asignar Espacio</span>
-                    <CheckCircle className="w-4 h-4" />
+                    Asignar Espacio
                   </button>
                 </div>
               </form>
@@ -2227,15 +2194,15 @@ export default function AdminDashboard({
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50/50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
+                  <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
                     {privateSpotFields
                       .filter((f) => f.enabled)
                       .map((field) => (
-                        <th key={field.id} className="px-6 py-4">
+                        <th key={field.id} className="px-4 py-3 font-medium">
                           {field.label}
                         </th>
                       ))}
-                    <th className="px-6 py-4 text-right">
+                    <th className="px-4 py-3 font-medium text-right">
                       Acciones
                     </th>
                   </tr>
@@ -2327,21 +2294,18 @@ export default function AdminDashboard({
       )}
 
       {activeTab === "settings" && (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-10">
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
-            <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h2 className="text-xl font-black text-slate-900 flex items-center gap-3">
-                <div className="p-2 bg-indigo-100 rounded-xl">
-                  <Building2 className="w-6 h-6 text-indigo-600" />
-                </div>
-                Configuración del Punto
+        <div className="space-y-6">
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <Building2 className="w-5 h-5 text-indigo-600" />
+                Información del Parqueadero
               </h2>
               <button
                 onClick={saveSuperSettings}
                 disabled={savingSuperSettings}
-                className="px-6 py-3 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-indigo-600 transition-all shadow-lg hover:shadow-indigo-200 disabled:opacity-50 flex items-center gap-2"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
               >
-                {savingSuperSettings ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
                 {savingSuperSettings ? "Guardando..." : "Guardar Cambios"}
               </button>
             </div>
@@ -2354,40 +2318,30 @@ export default function AdminDashboard({
               ) : (
                 <div className="space-y-6 max-w-2xl">
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                        Nombre del Punto
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Nombre del Parqueadero
                       </label>
-                      <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <Building2 className="h-5 w-5 text-slate-300" />
-                        </div>
-                        <input
-                          type="text"
-                          value={parkingLotName}
-                          disabled
-                          className="block w-full pl-12 pr-4 py-4 border border-slate-200 rounded-2xl bg-slate-100/50 text-slate-500 cursor-not-allowed font-bold"
-                          placeholder="Ej. Parqueadero Central"
-                        />
-                      </div>
+                      <input
+                        type="text"
+                        value={parkingLotName}
+                        disabled
+                        className="block w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-100 text-slate-500 cursor-not-allowed"
+                        placeholder="Ej. Parqueadero Central"
+                      />
                     </div>
-                    <div className="space-y-2">
-                      <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                        Identificación NIT
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        NIT / RUT
                       </label>
-                      <div className="relative group">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <Shield className="h-5 w-5 text-slate-300" />
-                        </div>
-                        <input
-                          type="text"
-                          value={parkingLotNit}
-                          disabled
-                          className="block w-full pl-12 pr-4 py-4 border border-slate-200 rounded-2xl bg-slate-100/50 text-slate-500 cursor-not-allowed font-bold"
-                          placeholder="Ej. 900.123.456-7"
-                        />
-                      </div>
+                      <input
+                        type="text"
+                        value={parkingLotNit}
+                        disabled
+                        className="block w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-100 text-slate-500 cursor-not-allowed"
+                        placeholder="Ej. 900.123.456-7"
+                      />
                     </div>
                   </div>
                   <p className="text-xs text-slate-500 mt-1">
@@ -2395,22 +2349,17 @@ export default function AdminDashboard({
                     Super Administrador.
                   </p>
 
-                  <div className="space-y-2">
-                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
-                      Ubicación / Dirección
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Dirección
                     </label>
-                    <div className="relative group">
-                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <Search className="h-5 w-5 text-slate-300" />
-                      </div>
-                      <input
-                        type="text"
-                        value={parkingLotAddress}
-                        onChange={(e) => setParkingLotAddress(e.target.value)}
-                        className="block w-full pl-12 pr-4 py-4 border-2 border-slate-100 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all bg-white font-bold text-slate-800"
-                        placeholder="Ej. Calle Principal 123"
-                      />
-                    </div>
+                    <input
+                      type="text"
+                      value={parkingLotAddress}
+                      onChange={(e) => setParkingLotAddress(e.target.value)}
+                      className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                      placeholder="Ej. Calle Principal 123"
+                    />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
@@ -2451,9 +2400,9 @@ export default function AdminDashboard({
           </div>
 
           {/* Capacity Settings */}
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
-            <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                 <Car className="w-5 h-5 text-indigo-600" />
                 Límites de Capacidad y Tipos de Vehículos
               </h2>
@@ -2625,9 +2574,9 @@ export default function AdminDashboard({
           </div>
 
           {/* Guard Permissions Settings */}
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
-            <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                 <Users className="w-5 h-5 text-indigo-600" />
                 Permisos de Guardas
               </h2>
@@ -2695,9 +2644,9 @@ export default function AdminDashboard({
           </div>
 
           {/* Revenue Settings */}
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
-            <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                 <DollarSign className="w-5 h-5 text-indigo-600" />
                 Cierre de Caja y Visibilidad
               </h2>
@@ -2763,9 +2712,9 @@ export default function AdminDashboard({
           </div>
 
           {/* Special Vehicles */}
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
-            <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                 <Shield className="w-5 h-5 text-indigo-600" />
                 Tarifas Especiales y Mensualidades
               </h2>
@@ -2944,11 +2893,11 @@ export default function AdminDashboard({
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
-            <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                <Settings className="w-5 h-5 text-indigo-600" />
-                Campos de Parqueaderos Privados
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <Settings className="w-5 h-5 text-slate-500" />
+                Configuración de Campos de Parqueaderos Privados
               </h2>
               <button
                 onClick={savePrivateSpotFields}
@@ -3049,10 +2998,10 @@ export default function AdminDashboard({
             </div>
           </div>
 
-          <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-xl border border-white overflow-hidden">
-            <div className="p-6 sm:p-8 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                <Settings className="w-5 h-5 text-indigo-600" />
+          <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                <Settings className="w-5 h-5 text-slate-500" />
                 Configuración de Campos de Ingreso
               </h2>
               <button
