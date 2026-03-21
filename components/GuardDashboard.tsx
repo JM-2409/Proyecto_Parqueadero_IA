@@ -23,6 +23,8 @@ import {
   X,
   Printer,
   Sparkles,
+  Sun,
+  Moon,
 } from "lucide-react";
 import UpdatesModal from "./UpdatesModal";
 import { format, differenceInMinutes, subDays } from "date-fns";
@@ -1089,9 +1091,9 @@ export default function GuardDashboard({
   );
 
   return (
-    <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 pb-20 dark:bg-slate-950 min-h-screen transition-colors duration-300">
+    <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 pb-20 bg-brand-bg/20 dark:bg-slate-950 min-h-screen transition-colors duration-300">
       {/* Header Rediseñado */}
-      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-white dark:border-slate-800 shadow-xl relative overflow-hidden transition-all duration-300 p-4 sm:p-5 rounded-[2.5rem]">
+      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-brand-primary dark:bg-slate-900 backdrop-blur-2xl border border-white/10 shadow-2xl relative overflow-hidden transition-all duration-300 p-4 sm:p-5 rounded-[2.5rem]">
         {/* Lado Izquierdo: Branding */}
         <div className="flex items-center gap-4 group">
           <div className="relative">
@@ -1108,11 +1110,11 @@ export default function GuardDashboard({
             </div>
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 dark:text-white truncate leading-none mb-1">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white truncate leading-none mb-1">
               {globalSettings.name || globalAppName}
             </h1>
-            <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-              <Shield className="w-3.5 h-3.5 text-indigo-500" />
+            <div className="flex items-center gap-1.5 text-white/70">
+              <Shield className="w-3.5 h-3.5 text-brand-accent" />
               <p className="text-xs sm:text-sm font-semibold truncate uppercase tracking-wider opacity-80">
                 Punto de Control
               </p>
@@ -1159,28 +1161,28 @@ export default function GuardDashboard({
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <button
               onClick={toggleDarkMode}
-              className="p-3.5 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:text-indigo-600 transition-all shadow-sm"
+              className="p-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/10 text-white transition-all shadow-sm"
               title={isDarkMode ? "Modo Claro" : "Modo Oscuro"}
             >
               {isDarkMode ? (
-                <Sparkles className="w-5 h-5" />
+                <Sun className="w-5 h-5" />
               ) : (
-                <Clock className="w-5 h-5" />
+                <Moon className="w-5 h-5" />
               )}
             </button>
 
-            <div className="flex-1 sm:flex-none flex items-center gap-3 bg-white dark:bg-slate-800 pl-4 pr-2 py-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm group">
+            <div className="flex-1 sm:flex-none flex items-center gap-3 bg-white/10 pl-4 pr-2 py-1.5 rounded-2xl border border-white/10 shadow-sm group">
               <div className="flex flex-col items-start min-w-0">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">
+                <span className="text-[10px] font-black text-white/50 uppercase tracking-tighter leading-none mb-0.5">
                   Operador en turno
                 </span>
-                <span className="text-sm font-bold text-slate-800 dark:text-white truncate max-w-[120px]">
+                <span className="text-sm font-bold text-white truncate max-w-[120px]">
                   {guardName || "Sin Asignar"}
                 </span>
               </div>
               <button
                 onClick={handleLockScreen}
-                className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 hover:text-indigo-600 transition-all shadow-sm border border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50"
+                className="p-2 rounded-xl hover:bg-white/20 text-white/70 hover:text-white transition-all shadow-sm border border-white/10 bg-white/5"
                 title="Cambiar Turno / Bloquear"
               >
                 <UserCircle className="w-5 h-5" />
@@ -1189,7 +1191,7 @@ export default function GuardDashboard({
 
             <button
               onClick={() => setShowUpdates(true)}
-              className="p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white transition-all duration-300 border border-indigo-100 dark:border-indigo-800 shadow-sm group relative"
+              className="p-3.5 rounded-2xl bg-brand-accent/20 text-brand-accent hover:bg-brand-accent hover:text-white transition-all duration-300 border border-brand-accent/20 shadow-sm group relative"
               title="Novedades"
             >
               <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
@@ -1231,14 +1233,14 @@ export default function GuardDashboard({
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative">
         {/* Formulario de Ingreso */}
         <div
-          className={`lg:col-span-1 ${mobileView === "entry" ? "block" : "hidden lg:block"}`}
+          className={`lg:col-span-4 ${mobileView === "entry" ? "block" : "hidden lg:block"}`}
         >
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 sticky top-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+              <h2 className="text-lg font-bold text-brand-primary dark:text-white flex items-center gap-2 uppercase tracking-tight">
                 <CheckCircle className="w-5 h-5 text-emerald-500" />
                 Registrar Ingreso
               </h2>
@@ -1265,12 +1267,12 @@ export default function GuardDashboard({
                     maxLength={6}
                     value={plate}
                     onChange={handlePlateChange}
-                    className={`block w-full pl-10 pr-3 py-3 border rounded-xl outline-none transition-all font-mono text-lg tracking-wider uppercase ${
+                    className={`block w-full pl-10 pr-3 py-4 border rounded-xl outline-none transition-all font-mono text-2xl tracking-widest uppercase text-center lg:text-left ${
                       plate.length >= 5
                         ? validatePlate(plate, type)
-                          ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10 focus:ring-emerald-500"
+                          ? "border-brand-accent bg-brand-accent/5 focus:ring-brand-accent"
                           : "border-rose-500 bg-rose-50 dark:bg-rose-900/10 focus:ring-rose-500"
-                        : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 focus:ring-indigo-500"
+                        : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 focus:ring-brand-primary"
                     } focus:ring-2`}
                     placeholder="ABC123"
                   />
@@ -1393,35 +1395,37 @@ export default function GuardDashboard({
                   </div>
                 ))}
 
-              <button
-                type="submit"
-                disabled={loading || plate.length < 3 || (type !== "bicycle" && !validatePlate(plate, type))}
-                className="w-full py-3 px-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm mt-4 cursor-pointer"
-              >
-                {loading ? "Registrando..." : "Dar Ingreso"}
-              </button>
+              <div className="lg:static sticky bottom-0 -mx-6 px-6 py-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 lg:border-0 lg:bg-transparent lg:p-0 lg:m-0 z-20 mt-4">
+                <button
+                  type="submit"
+                  disabled={loading || plate.length < 3 || (type !== "bicycle" && !validatePlate(plate, type))}
+                  className="w-full py-4 px-4 rounded-xl bg-brand-accent text-white font-black uppercase tracking-widest hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-brand-accent/20 cursor-pointer text-sm"
+                >
+                  {loading ? "Registrando..." : "Dar Ingreso"}
+                </button>
+              </div>
             </form>
           </div>
         </div>
 
         {/* Lista de Vehículos Activos e Historial */}
         <div
-          className={`lg:col-span-2 ${mobileView === "list" ? "block" : "hidden lg:block"}`}
+          className={`lg:col-span-8 ${mobileView === "list" ? "block" : "hidden lg:block"}`}
         >
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col h-full">
-            <div className="p-5 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 space-y-4">
+            <div className="p-5 border-b border-slate-200 dark:border-slate-800 bg-brand-bg/30 dark:bg-slate-800/50 space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => setActiveTab("active")}
-                    className={`px-4 py-2 rounded-xl font-medium transition-colors ${activeTab === "active" ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-400" : "text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
+                    className={`px-4 py-2 rounded-xl font-bold transition-all text-sm uppercase tracking-wider ${activeTab === "active" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
                   >
                     Vehículos Activos
                   </button>
                   {guardPermissions.show_history && (
                     <button
                       onClick={() => setActiveTab("history")}
-                      className={`px-4 py-2 rounded-xl font-medium transition-colors flex items-center gap-2 ${activeTab === "history" ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-400" : "text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
+                      className={`px-4 py-2 rounded-xl font-bold transition-all text-sm uppercase tracking-wider flex items-center gap-2 ${activeTab === "history" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
                     >
                       <History className="w-4 h-4" />
                       Historial (Minuta)
@@ -1438,7 +1442,7 @@ export default function GuardDashboard({
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Buscar por placa..."
-                      className="block w-full sm:w-64 pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white dark:bg-slate-800 dark:text-white text-sm"
+                      className="block w-full sm:w-64 pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-white dark:bg-slate-800 dark:text-white text-sm"
                     />
                   </div>
                 )}
@@ -1497,7 +1501,7 @@ export default function GuardDashboard({
                                   (r) =>
                                     r.license_plate === session.license_plate,
                                 ) && (
-                                  <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider animate-pulse">
+                                  <span className="bg-brand-accent/10 text-brand-accent px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider animate-pulse border border-brand-accent/20">
                                     Residente
                                   </span>
                                 )}
@@ -1566,7 +1570,7 @@ export default function GuardDashboard({
                                   )}
                                 </span>
                                 <span className="text-slate-300 dark:text-slate-700">•</span>
-                                <span className="font-medium text-indigo-600">
+                                <span className="font-bold text-brand-primary dark:text-brand-accent">
                                   {mins} min
                                 </span>
                               </div>
@@ -1575,7 +1579,7 @@ export default function GuardDashboard({
 
                           <button
                             onClick={() => handleCheckoutClick(session)}
-                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 dark:bg-slate-700 text-white font-medium hover:bg-slate-700 dark:hover:bg-slate-600 transition-colors"
+                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-brand-primary dark:bg-slate-700 text-white font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all shadow-md"
                           >
                             Dar Salida
                           </button>
@@ -1932,8 +1936,8 @@ export default function GuardDashboard({
             </div>
 
             <div className="px-6 pb-8 text-center -mt-6">
-              <div className="w-20 h-20 rounded-3xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center mx-auto mb-4 border border-emerald-100 dark:border-emerald-800 shadow-inner">
-                <CheckCircle className="w-10 h-10 text-emerald-600" />
+              <div className="w-20 h-20 rounded-3xl bg-brand-accent/10 dark:bg-brand-accent/20 flex items-center justify-center mx-auto mb-4 border border-brand-accent/20 shadow-inner">
+                <CheckCircle className="w-10 h-10 text-brand-accent" />
               </div>
               <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1 tracking-tight">
                 Pago Registrado
@@ -2106,7 +2110,7 @@ export default function GuardDashboard({
               <div className="flex flex-col gap-3 px-2">
                 <button
                   onClick={handlePrintReceipt}
-                  className="w-full py-4 rounded-2xl font-bold bg-slate-900 text-white hover:bg-indigo-600 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-indigo-200 group"
+                  className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-brand-primary text-white hover:brightness-110 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg group"
                 >
                   <Printer className="w-5 h-5 group-hover:scale-110 transition-transform" />
                   Imprimir Recibo
@@ -2189,7 +2193,7 @@ export default function GuardDashboard({
 
                   {selectedRateId === "resident" && (
                     <div className="flex justify-between items-center text-sm">
-                      <span className="font-black text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full text-xs uppercase tracking-widest border border-emerald-100">
+                      <span className="font-black text-brand-accent bg-brand-accent/5 px-3 py-1 rounded-full text-xs uppercase tracking-widest border border-brand-accent/20">
                         Vehículo Residente
                       </span>
                     </div>
@@ -2197,17 +2201,17 @@ export default function GuardDashboard({
 
                   {selectedRateId === "special" && (
                     <div className="flex justify-between items-center text-sm">
-                      <span className="font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
+                      <span className="font-bold text-brand-primary dark:text-brand-accent bg-brand-bg/50 px-2 py-0.5 rounded text-xs uppercase tracking-widest">
                         Tarifa Especial
                       </span>
                     </div>
                   )}
 
                   <div className="pt-3 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                    <span className="font-semibold text-slate-800 dark:text-white">
+                    <span className="font-semibold text-slate-800 dark:text-white uppercase tracking-tighter text-sm">
                       Total a Pagar:
                     </span>
-                    <span className="text-2xl font-bold text-indigo-600">
+                    <span className="text-3xl font-black text-brand-primary dark:text-brand-accent">
                       {formatCurrency(currentCost)}
                     </span>
                   </div>
@@ -2237,12 +2241,12 @@ export default function GuardDashboard({
                 <button
                   onClick={handleCheckout}
                   disabled={loading || !selectedRateId}
-                  className={`flex-1 py-3 px-4 rounded-xl text-white font-medium disabled:opacity-50 transition-colors shadow-sm ${confirmAmount ? "bg-emerald-600 hover:bg-emerald-700" : "bg-indigo-600 hover:bg-indigo-700"}`}
+                  className={`flex-1 py-4 px-4 rounded-xl text-white font-black uppercase tracking-widest text-[10px] disabled:opacity-50 transition-all shadow-lg ${confirmAmount ? "bg-brand-accent hover:brightness-110" : "bg-brand-primary hover:brightness-110"}`}
                 >
                   {loading
-                    ? "Procesando..."
+                    ? "..."
                     : confirmAmount
-                      ? "Sí, Dar Salida"
+                      ? "Confirmar Salida"
                       : "Cobrar"}
                 </button>
               </div>

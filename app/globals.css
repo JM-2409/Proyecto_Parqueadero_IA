@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand-primary: #1A4B6B;
+  --color-brand-accent: #1E9A86;
+  --color-brand-bg: #E8F6F6;
+}
+
 @media print {
   html, body {
     height: 100%;
