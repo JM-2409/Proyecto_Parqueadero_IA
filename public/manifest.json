@@ -4,8 +4,8 @@
   "description": "Sistema de Gestión de Parqueaderos",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#4f46e5",
+  "background_color": "#E4F4F3",
+  "theme_color": "#0B3B54",
   "icons": [
     {
       "src": "/logo.png",

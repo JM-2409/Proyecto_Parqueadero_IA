@@ -1395,7 +1395,7 @@ export default function AdminDashboard({
                       <Area
                         type="monotone"
                         dataKey="Ingresos"
-                        stroke={isDarkMode ? "#1E9A86" : "#1A4B6B"}
+                        stroke={isDarkMode ? "#168B7C" : "#0B3B54"}
                         strokeWidth={4}
                         fillOpacity={1}
                         fill="url(#colorRev)"
