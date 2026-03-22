@@ -64,7 +64,7 @@ export default function AdminDashboard({
   toggleDarkMode: () => void;
 }) {
   const [activeTab, setActiveTab] = useState<
-    "dashboard" | "users" | "rates" | "settings" | "private_spots"
+    "dashboard" | "users" | "rates" | "residents" | "settings" | "private_spots"
   >("dashboard");
 
   // Dashboard state
@@ -108,6 +108,22 @@ export default function AdminDashboard({
     show_to_guards: false,
     last_closing: new Date().toISOString(),
   });
+
+  // Residents state
+  const [residentsList, setResidentsList] = useState<any[]>([]);
+  const [loadingResidents, setLoadingResidents] = useState(false);
+  const [showResidentForm, setShowResidentForm] = useState(false);
+  const [editingResident, setEditingResident] = useState<any>(null);
+  const [residentFormLoading, setResidentFormLoading] = useState(false);
+  const [deletingResidentId, setDeletingResidentId] = useState<string | null>(null);
+
+  // Resident form state
+  const [resPlate, setResPlate] = useState("");
+  const [resTower, setResTower] = useState("");
+  const [resApartment, setResApartment] = useState("");
+  const [resOwner, setResOwner] = useState("");
+  const [resPhone, setResPhone] = useState("");
+  const [resIsActive, setResIsActive] = useState(true);
   const [guardPermissions, setGuardPermissions] = useState({
     show_history: false,
     history_days: 1,
@@ -227,6 +243,8 @@ export default function AdminDashboard({
       fetchUsers();
     } else if (activeTab === "rates") {
       fetchRates();
+    } else if (activeTab === "residents") {
+      fetchResidents();
     }
     // fetchSettings is now called on mount and when parkingLotId changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -831,6 +849,100 @@ export default function AdminDashboard({
     setLoadingRates(false);
   };
 
+  const fetchResidents = async () => {
+    setLoadingResidents(true);
+    const { data, error } = await supabase
+      .from("residents")
+      .select("*")
+      .eq("parking_lot_id", parkingLotId)
+      .order("created_at", { ascending: false });
+    if (error) {
+      console.error(error);
+      toast.error("Error al cargar residentes");
+    } else {
+      setResidentsList(data || []);
+    }
+    setLoadingResidents(false);
+  };
+
+  const handleSaveResident = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setResidentFormLoading(true);
+
+    const residentData = {
+      license_plate: resPlate.toUpperCase(),
+      tower: resTower,
+      apartment: resApartment,
+      owner_name: resOwner,
+      phone: resPhone,
+      is_active: resIsActive,
+      parking_lot_id: parkingLotId,
+    };
+
+    try {
+      if (editingResident) {
+        const { error } = await supabase
+          .from("residents")
+          .update(residentData)
+          .eq("id", editingResident.id);
+        if (error) throw error;
+        toast.success("Residente actualizado exitosamente");
+      } else {
+        const { error } = await supabase
+          .from("residents")
+          .insert(residentData);
+        if (error) throw error;
+        toast.success("Residente registrado exitosamente");
+      }
+      setShowResidentForm(false);
+      fetchResidents();
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setResidentFormLoading(false);
+    }
+  };
+
+  const confirmDeleteResident = (id: string) => {
+    setDeletingResidentId(id);
+  };
+
+  const executeDeleteResident = async () => {
+    if (!deletingResidentId) return;
+    const { error } = await supabase
+      .from("residents")
+      .delete()
+      .eq("id", deletingResidentId);
+    if (error) toast.error(error.message);
+    else {
+      toast.success("Residente eliminado");
+      fetchResidents();
+    }
+    setDeletingResidentId(null);
+  };
+
+  const openNewResidentForm = () => {
+    setEditingResident(null);
+    setResPlate("");
+    setResTower("");
+    setResApartment("");
+    setResOwner("");
+    setResPhone("");
+    setResIsActive(true);
+    setShowResidentForm(true);
+  };
+
+  const openEditResidentForm = (r: any) => {
+    setEditingResident(r);
+    setResPlate(r.license_plate);
+    setResTower(r.tower || "");
+    setResApartment(r.apartment);
+    setResOwner(r.owner_name || "");
+    setResPhone(r.phone || "");
+    setResIsActive(r.is_active !== false);
+    setShowResidentForm(true);
+  };
+
   const handleSaveUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setFormLoading(true);
@@ -1172,6 +1284,13 @@ export default function AdminDashboard({
         >
           <DollarSign className="w-4 h-4" />
           Tarifas
+        </button>
+        <button
+          onClick={() => setActiveTab("residents")}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "residents" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
+        >
+          <Users className="w-4 h-4" />
+          Residentes
         </button>
         <button
           onClick={() => setActiveTab("private_spots")}
@@ -1922,6 +2041,92 @@ export default function AdminDashboard({
                               <Trash2 className="w-4 h-4" />
                             </button>
                           )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === "residents" && (
+        <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-white flex items-center gap-2">
+              <Users className="w-5 h-5 text-brand-primary" />
+              Gestión de Residentes
+            </h2>
+            <button
+              onClick={openNewResidentForm}
+              className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all shadow-md flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              Nuevo Residente
+            </button>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-sm border-b border-slate-200 dark:border-slate-800">
+                  <th className="px-6 py-4 font-medium">Placa</th>
+                  <th className="px-6 py-4 font-medium">Ubicación</th>
+                  <th className="px-6 py-4 font-medium">Propietario</th>
+                  <th className="px-6 py-4 font-medium">Teléfono</th>
+                  <th className="px-6 py-4 font-medium text-center">Estado de Pago</th>
+                  <th className="px-6 py-4 font-medium text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {loadingResidents ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                      Cargando residentes...
+                    </td>
+                  </tr>
+                ) : residentsList.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                      No hay residentes registrados.
+                    </td>
+                  </tr>
+                ) : (
+                  residentsList.map((r) => (
+                    <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="px-6 py-4 font-mono font-bold text-slate-800 dark:text-white">
+                        {r.license_plate}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
+                        {r.tower ? `Torre ${r.tower} - ` : ""}Apto {r.apartment}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-800 dark:text-white">
+                        {r.owner_name || "-"}
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">
+                        {r.phone || "-"}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${r.is_active !== false ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-red-50 text-red-700 border border-red-200"}`}>
+                          {r.is_active !== false ? "Al día" : "Mora"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => openEditResidentForm(r)}
+                            className="p-2 text-slate-400 hover:text-brand-primary hover:bg-brand-primary/10 rounded-lg transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => confirmDeleteResident(r.id)}
+                            className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -3563,6 +3768,172 @@ export default function AdminDashboard({
       )}
 
       {/* Delete Rate Confirmation Modal */}
+      {/* Resident Form Modal */}
+      {showResidentForm && (
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto"
+          onClick={() => setShowResidentForm(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-md my-auto animate-in fade-in zoom-in duration-300 relative border border-white/20 dark:border-slate-800 flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+                  <Users className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                  {editingResident ? "Editar Residente" : "Nuevo Residente"}
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowResidentForm(false)}
+                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-all"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 sm:p-8">
+              <form onSubmit={handleSaveResident} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1 uppercase tracking-wider">
+                    Placa
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    maxLength={6}
+                    value={resPlate}
+                    onChange={(e) => setResPlate(e.target.value.toUpperCase())}
+                    className="block w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 dark:text-white font-mono text-lg uppercase"
+                    placeholder="ABC123"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      Torre / Bloque
+                    </label>
+                    <input
+                      type="text"
+                      value={resTower}
+                      onChange={(e) => setResTower(e.target.value)}
+                      className="block w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 dark:text-white"
+                      placeholder="Ej. 1"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                      Apto / Casa
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={resApartment}
+                      onChange={(e) => setResApartment(e.target.value)}
+                      className="block w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 dark:text-white"
+                      placeholder="Ej. 101"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    Propietario
+                  </label>
+                  <input
+                    type="text"
+                    value={resOwner}
+                    onChange={(e) => setResOwner(e.target.value)}
+                    className="block w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 dark:text-white"
+                    placeholder="Nombre completo"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                    Teléfono
+                  </label>
+                  <input
+                    type="tel"
+                    value={resPhone}
+                    onChange={(e) => setResPhone(e.target.value)}
+                    className="block w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 dark:text-white"
+                    placeholder="Número de contacto"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700">
+                  <input
+                    type="checkbox"
+                    id="resIsActive"
+                    checked={resIsActive}
+                    onChange={(e) => setResIsActive(e.target.checked)}
+                    className="w-5 h-5 rounded border-slate-300 text-brand-primary focus:ring-brand-accent"
+                  />
+                  <label htmlFor="resIsActive" className="font-medium text-slate-800 dark:text-slate-200 text-sm">
+                    ¿Pago al día? (Habilitar para ingreso $0)
+                  </label>
+                </div>
+
+                <div className="flex gap-3 pt-6 border-t border-slate-100 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setShowResidentForm(false)}
+                    className="flex-1 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={residentFormLoading}
+                    className="flex-1 py-3 px-4 rounded-xl bg-brand-primary text-white font-black uppercase tracking-widest text-xs hover:brightness-110 disabled:opacity-50 transition-all shadow-md"
+                  >
+                    {residentFormLoading ? "Guardando..." : "Guardar"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Resident Confirmation Modal */}
+      {deletingResidentId && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl shadow-xl max-w-sm w-full overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6 text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Trash2 className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-800 mb-2">
+                ¿Eliminar residente?
+              </h3>
+              <p className="text-slate-600 mb-6 text-sm">
+                Esta acción eliminará el registro del vehículo y ya no se reconocerá como residente en el ingreso.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeletingResidentId(null)}
+                  className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={executeDeleteResident}
+                  className="flex-1 py-2.5 px-4 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 transition-colors shadow-sm"
+                >
+                  Eliminar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {deletingRateId && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-3xl shadow-xl max-w-sm w-full overflow-hidden animate-in fade-in zoom-in duration-200">

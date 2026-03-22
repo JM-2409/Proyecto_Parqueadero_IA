@@ -135,6 +135,23 @@ export default function GuardDashboard({
         setMobileView("entry");
         plateInputRef.current?.focus();
       }
+
+      // Quick type shortcuts: 1=Carro, 2=Moto, 3=Bici (even if focus is not in plate, as long as no other input is focused)
+      if (document.activeElement?.tagName !== "INPUT" && document.activeElement?.tagName !== "TEXTAREA") {
+        if (e.key === "1") setType("car");
+        if (e.key === "2") setType("motorcycle");
+        if (e.key === "3") setType("bicycle");
+      } else if (document.activeElement === plateInputRef.current) {
+        if (e.key === "1") setType("car");
+        if (e.key === "2") setType("motorcycle");
+        if (e.key === "3") setType("bicycle");
+      }
+
+      // Confirm checkout with Enter
+      if (e.key === "Enter" && checkoutSession && !loading) {
+        // If we are in the checkout modal, Enter should trigger handleCheckout
+        handleCheckout();
+      }
     };
 
     window.addEventListener("keydown", handleKeyDown);
@@ -367,12 +384,8 @@ export default function GuardDashboard({
   };
 
   const validatePlate = (plate: string, vehicleType: string) => {
-    if (vehicleType === "car") {
-      return /^[A-Z]{3}[0-9]{3}$/.test(plate);
-    } else if (vehicleType === "motorcycle") {
-      return /^[A-Z]{3}[0-9]{2}[A-Z]$/.test(plate);
-    }
-    return plate.length >= 3; // Basic validation for bicycles or others
+    // Relaxed validation to allow foreign plates and special formats
+    return plate.length >= 3;
   };
 
   const handlePlateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -503,6 +516,11 @@ export default function GuardDashboard({
     }
 
     const resident = residents.find(r => r.license_plate === formattedPlate);
+
+    // Check if resident is in mora
+    if (resident && resident.is_active === false) {
+      toast.error("Vehículo Residente en MORA. Se cobrará como visitante.");
+    }
 
     const sessionMetadata = {
       ...fieldValues,
@@ -705,8 +723,10 @@ export default function GuardDashboard({
     const resident = residents.find(
       (r) => r.license_plate === session.license_plate,
     );
-    if (resident) {
+    if (resident && resident.is_active !== false) {
       setSelectedRateId("resident");
+      // Auto-confirm for active residents
+      setConfirmAmount(true);
       return;
     }
 
@@ -942,7 +962,7 @@ export default function GuardDashboard({
               }
             },
             "image/jpeg",
-            0.8,
+            0.7, // Slightly more compression for enterprise level storage efficiency
           );
         };
       };
