@@ -27,6 +27,9 @@ import {
   Search,
   UserCircle,
   Sparkles,
+  Sun,
+  Moon,
+  PowerOff,
 } from "lucide-react";
 import UpdatesModal from "./UpdatesModal";
 import { format, differenceInMinutes, subDays, parseISO } from "date-fns";
@@ -48,6 +51,8 @@ export default function AdminDashboard({
   parkingLotId,
   onSwitchView,
   currentView,
+  isDarkMode,
+  toggleDarkMode,
 }: {
   user: any;
   onLogout: () => void;
@@ -55,6 +60,8 @@ export default function AdminDashboard({
   parkingLotId: string | null;
   onSwitchView?: (view: "admin" | "guard") => void;
   currentView?: "admin" | "guard";
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
 }) {
   const [activeTab, setActiveTab] = useState<
     "dashboard" | "users" | "rates" | "settings" | "private_spots"
@@ -1038,14 +1045,14 @@ export default function AdminDashboard({
   const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
 
   return (
-    <div className="max-w-7xl mx-auto p-4 md:p-6 pb-20">
-      {/* Header Rediseñado */}
-      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-white/80 backdrop-blur-2xl border border-white shadow-xl relative overflow-hidden transition-all duration-300 p-4 sm:p-5 rounded-[2.5rem]">
+    <div className="max-w-7xl mx-auto p-4 md:p-6 pb-20 transition-colors duration-300">
+      {/* Header Rediseñado - Glassmorphism */}
+      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-white dark:border-slate-800 shadow-xl relative overflow-hidden transition-all duration-300 p-4 sm:p-5 rounded-[2.5rem]">
         {/* Lado Izquierdo: Branding */}
         <div className="flex items-center gap-4 group">
           <div className="relative">
-            <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-600 to-purple-400 rounded-full blur opacity-20 group-hover:opacity-35 transition duration-300"></div>
-            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square bg-white">
+            <div className="absolute -inset-1 bg-gradient-to-tr from-brand-accent to-brand-primary rounded-full blur opacity-20 group-hover:opacity-35 transition duration-300"></div>
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white dark:border-slate-700 shadow-md shrink-0 aspect-square bg-white">
               <img
                 src={globalLogoUrl || "/logo.png"}
                 alt="Logo"
@@ -1057,11 +1064,11 @@ export default function AdminDashboard({
             </div>
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 truncate leading-none mb-1">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-brand-primary dark:text-white truncate leading-none mb-1 uppercase">
               {parkingLotName || globalAppName}
             </h1>
-            <div className="flex items-center gap-1.5 text-slate-500">
-              <Key className="w-3.5 h-3.5 text-indigo-600" />
+            <div className="flex items-center gap-1.5 text-brand-primary/70 dark:text-white/70">
+              <Key className="w-3.5 h-3.5 text-brand-accent" />
               <p className="text-xs sm:text-sm font-semibold truncate uppercase tracking-wider opacity-80">
                 Gestión Administrativa
               </p>
@@ -1071,18 +1078,30 @@ export default function AdminDashboard({
 
         {/* Lado Derecho: Acciones y Usuario */}
         <div className="flex flex-col sm:flex-row items-center gap-3 lg:gap-4">
+          <button
+            onClick={toggleDarkMode}
+            className="p-3.5 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-brand-primary dark:text-white transition-all shadow-sm"
+            title={isDarkMode ? "Modo Claro" : "Modo Oscuro"}
+          >
+            {isDarkMode ? (
+              <Sun className="w-5 h-5" />
+            ) : (
+              <Moon className="w-5 h-5" />
+            )}
+          </button>
+
           {/* Selector de Vista (Si aplica) */}
           {onSwitchView && (
-            <div className="bg-slate-50/50 p-1 rounded-2xl border border-slate-100 flex shadow-inner w-full sm:w-auto">
+            <div className="bg-white dark:bg-slate-800 p-1 rounded-2xl border border-slate-200 dark:border-slate-700 flex shadow-inner w-full sm:w-auto">
               <button
                 onClick={() => onSwitchView("admin")}
-                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all ${currentView === "admin" ? "bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700"}`}
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all ${currentView === "admin" ? "bg-brand-primary text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-brand-primary"}`}
               >
                 Admin
               </button>
               <button
                 onClick={() => onSwitchView("guard")}
-                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all ${currentView === "guard" ? "bg-white text-emerald-600 shadow-sm ring-1 ring-slate-200" : "text-slate-500 hover:text-slate-700"}`}
+                className={`flex-1 sm:flex-none px-4 py-2 rounded-xl text-xs font-bold transition-all ${currentView === "guard" ? "bg-brand-primary text-white shadow-sm" : "text-slate-500 dark:text-slate-400 hover:text-brand-primary"}`}
               >
                 Vigilancia
               </button>
@@ -1091,32 +1110,32 @@ export default function AdminDashboard({
 
           {/* Perfil de Admin y Logout */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="flex-1 sm:flex-none flex items-center gap-3 bg-white pl-4 pr-2 py-1.5 rounded-2xl border border-slate-200 shadow-sm">
+            <div className="flex-1 sm:flex-none flex items-center gap-3 bg-white dark:bg-slate-800 pl-4 pr-2 py-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm group">
               <div className="flex flex-col items-start min-w-0">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">
+                <span className="text-[10px] font-black text-brand-primary/50 dark:text-white/50 uppercase tracking-tighter leading-none mb-0.5">
                   Sesión Iniciada
                 </span>
-                <span className="text-sm font-bold text-slate-800 truncate max-w-[120px]">
+                <span className="text-sm font-bold text-brand-primary dark:text-white truncate max-w-[120px]">
                   {user.email.split("@")[0]}
                 </span>
               </div>
-              <div className="p-2 rounded-xl bg-slate-50 text-indigo-600 border border-slate-100">
+              <div className="p-2 rounded-xl bg-brand-primary/10 dark:bg-brand-primary/20 text-brand-primary dark:text-white border border-brand-primary/10">
                 <UserCircle className="w-5 h-5" />
               </div>
             </div>
 
             <button
               onClick={() => setShowUpdates(true)}
-              className="p-3.5 rounded-2xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all duration-300 border border-indigo-100 shadow-sm group relative"
+              className="p-3.5 rounded-2xl bg-brand-accent/10 text-brand-accent hover:bg-brand-accent hover:text-white transition-all duration-300 border border-brand-accent/20 shadow-sm group relative"
               title="Novedades"
             >
               <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
             </button>
 
             <button
               onClick={onLogout}
-              className="p-3.5 rounded-2xl bg-slate-900 hover:bg-red-600 text-white transition-all duration-300 shadow-lg hover:shadow-red-200 group"
+              className="p-3.5 rounded-2xl bg-brand-primary hover:bg-red-600 text-white transition-all duration-300 shadow-lg hover:shadow-red-200 group"
               title="Cerrar Sesión"
             >
               <LogOut className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
@@ -1132,38 +1151,38 @@ export default function AdminDashboard({
       />
 
       {/* Navigation Tabs */}
-      <div className="flex gap-1.5 sm:gap-2 mb-6 sm:mb-8 bg-white p-1.5 sm:p-2 rounded-2xl shadow-sm border border-slate-200 w-full overflow-x-auto no-scrollbar scroll-smooth sticky top-0 z-30">
+      <div className="flex gap-1.5 sm:gap-2 mb-6 sm:mb-8 bg-white dark:bg-slate-900 p-1.5 sm:p-2 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 w-full overflow-x-auto no-scrollbar scroll-smooth sticky top-0 z-30">
         <button
           onClick={() => setActiveTab("dashboard")}
-          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "dashboard" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "dashboard" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
         >
           <BarChart3 className="w-4 h-4" />
           Resumen
         </button>
         <button
           onClick={() => setActiveTab("users")}
-          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "users" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "users" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
         >
           <Users className="w-4 h-4" />
           Usuarios
         </button>
         <button
           onClick={() => setActiveTab("rates")}
-          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "rates" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "rates" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
         >
           <DollarSign className="w-4 h-4" />
           Tarifas
         </button>
         <button
           onClick={() => setActiveTab("private_spots")}
-          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "private_spots" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "private_spots" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
         >
           <Car className="w-4 h-4" />
           Privados
         </button>
         <button
           onClick={() => setActiveTab("settings")}
-          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm flex items-center gap-2 transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-indigo-600 text-white shadow-md" : "text-slate-600 hover:bg-slate-50"}`}
+          className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
         >
           <Settings className="w-4 h-4" />
           Ajustes
@@ -1174,30 +1193,30 @@ export default function AdminDashboard({
         <>
           {/* Stats Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-5">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-5">
               <div className="w-14 h-14 rounded-2xl bg-emerald-50 flex items-center justify-center">
                 <DollarSign className="w-7 h-7 text-emerald-600" />
               </div>
               <div>
-                <p className="text-sm font-medium text-slate-500 mb-1">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-tight">
                   Ingresos Hoy
                 </p>
-                <h3 className="text-2xl font-bold text-slate-800">
+                <h3 className="text-2xl font-black text-brand-primary dark:text-brand-accent">
                   {formatCurrency(stats.totalRevenue)}
                 </h3>
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-5">
-              <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center">
-                <Car className="w-7 h-7 text-indigo-600" />
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-5">
+              <div className="w-14 h-14 rounded-2xl bg-brand-bg/50 dark:bg-brand-primary/20 flex items-center justify-center">
+                <Car className="w-7 h-7 text-brand-primary dark:text-brand-accent" />
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-slate-500 mb-1">
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1 uppercase tracking-tight">
                   Vehículos Activos
                 </p>
                 <div className="flex items-end gap-3">
-                  <h3 className="text-2xl font-bold text-slate-800">
+                  <h3 className="text-2xl font-black text-slate-800 dark:text-white">
                     {stats.activeVehicles}
                   </h3>
                   <div className="flex gap-3 text-xs text-slate-500 mb-1">
@@ -1222,8 +1241,8 @@ export default function AdminDashboard({
             </div>
 
             <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-5">
-              <div className="w-14 h-14 rounded-2xl bg-blue-50 flex items-center justify-center">
-                <History className="w-7 h-7 text-blue-600" />
+              <div className="w-14 h-14 rounded-2xl bg-brand-primary/5 flex items-center justify-center">
+                <History className="w-7 h-7 text-brand-primary" />
               </div>
               <div>
                 <p className="text-sm font-medium text-slate-500 mb-1">
@@ -1239,7 +1258,7 @@ export default function AdminDashboard({
           {/* Dashboard Charts & Filters Section */}
           <div className="mb-8 space-y-6">
             {/* Improved Filter Bar */}
-            <div className="bg-white/80 backdrop-blur-2xl rounded-3xl p-5 border border-white shadow-xl flex flex-col lg:flex-row justify-between items-center gap-6">
+            <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-3xl p-5 border border-white dark:border-slate-800 shadow-xl flex flex-col lg:flex-row justify-between items-center gap-6">
               <div className="flex flex-wrap items-center justify-center gap-2">
                 {[
                   { label: "Hoy", val: 1 },
@@ -1249,14 +1268,14 @@ export default function AdminDashboard({
                   <button
                     key={f.label}
                     onClick={() => setQuickFilter(f.val)}
-                    className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-50 text-slate-600 border border-slate-100 hover:bg-indigo-50 hover:text-indigo-600 hover:border-indigo-100 transition-all shadow-sm"
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-50 text-slate-600 border border-slate-100 hover:bg-brand-primary/10 hover:text-brand-primary hover:border-brand-primary/20 transition-all shadow-sm"
                   >
                     {f.label}
                   </button>
                 ))}
               </div>
 
-              <div className="flex items-center gap-3 bg-slate-50/50 p-2 rounded-2xl border border-slate-100 shadow-inner">
+              <div className="flex items-center gap-3 bg-slate-50/50 dark:bg-slate-800/50 p-2 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-inner">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter ml-2">
                     Desde
@@ -1265,10 +1284,10 @@ export default function AdminDashboard({
                     type="date"
                     value={chartStartDate}
                     onChange={(e) => setChartStartDate(e.target.value)}
-                    className="bg-transparent border-none text-xs font-bold text-slate-700 focus:ring-0 outline-none p-1 cursor-pointer"
+                    className="bg-transparent border-none text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-0 outline-none p-1 cursor-pointer"
                   />
                 </div>
-                <div className="w-px h-4 bg-slate-200"></div>
+                <div className="w-px h-4 bg-slate-200 dark:bg-slate-700"></div>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">
                     Hasta
@@ -1277,7 +1296,7 @@ export default function AdminDashboard({
                     type="date"
                     value={chartEndDate}
                     onChange={(e) => setChartEndDate(e.target.value)}
-                    className="bg-transparent border-none text-xs font-bold text-slate-700 focus:ring-0 outline-none p-1 cursor-pointer"
+                    className="bg-transparent border-none text-xs font-bold text-slate-700 dark:text-slate-300 focus:ring-0 outline-none p-1 cursor-pointer"
                   />
                 </div>
               </div>
@@ -1286,9 +1305,9 @@ export default function AdminDashboard({
             {/* Split Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Revenue Chart */}
-              <div className="bg-white/80 backdrop-blur-2xl rounded-[2.5rem] p-6 border border-white shadow-2xl relative overflow-hidden group">
+              <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl rounded-[2.5rem] p-6 border border-white dark:border-slate-800 shadow-2xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                  <DollarSign className="w-24 h-24 text-indigo-600" />
+                  <DollarSign className="w-24 h-24 text-brand-primary" />
                 </div>
                 <div className="relative z-10 mb-6">
                   <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
@@ -1296,16 +1315,16 @@ export default function AdminDashboard({
                   </h3>
                   <div className="flex items-baseline justify-between gap-2">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-3xl font-black text-slate-900">
+                    <span className="text-3xl font-black text-slate-900 dark:text-white">
                         Ingresos
                       </span>
-                      <span className="text-xs font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
+                    <span className="text-xs font-bold text-brand-primary dark:text-brand-accent bg-brand-primary/5 dark:bg-brand-accent/10 px-2 py-0.5 rounded-lg border border-brand-primary/10 dark:border-brand-accent/20">
                         COP
                       </span>
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Total Periodo</p>
-                      <p className="text-lg font-black text-indigo-600">
+                    <p className="text-lg font-black text-brand-primary dark:text-brand-accent">
                         {formatCurrency(chartData.reduce((acc, curr) => acc + curr.Ingresos, 0))}
                       </p>
                     </div>
@@ -1360,14 +1379,14 @@ export default function AdminDashboard({
                           borderRadius: "20px",
                           border: "none",
                           boxShadow: "0 20px 25px -5px rgb(0 0 0 / 0.1)",
-                          background: "rgba(255, 255, 255, 0.9)",
+                          background: isDarkMode ? "rgba(15, 23, 42, 0.9)" : "rgba(255, 255, 255, 0.9)",
                           backdropFilter: "blur(10px)",
                           padding: "12px",
                         }}
                         itemStyle={{
                           fontSize: "12px",
                           fontWeight: "bold",
-                          color: "#4f46e5",
+                          color: isDarkMode ? "#168B7C" : "#0B3B54",
                         }}
                         formatter={(value: any) => [
                           formatCurrency(Number(value)),
@@ -1377,7 +1396,7 @@ export default function AdminDashboard({
                       <Area
                         type="monotone"
                         dataKey="Ingresos"
-                        stroke="#6366f1"
+                        stroke={isDarkMode ? "#168B7C" : "#0B3B54"}
                         strokeWidth={4}
                         fillOpacity={1}
                         fill="url(#colorRev)"
@@ -1501,8 +1520,8 @@ export default function AdminDashboard({
           </div>
 
           {/* Historial Table */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-4 sm:p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+            <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-slate-50 dark:bg-slate-800/50">
               <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
                 <History className="w-5 h-5 text-slate-500" />
                 Historial General
@@ -1520,7 +1539,7 @@ export default function AdminDashboard({
                       setCurrentPage(1);
                     }}
                     placeholder="Buscar placa o recibo..."
-                    className="block w-full pl-10 pr-3 py-2.5 sm:py-2 border border-slate-200 rounded-xl sm:rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white text-sm"
+                    className="block w-full pl-10 pr-3 py-2.5 sm:py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-white dark:bg-slate-800 dark:text-white text-sm"
                   />
                 </div>
                 <button
@@ -1528,7 +1547,7 @@ export default function AdminDashboard({
                     setCurrentPage(1);
                     fetchData();
                   }}
-                  className="text-sm font-medium text-indigo-600 hover:text-indigo-700 whitespace-nowrap min-h-[40px]"
+                  className="text-sm font-bold text-brand-primary dark:text-brand-accent hover:opacity-70 whitespace-nowrap min-h-[40px] uppercase tracking-wider"
                 >
                   Actualizar
                 </button>
@@ -1558,7 +1577,7 @@ export default function AdminDashboard({
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {loading ? (
                     <tr>
                       <td
@@ -1609,7 +1628,7 @@ export default function AdminDashboard({
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-2 text-slate-600">
                               {session.vehicle_type === "car" ? (
-                                <Car className="w-4 h-4 text-blue-500" />
+                                <Car className="w-4 h-4 text-brand-primary/50" />
                               ) : session.vehicle_type === "motorcycle" ? (
                                 <Motorbike className="w-4 h-4 text-orange-500" />
                               ) : (
@@ -1670,7 +1689,7 @@ export default function AdminDashboard({
                                     return (
                                       <span
                                         key={key}
-                                        className={`${isNameField ? "text-indigo-700 font-bold" : "text-slate-700 font-medium"}`}
+                                        className={`${isNameField ? "text-brand-primary dark:text-brand-accent font-bold" : "text-slate-700 dark:text-slate-400 font-medium"}`}
                                       >
                                         {isNameField
                                           ? String(value)
@@ -1780,10 +1799,10 @@ export default function AdminDashboard({
                         <button
                           key={pageNum}
                           onClick={() => setCurrentPage(pageNum)}
-                          className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
+                          className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-bold transition-colors ${
                             currentPage === pageNum
-                              ? "bg-indigo-600 text-white"
-                              : "text-slate-600 hover:bg-slate-100"
+                              ? "bg-brand-primary text-white shadow-md"
+                              : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
                           }`}
                         >
                           {pageNum}
@@ -1818,7 +1837,7 @@ export default function AdminDashboard({
             </h2>
             <button
               onClick={openNewUserForm}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm"
+              className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all shadow-md flex items-center gap-2"
             >
               <UserPlus className="w-4 h-4" />
               Nuevo Usuario
@@ -1869,8 +1888,8 @@ export default function AdminDashboard({
                             u.role === "superadmin"
                               ? "bg-amber-50 text-amber-700 border border-amber-200"
                               : u.role === "admin"
-                                ? "bg-purple-50 text-purple-700 border border-purple-200"
-                                : "bg-blue-50 text-blue-700 border border-blue-200"
+                                ? "bg-brand-accent/5 text-brand-accent border border-purple-200"
+                                : "bg-brand-primary/5 text-brand-primary border border-blue-200"
                           }`}
                         >
                           {u.role === "superadmin"
@@ -1888,7 +1907,7 @@ export default function AdminDashboard({
                           {u.role !== "superadmin" && (
                             <button
                               onClick={() => openEditUserForm(u)}
-                              className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                              className="p-2 text-slate-400 hover:text-brand-primary hover:bg-brand-primary/10 rounded-lg transition-colors"
                               title="Editar usuario"
                             >
                               <Edit2 className="w-4 h-4" />
@@ -1923,7 +1942,7 @@ export default function AdminDashboard({
             </h2>
             <button
               onClick={openNewRateForm}
-              className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-medium hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm"
+              className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all shadow-md flex items-center gap-2"
             >
               <Plus className="w-4 h-4" />
               Nueva Tarifa
@@ -1965,7 +1984,7 @@ export default function AdminDashboard({
                   ratesList.map((r, index) => (
                     <tr
                       key={r.id}
-                      className={`transition-colors ${index % 2 === 0 ? "bg-white" : "bg-slate-50/80"} hover:bg-indigo-50/50`}
+                      className={`transition-colors ${index % 2 === 0 ? "bg-white" : "bg-slate-50/80"} hover:bg-brand-primary/10/50`}
                     >
                       <td className="px-6 py-4 font-medium text-slate-800">
                         {r.name}
@@ -1973,14 +1992,14 @@ export default function AdminDashboard({
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2 text-slate-600">
                           {r.vehicle_type === "car" ? (
-                            <Car className="w-4 h-4 text-blue-500" />
+                            <Car className="w-4 h-4 text-brand-primary/50" />
                           ) : r.vehicle_type === "motorcycle" ? (
                             <Motorbike className="w-4 h-4 text-orange-500" />
                           ) : r.vehicle_type === "bicycle" ? (
                             <Bike className="w-4 h-4 text-green-500" />
                           ) : (
                             <div className="flex">
-                              <Car className="w-4 h-4 text-blue-500" />
+                              <Car className="w-4 h-4 text-brand-primary/50" />
                               <Motorbike className="w-4 h-4 text-orange-500" />
                               <Bike className="w-4 h-4 text-green-500" />
                             </div>
@@ -2028,7 +2047,7 @@ export default function AdminDashboard({
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={() => openEditRateForm(r)}
-                            className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            className="p-2 text-slate-400 hover:text-brand-primary hover:bg-brand-primary/10 rounded-lg transition-colors"
                             title="Editar tarifa"
                           >
                             <Edit2 className="w-4 h-4" />
@@ -2055,7 +2074,7 @@ export default function AdminDashboard({
         <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
           <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
             <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-              <Car className="w-5 h-5 text-indigo-600" />
+              <Car className="w-5 h-5 text-brand-primary" />
               Gestión de Parqueaderos Privados
             </h2>
           </div>
@@ -2069,7 +2088,7 @@ export default function AdminDashboard({
                   <select
                     value={bulkClearColumn}
                     onChange={(e) => setBulkClearColumn(e.target.value)}
-                    className="px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-sm"
+                    className="px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none bg-white text-sm"
                   >
                     <option value="">Seleccionar columna a vaciar...</option>
                     {privateSpotFields
@@ -2128,7 +2147,7 @@ export default function AdminDashboard({
                         <select
                           name={field.id}
                           required={field.required}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                          className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none bg-white"
                         >
                           <option value="car">Carro</option>
                           <option value="motorcycle">Moto</option>
@@ -2139,7 +2158,7 @@ export default function AdminDashboard({
                           type="text"
                           name={field.id}
                           required={field.required}
-                          className={`w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none ${field.id === "licensePlate" ? "uppercase" : ""}`}
+                          className={`w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none ${field.id === "licensePlate" ? "uppercase" : ""}`}
                           placeholder={
                             field.id === "spotNumber"
                               ? "Ej. A-12"
@@ -2154,7 +2173,7 @@ export default function AdminDashboard({
                 <div className="md:col-span-2 lg:col-span-3 flex justify-end mt-2">
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-medium transition-colors"
+                    className="px-6 py-3 bg-brand-primary text-white rounded-xl font-black uppercase tracking-widest text-xs hover:brightness-110 transition-all shadow-lg"
                   >
                     Asignar Espacio
                   </button>
@@ -2172,14 +2191,14 @@ export default function AdminDashboard({
                   value={privateSpotsSearch}
                   onChange={(e) => setPrivateSpotsSearch(e.target.value)}
                   placeholder="Buscar por placa, propietario o espacio..."
-                  className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50"
+                  className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none bg-slate-50"
                 />
               </div>
               <div className="sm:w-48">
                 <select
                   value={privateSpotsSort}
                   onChange={(e) => setPrivateSpotsSort(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-slate-50"
+                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none bg-slate-50"
                 >
                   {privateSpotFields
                     .filter((f) => f.enabled)
@@ -2267,7 +2286,7 @@ export default function AdminDashboard({
                                 setEditingSpot(spot);
                                 setShowEditModal(true);
                               }}
-                              className="p-2 text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors mr-2"
+                              className="p-2 text-brand-accent hover:bg-brand-primary/10 rounded-lg transition-colors mr-2"
                               title="Editar asignación"
                             >
                               <Edit2 className="w-4 h-4" />
@@ -2299,13 +2318,13 @@ export default function AdminDashboard({
           <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
               <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <Building2 className="w-5 h-5 text-indigo-600" />
+                <Building2 className="w-5 h-5 text-brand-primary" />
                 Información del Parqueadero
               </h2>
               <button
                 onClick={saveSuperSettings}
                 disabled={savingSuperSettings}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 disabled:opacity-50 transition-all shadow-md"
               >
                 {savingSuperSettings ? "Guardando..." : "Guardar Cambios"}
               </button>
@@ -2358,17 +2377,17 @@ export default function AdminDashboard({
                       type="text"
                       value={parkingLotAddress}
                       onChange={(e) => setParkingLotAddress(e.target.value)}
-                      className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                      className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all bg-slate-50 focus:bg-white"
                       placeholder="Ej. Calle Principal 123"
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 p-4 bg-brand-primary/10 rounded-xl border border-brand-primary/20">
                     <div>
-                      <label className="block text-sm font-medium text-indigo-900 mb-1">
+                      <label className="block text-sm font-medium text-slate-900 mb-1">
                         Plan de Suscripción
                       </label>
-                      <div className="font-semibold text-indigo-700 capitalize">
+                      <div className="font-semibold text-brand-primary capitalize">
                         {parkingLotSubscriptionPlan === "trial"
                           ? "Prueba (Trial)"
                           : parkingLotSubscriptionPlan === "monthly"
@@ -2383,10 +2402,10 @@ export default function AdminDashboard({
                       </div>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-indigo-900 mb-1">
+                      <label className="block text-sm font-medium text-slate-900 mb-1">
                         Fecha de Vencimiento
                       </label>
-                      <div className="font-semibold text-indigo-700">
+                      <div className="font-semibold text-brand-primary">
                         {parkingLotSubscriptionEndDate
                           ? new Date(
                               parkingLotSubscriptionEndDate,
@@ -2404,13 +2423,13 @@ export default function AdminDashboard({
           <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
               <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <Car className="w-5 h-5 text-indigo-600" />
+                <Car className="w-5 h-5 text-brand-primary" />
                 Límites de Capacidad y Tipos de Vehículos
               </h2>
               <button
                 onClick={saveCapacitySettings}
                 disabled={savingSettings}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 disabled:opacity-50 transition-all shadow-md"
               >
                 {savingSettings ? "Guardando..." : "Guardar Cambios"}
               </button>
@@ -2428,7 +2447,7 @@ export default function AdminDashboard({
                         enforce: e.target.checked,
                       })
                     }
-                    className="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                    className="w-5 h-5 text-brand-primary rounded border-slate-300 focus:ring-brand-accent"
                   />
                   <label
                     htmlFor="enforce_capacity"
@@ -2453,7 +2472,7 @@ export default function AdminDashboard({
                             allow_cars: e.target.checked,
                           })
                         }
-                        className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                        className="w-4 h-4 text-brand-primary rounded border-slate-300 focus:ring-brand-accent"
                       />
                       <label
                         htmlFor="allow_cars"
@@ -2477,7 +2496,7 @@ export default function AdminDashboard({
                               capacity_cars: parseInt(e.target.value) || 0,
                             })
                           }
-                          className="block w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                          className="block w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-accent outline-none"
                         />
                       </div>
                     )}
@@ -2496,7 +2515,7 @@ export default function AdminDashboard({
                             allow_motorcycles: e.target.checked,
                           })
                         }
-                        className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                        className="w-4 h-4 text-brand-primary rounded border-slate-300 focus:ring-brand-accent"
                       />
                       <label
                         htmlFor="allow_motorcycles"
@@ -2521,7 +2540,7 @@ export default function AdminDashboard({
                                 parseInt(e.target.value) || 0,
                             })
                           }
-                          className="block w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                          className="block w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-accent outline-none"
                         />
                       </div>
                     )}
@@ -2540,7 +2559,7 @@ export default function AdminDashboard({
                             allow_bicycles: e.target.checked,
                           })
                         }
-                        className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                        className="w-4 h-4 text-brand-primary rounded border-slate-300 focus:ring-brand-accent"
                       />
                       <label
                         htmlFor="allow_bicycles"
@@ -2564,7 +2583,7 @@ export default function AdminDashboard({
                               capacity_bicycles: parseInt(e.target.value) || 0,
                             })
                           }
-                          className="block w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
+                          className="block w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-accent outline-none"
                         />
                       </div>
                     )}
@@ -2578,13 +2597,13 @@ export default function AdminDashboard({
           <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
               <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <Users className="w-5 h-5 text-indigo-600" />
+                <Users className="w-5 h-5 text-brand-primary" />
                 Permisos de Guardas
               </h2>
               <button
                 onClick={saveGuardPermissions}
                 disabled={savingSettings}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 disabled:opacity-50 transition-all shadow-md"
               >
                 {savingSettings ? "Guardando..." : "Guardar Permisos"}
               </button>
@@ -2602,7 +2621,7 @@ export default function AdminDashboard({
                           show_history: e.target.checked,
                         })
                       }
-                      className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      className="w-5 h-5 rounded border-slate-300 text-brand-primary focus:ring-brand-accent"
                     />
                     <span className="font-medium text-slate-800">
                       Permitir a los guardas ver el historial de vehículos
@@ -2627,7 +2646,7 @@ export default function AdminDashboard({
                               history_days: parseInt(e.target.value) || 1,
                             })
                           }
-                          className="w-32 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                          className="w-32 px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none"
                         />
                         <span className="text-slate-500 text-sm">
                           días hacia atrás
@@ -2648,13 +2667,13 @@ export default function AdminDashboard({
           <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
               <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <DollarSign className="w-5 h-5 text-indigo-600" />
+                <DollarSign className="w-5 h-5 text-brand-primary" />
                 Cierre de Caja y Visibilidad
               </h2>
               <button
                 onClick={saveRevenueSettings}
                 disabled={savingSettings}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 disabled:opacity-50 transition-all shadow-md"
               >
                 {savingSettings ? "Guardando..." : "Guardar Cambios"}
               </button>
@@ -2672,7 +2691,7 @@ export default function AdminDashboard({
                         show_to_guards: e.target.checked,
                       })
                     }
-                    className="w-5 h-5 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                    className="w-5 h-5 text-brand-primary rounded border-slate-300 focus:ring-brand-accent"
                   />
                   <label
                     htmlFor="show_to_guards"
@@ -2716,7 +2735,7 @@ export default function AdminDashboard({
           <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
             <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
               <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                <Shield className="w-5 h-5 text-indigo-600" />
+                <Shield className="w-5 h-5 text-brand-primary" />
                 Tarifas Especiales y Mensualidades
               </h2>
             </div>
@@ -2813,7 +2832,7 @@ export default function AdminDashboard({
                 <div className="mt-4 flex justify-end">
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+                    className="px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-primary"
                   >
                     Agregar Vehículo
                   </button>
@@ -2862,7 +2881,7 @@ export default function AdminDashboard({
                           </td>
                           <td className="py-3">
                             <span
-                              className={`px-2 py-1 rounded text-xs font-medium ${v.paid_to_admin ? "bg-blue-50 text-blue-700" : "bg-orange-50 text-orange-700"}`}
+                              className={`px-2 py-1 rounded text-xs font-medium ${v.paid_to_admin ? "bg-brand-primary/5 text-brand-primary" : "bg-orange-50 text-orange-700"}`}
                             >
                               {v.paid_to_admin ? "Administración" : "Vigilante"}
                             </span>
@@ -2903,7 +2922,7 @@ export default function AdminDashboard({
               <button
                 onClick={savePrivateSpotFields}
                 disabled={savingSettings}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 disabled:opacity-50 transition-all shadow-md"
               >
                 {savingSettings ? "Guardando..." : "Guardar Cambios"}
               </button>
@@ -2938,7 +2957,7 @@ export default function AdminDashboard({
                               label: e.target.value,
                             })
                           }
-                          className="block w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white"
+                          className="block w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all bg-white"
                           placeholder="Ej. Espacio, Propietario..."
                         />
                       </div>
@@ -2953,7 +2972,7 @@ export default function AdminDashboard({
                                 required: e.target.checked,
                               })
                             }
-                            className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                            className="w-4 h-4 text-brand-primary rounded border-slate-300 focus:ring-brand-accent"
                           />
                           <span className="text-sm font-medium text-slate-700">
                             Requerido
@@ -2969,7 +2988,7 @@ export default function AdminDashboard({
                                 enabled: e.target.checked,
                               })
                             }
-                            className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                            className="w-4 h-4 text-brand-primary rounded border-slate-300 focus:ring-brand-accent"
                           />
                           <span className="text-sm font-medium text-slate-700">
                             Habilitado
@@ -2989,7 +3008,7 @@ export default function AdminDashboard({
 
                   <button
                     onClick={addPrivateSpotField}
-                    className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-500 font-medium hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
+                    className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-500 font-medium hover:border-brand-accent hover:text-brand-primary hover:bg-brand-primary/10 transition-all flex items-center justify-center gap-2"
                   >
                     <Plus className="w-5 h-5" />
                     Agregar Nuevo Campo
@@ -3008,7 +3027,7 @@ export default function AdminDashboard({
               <button
                 onClick={saveSettings}
                 disabled={savingSettings}
-                className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 disabled:opacity-50 transition-all shadow-md"
               >
                 {savingSettings ? "Guardando..." : "Guardar Cambios"}
               </button>
@@ -3044,7 +3063,7 @@ export default function AdminDashboard({
                               label: e.target.value,
                             })
                           }
-                          className="block w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white"
+                          className="block w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all bg-white"
                           placeholder="Ej. Nombre, Celular, Bloque..."
                         />
                       </div>
@@ -3059,7 +3078,7 @@ export default function AdminDashboard({
                                 required: e.target.checked,
                               })
                             }
-                            className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                            className="w-4 h-4 text-brand-primary rounded border-slate-300 focus:ring-brand-accent"
                           />
                           <span className="text-sm font-medium text-slate-700">
                             Obligatorio
@@ -3095,7 +3114,7 @@ export default function AdminDashboard({
 
                   <button
                     onClick={addEntryField}
-                    className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-500 font-medium hover:border-indigo-300 hover:text-indigo-600 hover:bg-indigo-50 transition-all flex items-center justify-center gap-2"
+                    className="w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-500 font-medium hover:border-brand-accent hover:text-brand-primary hover:bg-brand-primary/10 transition-all flex items-center justify-center gap-2"
                   >
                     <Plus className="w-5 h-5" />
                     Agregar Nuevo Campo
@@ -3113,7 +3132,7 @@ export default function AdminDashboard({
           <div className="bg-white rounded-3xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
             <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <Edit2 className="w-5 h-5 text-indigo-600" />
+                <Edit2 className="w-5 h-5 text-brand-primary" />
                 Editar Parqueadero Privado
               </h2>
               <button
@@ -3163,7 +3182,7 @@ export default function AdminDashboard({
                           name={field.id}
                           defaultValue={editingSpot[field.id]}
                           required={field.required}
-                          className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                          className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none bg-white"
                         >
                           <option value="car">Carro</option>
                           <option value="motorcycle">Moto</option>
@@ -3175,7 +3194,7 @@ export default function AdminDashboard({
                           name={field.id}
                           defaultValue={editingSpot[field.id]}
                           required={field.required}
-                          className={`w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none ${field.id === "licensePlate" ? "uppercase" : ""}`}
+                          className={`w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none ${field.id === "licensePlate" ? "uppercase" : ""}`}
                         />
                       )}
                     </div>
@@ -3193,7 +3212,7 @@ export default function AdminDashboard({
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+                    className="px-6 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all shadow-md"
                   >
                     Guardar Cambios
                   </button>
@@ -3205,35 +3224,41 @@ export default function AdminDashboard({
 
       {/* User Form Modal */}
       {showUserForm && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
-              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                {editingUser ? (
-                  <Edit2 className="w-5 h-5 text-indigo-600" />
-                ) : (
-                  <UserPlus className="w-5 h-5 text-indigo-600" />
-                )}
-                {editingUser ? "Editar Usuario" : "Nuevo Usuario"}
-              </h2>
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto"
+          onClick={() => setShowUserForm(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-md my-auto animate-in fade-in zoom-in duration-300 relative border border-white/20 dark:border-slate-800 flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+                  <Users className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                  {editingUser ? "Editar Usuario" : "Nuevo Usuario"}
+                </h3>
+              </div>
               <button
                 onClick={() => setShowUserForm(false)}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
+                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-all"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6">
+            <div className="flex-1 overflow-y-auto p-6 sm:p-8">
               {formError && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+                <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-red-700 dark:text-red-400 text-sm font-medium">
                   {formError}
                 </div>
               )}
 
-              <form onSubmit={handleSaveUser} className="space-y-4">
+              <form onSubmit={handleSaveUser} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Nombre de Usuario
                   </label>
                   <input
@@ -3242,7 +3267,7 @@ export default function AdminDashboard({
                     disabled={!!editingUser}
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    className="block w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white disabled:opacity-50"
+                    className="block w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 dark:text-white disabled:opacity-50"
                     placeholder="ej. vigilante1"
                   />
                   {editingUser && (
@@ -3253,7 +3278,7 @@ export default function AdminDashboard({
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Contraseña{" "}
                     {editingUser && (
                       <span className="text-slate-400 font-normal">
@@ -3267,47 +3292,47 @@ export default function AdminDashboard({
                     minLength={6}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="block w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                    className="block w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 dark:text-white"
                     placeholder="••••••••"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Rol del Sistema
                   </label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <button
                       type="button"
                       onClick={() => setRole("guard")}
-                      className={`py-2 px-3 rounded-xl border flex items-center justify-center gap-2 transition-all ${role === "guard" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                      className={`py-3 px-4 rounded-2xl border flex items-center justify-center gap-2 transition-all ${role === "guard" ? "border-brand-accent bg-brand-accent/10 text-brand-accent font-bold" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50"}`}
                     >
                       <Shield className="w-4 h-4" />
-                      <span className="font-medium text-sm">Vigilante</span>
+                      <span className="text-sm">Vigilante</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setRole("admin")}
-                      className={`py-2 px-3 rounded-xl border flex items-center justify-center gap-2 transition-all ${role === "admin" ? "border-purple-600 bg-purple-50 text-purple-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                      className={`py-3 px-4 rounded-2xl border flex items-center justify-center gap-2 transition-all ${role === "admin" ? "border-brand-primary bg-brand-primary/10 text-brand-primary font-bold" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50"}`}
                     >
                       <Key className="w-4 h-4" />
-                      <span className="font-medium text-sm">Admin</span>
+                      <span className="text-sm">Admin</span>
                     </button>
                   </div>
                 </div>
 
-                <div className="flex gap-3 pt-4 mt-2 border-t border-slate-100">
+                <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                   <button
                     type="button"
                     onClick={() => setShowUserForm(false)}
-                    className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors"
+                    className="flex-1 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={formLoading}
-                    className="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                    className="flex-1 py-3 px-4 rounded-xl bg-brand-primary text-white font-black uppercase tracking-widest text-xs hover:brightness-110 disabled:opacity-50 transition-all shadow-md"
                   >
                     {formLoading ? "Guardando..." : "Guardar"}
                   </button>
@@ -3320,20 +3345,26 @@ export default function AdminDashboard({
 
       {/* Rate Form Modal */}
       {showRateForm && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
-              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                {editingRate ? (
-                  <Edit2 className="w-5 h-5 text-indigo-600" />
-                ) : (
-                  <Plus className="w-5 h-5 text-indigo-600" />
-                )}
-                {editingRate ? "Editar Tarifa" : "Nueva Tarifa"}
-              </h2>
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto"
+          onClick={() => setShowRateForm(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-md my-auto animate-in fade-in zoom-in duration-300 relative border border-white/20 dark:border-slate-800 flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+                  <DollarSign className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                  {editingRate ? "Editar Tarifa" : "Nueva Tarifa"}
+                </h3>
+              </div>
               <button
                 onClick={() => setShowRateForm(false)}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
+                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-all"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -3341,11 +3372,11 @@ export default function AdminDashboard({
 
             <form
               onSubmit={handleSaveRate}
-              className="p-6 space-y-4 overflow-y-auto"
+              className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 custom-scrollbar"
             >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                       Tipo de Vehículo
                     </label>
                     <select
@@ -3353,7 +3384,7 @@ export default function AdminDashboard({
                       onChange={(e) =>
                         setRateVehicleType(e.target.value as any)
                       }
-                      className="block w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                      className="block w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-white dark:bg-slate-800 dark:text-white"
                     >
                       <option value="all">Todos</option>
                       <option value="car">Carro</option>
@@ -3362,13 +3393,13 @@ export default function AdminDashboard({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                       Tipo de Cobro
                     </label>
                     <select
                       value={rateType}
                       onChange={(e) => setRateType(e.target.value as any)}
-                      className="block w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                      className="block w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-white dark:bg-slate-800 dark:text-white"
                     >
                       <option value="minute">Por Minuto</option>
                       <option value="hour_fraction">Hora y Fracción</option>
@@ -3390,7 +3421,7 @@ export default function AdminDashboard({
                   rateType === "hour_minute" ||
                   rateType === "day_night") && (
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                       {rateType === "day_night"
                         ? "Valor Día"
                         : "Valor de la Primera Hora"}
@@ -3407,7 +3438,7 @@ export default function AdminDashboard({
                         onChange={(e) =>
                           setRateBaseValue(Number(e.target.value))
                         }
-                        className="block w-full pl-8 pr-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                        className="block w-full pl-8 pr-3 py-3 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-white dark:bg-slate-800 dark:text-white"
                       />
                     </div>
                   </div>
@@ -3415,7 +3446,7 @@ export default function AdminDashboard({
 
                 {(rateType === "hour_fraction" || rateType === "day_night") && (
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                       {rateType === "day_night"
                         ? "Minutos de Gracia (No se cobra si entra/sale en este margen)"
                         : "Minutos por Fracción"}
@@ -3426,13 +3457,13 @@ export default function AdminDashboard({
                       min="0"
                       value={rateFraction}
                       onChange={(e) => setRateFraction(Number(e.target.value))}
-                      className="block w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                      className="block w-full px-3 py-3 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-white dark:bg-slate-800 dark:text-white"
                     />
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                     {rateType === "minute"
                       ? "Valor por Minuto"
                       : rateType === "hour_fraction"
@@ -3455,7 +3486,7 @@ export default function AdminDashboard({
                       min="0"
                       value={rateValue}
                       onChange={(e) => setRateValue(Number(e.target.value))}
-                      className="block w-full pl-8 pr-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                      className="block w-full pl-8 pr-3 py-3 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-white dark:bg-slate-800 dark:text-white"
                     />
                   </div>
                 </div>
@@ -3466,28 +3497,28 @@ export default function AdminDashboard({
                     id="rateActive"
                     checked={rateActive}
                     onChange={(e) => setRateActive(e.target.checked)}
-                    className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                    className="w-5 h-5 text-brand-primary rounded border-slate-300 focus:ring-brand-primary"
                   />
                   <label
                     htmlFor="rateActive"
-                    className="text-sm font-medium text-slate-700"
+                    className="text-sm font-medium text-slate-700 dark:text-slate-300"
                   >
                     Tarifa Activa (Visible para vigilantes)
                   </label>
                 </div>
 
-                <div className="flex gap-3 pt-4 mt-2 border-t border-slate-100">
+                <div className="flex gap-3 pt-4 mt-2 border-t border-slate-100 dark:border-slate-800">
                   <button
                     type="button"
                     onClick={() => setShowRateForm(false)}
-                    className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors"
+                    className="flex-1 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
                     disabled={rateFormLoading}
-                    className="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                    className="flex-1 py-3 px-4 rounded-xl bg-brand-primary text-white font-black uppercase tracking-widest text-xs hover:brightness-110 disabled:opacity-50 transition-all shadow-lg"
                   >
                     {rateFormLoading ? "Guardando..." : "Guardar"}
                   </button>
@@ -3567,31 +3598,42 @@ export default function AdminDashboard({
 
       {/* Admin Checkout Modal */}
       {adminCheckoutSession && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
-              <h2 className="text-xl font-bold text-slate-800">
-                Forzar Salida de Vehículo
-              </h2>
+        <div
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto"
+          onClick={() => setAdminCheckoutSession(null)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-md my-auto animate-in fade-in zoom-in duration-300 relative border border-white/20 dark:border-slate-800 flex flex-col max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-red-50 dark:bg-red-900/10 shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-600">
+                  <PowerOff className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                  Forzar Salida
+                </h3>
+              </div>
               <button
                 onClick={() => setAdminCheckoutSession(null)}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
+                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-all"
               >
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <div className="p-6 space-y-4 overflow-y-auto">
-              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <p className="text-sm text-slate-500 mb-1">Placa</p>
-                <p className="text-xl font-mono font-bold text-slate-800">
+            <div className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
+              <div className="p-5 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <p className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Placa del Vehículo</p>
+                <p className="text-2xl font-black text-slate-800 dark:text-white font-mono">
                   {adminCheckoutSession.license_plate}
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Observación (Requerida)
                   </label>
                   <textarea
@@ -3600,19 +3642,19 @@ export default function AdminDashboard({
                     onChange={(e) =>
                       setAdminCheckoutObservation(e.target.value)
                     }
-                    className="block w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all bg-slate-50 focus:bg-white min-h-[100px] resize-none"
+                    className="block w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 dark:text-white min-h-[120px] resize-none"
                     placeholder="Indica la razón por la cual estás forzando la salida de este vehículo..."
                   />
-                  <p className="text-xs text-slate-500 mt-2">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 leading-relaxed">
                     Esta acción marcará el vehículo como completado con valor $0
-                    y guardará tu observación en el registro.
+                    y guardará tu observación en el registro histórico.
                   </p>
                 </div>
 
-                <div className="flex gap-3 pt-4">
+                <div className="flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
                   <button
                     onClick={() => setAdminCheckoutSession(null)}
-                    className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors"
+                    className="flex-1 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
                   >
                     Cancelar
                   </button>
@@ -3621,7 +3663,7 @@ export default function AdminDashboard({
                     disabled={
                       adminCheckoutLoading || !adminCheckoutObservation.trim()
                     }
-                    className="flex-1 py-2.5 px-4 rounded-xl bg-red-600 text-white font-medium hover:bg-red-700 disabled:opacity-50 transition-colors shadow-sm"
+                    className="flex-1 py-3 px-4 rounded-xl bg-red-600 text-white font-black uppercase tracking-widest text-xs hover:bg-red-700 disabled:opacity-50 transition-all shadow-lg flex items-center justify-center gap-2"
                   >
                     {adminCheckoutLoading
                       ? "Procesando..."

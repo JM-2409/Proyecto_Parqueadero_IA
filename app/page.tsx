@@ -23,6 +23,7 @@ export default function Home() {
   const [password, setPassword] = useState('');
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [globalSettings, setGlobalSettings] = useState<{ app_name: string, logo_url: string | null }>({ app_name: 'NexoPark', logo_url: null });
 
   const handleContactSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -60,6 +61,13 @@ export default function Home() {
         setGlobalSettings({ app_name: data.app_name, logo_url: data.logo_url });
       }
     });
+
+    // Dark Mode initialization
+    const storedDarkMode = localStorage.getItem('dark_mode') === 'true';
+    setIsDarkMode(storedDarkMode);
+    if (storedDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
 
     // Check active session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -183,6 +191,17 @@ export default function Home() {
     await supabase.auth.signOut();
   };
 
+  const toggleDarkMode = () => {
+    const newDarkMode = !isDarkMode;
+    setIsDarkMode(newDarkMode);
+    localStorage.setItem('dark_mode', String(newDarkMode));
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
@@ -194,13 +213,13 @@ export default function Home() {
   if (!user) {
     if (!showLogin) {
       return (
-        <div className="min-h-screen bg-white text-slate-900 font-sans">
+        <div className="min-h-screen bg-brand-bg/10 text-slate-900 font-sans transition-colors duration-300">
           {/* Header Rediseñado */}
-          <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl bg-white/80 backdrop-blur-xl border border-slate-200/60 z-50 rounded-[2rem] shadow-lg transition-all duration-300">
+          <header className="fixed top-4 left-1/2 -translate-x-1/2 w-[95%] max-w-7xl bg-white/80 backdrop-blur-xl border border-white z-50 rounded-[2.5rem] shadow-xl transition-all duration-300">
             <div className="px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
               <div className="flex items-center gap-4 cursor-pointer group" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
                 <div className="relative">
-                  <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-indigo-300 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
+                  <div className="absolute -inset-1 bg-gradient-to-tr from-brand-primary to-brand-accent rounded-full blur opacity-20 group-hover:opacity-40 transition duration-300"></div>
                   <div className="relative w-10 h-10 sm:w-14 sm:h-14 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md bg-white">
                     <img
                       src={globalSettings.logo_url || "/logo.png"}
@@ -216,14 +235,14 @@ export default function Home() {
               </div>
               
               <nav className="hidden md:flex items-center gap-1 bg-slate-100/50 p-1 rounded-2xl border border-slate-200/50">
-                <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-indigo-600 hover:bg-white rounded-xl transition-all">Características</button>
-                <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-indigo-600 hover:bg-white rounded-xl transition-all">Precios</button>
-                <button onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-indigo-600 hover:bg-white rounded-xl transition-all">Contacto</button>
+                <button onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-brand-accent hover:bg-white rounded-xl transition-all">Características</button>
+                <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-brand-accent hover:bg-white rounded-xl transition-all">Precios</button>
+                <button onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })} className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-brand-accent hover:bg-white rounded-xl transition-all">Contacto</button>
               </nav>
 
               <button
                 onClick={() => setShowLogin(true)}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 sm:px-8 py-2.5 sm:py-3 rounded-2xl font-black transition-all duration-300 shadow-lg shadow-indigo-200 hover:scale-[1.02] active:scale-95 text-xs sm:text-sm flex items-center gap-2 uppercase tracking-widest"
+                className="bg-brand-accent hover:brightness-110 text-white px-5 sm:px-8 py-2.5 sm:py-3 rounded-2xl font-black transition-all duration-300 shadow-lg shadow-brand-accent/20 hover:scale-[1.02] active:scale-95 text-xs sm:text-sm flex items-center gap-2 uppercase tracking-widest"
               >
                 <span>Acceso</span>
                 <ArrowRight className="w-4 h-4" />
@@ -232,34 +251,34 @@ export default function Home() {
           </header>
 
           {/* Hero Section */}
-          <section className="pt-24 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-slate-900 mb-6">
-              El control total de tu <span className="text-indigo-600">parqueadero</span>
+          <section className="pt-32 sm:pt-40 pb-20 sm:pb-32 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
+            <h1 className="text-4xl sm:text-6xl md:text-7xl font-black tracking-tight text-brand-primary mb-6 uppercase">
+              El control total de tu <span className="text-brand-accent">parqueadero</span>
             </h1>
-            <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-10 leading-relaxed">
+            <p className="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-12 leading-relaxed font-medium">
               Software en la nube diseñado para administrar estacionamientos de manera eficiente. Controla ingresos, salidas, tarifas, mensualidades y cierres de caja en tiempo real.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="bg-slate-900 hover:bg-slate-800 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all shadow-lg hover:shadow-xl">
+              <button onClick={() => document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' })} className="bg-brand-primary hover:brightness-110 text-white px-10 py-4 rounded-[2.5rem] font-black uppercase tracking-widest text-sm transition-all shadow-2xl shadow-brand-primary/20">
                 Ver Planes y Precios
               </button>
             </div>
           </section>
 
           {/* Vision & Mission */}
-          <section className="py-20 bg-slate-50">
+          <section className="py-24 bg-white/40 backdrop-blur-md">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid md:grid-cols-2 gap-12">
-                <div className="bg-white p-10 rounded-3xl shadow-sm border border-slate-100">
-                  <div className="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center mb-6">
-                    <Target className="w-7 h-7 text-indigo-600" />
+                <div className="bg-white/80 backdrop-blur-2xl p-10 rounded-[2.5rem] shadow-xl border border-white group hover:-translate-y-2 transition-transform duration-500">
+                  <div className="w-14 h-14 bg-brand-accent/10 rounded-2xl flex items-center justify-center mb-6">
+                    <Target className="w-7 h-7 text-brand-accent" />
                   </div>
                   <h3 className="text-2xl font-bold mb-4">Nuestra Misión</h3>
                   <p className="text-slate-600 leading-relaxed">
                     Proveer a los administradores de parqueaderos una herramienta tecnológica intuitiva, segura y accesible que simplifique sus operaciones diarias, evite fugas de dinero y mejore la experiencia tanto del personal como de los clientes.
                   </p>
                 </div>
-                <div className="bg-white p-10 rounded-3xl shadow-sm border border-slate-100">
+                <div className="bg-white/80 backdrop-blur-2xl p-10 rounded-[2.5rem] shadow-xl border border-white group hover:-translate-y-2 transition-transform duration-500">
                   <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mb-6">
                     <Eye className="w-7 h-7 text-emerald-600" />
                   </div>
@@ -273,94 +292,101 @@ export default function Home() {
           </section>
 
           {/* Features */}
-          <section className="py-20">
+          <section id="features" className="py-24">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-16">
-                <h2 className="text-3xl font-bold text-slate-900 mb-4">¿Para qué sirve {globalSettings.app_name}?</h2>
-                <p className="text-lg text-slate-600 max-w-2xl mx-auto">Todo lo que necesitas para operar tu negocio sin complicaciones.</p>
+              <div className="text-center mb-20">
+                <h2 className="text-4xl font-black text-brand-primary mb-4 uppercase tracking-tighter">¿Para qué sirve {globalSettings.app_name}?</h2>
+                <p className="text-lg text-slate-500 max-w-2xl mx-auto font-medium">Todo lo que necesitas para operar tu negocio sin complicaciones.</p>
               </div>
-              <div className="grid md:grid-cols-3 gap-8">
-                <div className="p-6 border border-slate-100 rounded-2xl bg-white shadow-sm">
-                  <ShieldCheck className="w-10 h-10 text-indigo-600 mb-4" />
-                  <h4 className="text-xl font-bold mb-2">Control de Seguridad</h4>
-                  <p className="text-slate-600">Registra placas, tipos de vehículos y novedades (rayones, golpes) con evidencia fotográfica al instante.</p>
+              <div className="grid md:grid-cols-3 gap-10">
+                <div className="p-8 bg-white/60 backdrop-blur-xl border border-white rounded-[2.5rem] shadow-lg hover:shadow-2xl transition-all group">
+                  <div className="w-12 h-12 rounded-2xl bg-brand-bg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <ShieldCheck className="w-6 h-6 text-brand-accent" />
+                  </div>
+                  <h4 className="text-xl font-black text-brand-primary mb-3 uppercase tracking-tight">Control de Seguridad</h4>
+                  <p className="text-slate-600 leading-relaxed text-sm font-medium">Registra placas, tipos de vehículos y novedades (rayones, golpes) con evidencia fotográfica al instante.</p>
                 </div>
-                <div className="p-6 border border-slate-100 rounded-2xl bg-white shadow-sm">
-                  <Clock className="w-10 h-10 text-indigo-600 mb-4" />
-                  <h4 className="text-xl font-bold mb-2">Tarifas Flexibles</h4>
-                  <p className="text-slate-600">Configura cobros por minuto, hora, fracción, día o noche. El sistema calcula automáticamente el valor a pagar.</p>
+                <div className="p-8 bg-white/60 backdrop-blur-xl border border-white rounded-[2.5rem] shadow-lg hover:shadow-2xl transition-all group">
+                  <div className="w-12 h-12 rounded-2xl bg-brand-bg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <Clock className="w-6 h-6 text-brand-accent" />
+                  </div>
+                  <h4 className="text-xl font-black text-brand-primary mb-3 uppercase tracking-tight">Tarifas Flexibles</h4>
+                  <p className="text-slate-600 leading-relaxed text-sm font-medium">Configura cobros por minuto, hora, fracción, día o noche. El sistema calcula automáticamente el valor a pagar.</p>
                 </div>
-                <div className="p-6 border border-slate-100 rounded-2xl bg-white shadow-sm">
-                  <BarChart3 className="w-10 h-10 text-indigo-600 mb-4" />
-                  <h4 className="text-xl font-bold mb-2">Reportes y Cierres</h4>
-                  <p className="text-slate-600">Visualiza ingresos en tiempo real, realiza cierres de caja por turno y mantén un historial detallado de operaciones.</p>
+                <div className="p-8 bg-white/60 backdrop-blur-xl border border-white rounded-[2.5rem] shadow-lg hover:shadow-2xl transition-all group">
+                  <div className="w-12 h-12 rounded-2xl bg-brand-bg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <BarChart3 className="w-6 h-6 text-brand-accent" />
+                  </div>
+                  <h4 className="text-xl font-black text-brand-primary mb-3 uppercase tracking-tight">Reportes y Cierres</h4>
+                  <p className="text-slate-600 leading-relaxed text-sm font-medium">Visualiza ingresos en tiempo real, realiza cierres de caja por turno y mantén un historial detallado de operaciones.</p>
                 </div>
               </div>
             </div>
           </section>
 
           {/* Pricing */}
-          <section id="pricing" className="py-20 bg-slate-900 text-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-16">
-                <h2 className="text-3xl md:text-4xl font-bold mb-4">Planes de Suscripción</h2>
-                <p className="text-lg text-slate-400 max-w-2xl mx-auto">Elige el plan que mejor se adapte a tu negocio. Paga de forma segura a través de Bold.</p>
+          <section id="pricing" className="py-24 bg-brand-primary text-white overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-96 h-96 bg-brand-accent rounded-full blur-[150px] opacity-20 -mr-48 -mt-48"></div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+              <div className="text-center mb-20">
+                <h2 className="text-4xl font-black mb-4 uppercase tracking-tighter">Planes de Suscripción</h2>
+                <p className="text-lg text-slate-300 max-w-2xl mx-auto font-medium">Elige el plan que mejor se adapte a tu negocio. Paga de forma segura a través de Bold.</p>
               </div>
               
-              <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              <div className="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto">
                 {/* Mensual */}
-                <div className="bg-slate-800 rounded-3xl p-8 border border-slate-700 flex flex-col">
-                  <h3 className="text-2xl font-bold mb-2">Mensual</h3>
-                  <p className="text-slate-400 mb-6">Ideal para empezar</p>
-                  <div className="mb-6">
-                    <span className="text-4xl font-extrabold">$50.000</span>
-                    <span className="text-slate-400">/mes</span>
+                <div className="bg-slate-800/40 backdrop-blur-xl rounded-[2.5rem] p-10 border border-white/10 flex flex-col hover:bg-slate-800/60 transition-all">
+                  <h3 className="text-2xl font-black mb-2 uppercase tracking-tight">Mensual</h3>
+                  <p className="text-slate-400 mb-8 text-sm font-medium">Ideal para empezar</p>
+                  <div className="mb-10">
+                    <span className="text-5xl font-black">$50.000</span>
+                    <span className="text-slate-400 font-bold">/mes</span>
                   </div>
-                  <ul className="space-y-4 mb-8 flex-1">
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-400" /> <span>Acceso completo</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-400" /> <span>Soporte básico</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-400" /> <span>Actualizaciones</span></li>
+                  <ul className="space-y-5 mb-10 flex-1">
+                    <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Acceso completo</span></li>
+                    <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Soporte básico</span></li>
+                    <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Actualizaciones</span></li>
                   </ul>
-                  <a href="https://checkout.bold.co/payment/LNK_IL54FGTSDC" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors">
+                  <a href="https://checkout.bold.co/payment/LNK_IL54FGTSDC" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-4 px-6 rounded-2xl bg-brand-accent text-white font-black uppercase tracking-widest text-xs hover:brightness-110 transition-all shadow-xl shadow-brand-accent/20">
                     Suscribirse
                   </a>
                 </div>
 
                 {/* Semestral */}
-                <div className="bg-indigo-600 rounded-3xl p-8 border border-indigo-500 flex flex-col relative transform md:-translate-y-4 shadow-2xl">
-                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-indigo-400 text-white px-3 py-1 rounded-full text-sm font-bold tracking-wide">
+                <div className="bg-white rounded-[2.5rem] p-10 border border-white flex flex-col relative transform md:-translate-y-6 shadow-2xl scale-105 z-20">
+                  <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-brand-accent text-white px-5 py-2 rounded-full text-xs font-black tracking-widest uppercase shadow-lg">
                     MÁS POPULAR
                   </div>
-                  <h3 className="text-2xl font-bold mb-2">Semestral</h3>
-                  <p className="text-indigo-200 mb-6">Ahorra un 10%</p>
-                  <div className="mb-6">
-                    <span className="text-4xl font-extrabold">$270.000</span>
-                    <span className="text-indigo-200">/6 meses</span>
+                  <h3 className="text-2xl font-black mb-2 text-brand-primary uppercase tracking-tight">Semestral</h3>
+                  <p className="text-brand-accent font-bold mb-8 text-sm">Ahorra un 10%</p>
+                  <div className="mb-10 text-brand-primary">
+                    <span className="text-5xl font-black">$270.000</span>
+                    <span className="text-slate-400 font-bold">/6 meses</span>
                   </div>
-                  <ul className="space-y-4 mb-8 flex-1">
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-white" /> <span>Acceso completo</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-white" /> <span>Soporte prioritario</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-white" /> <span>Actualizaciones</span></li>
+                  <ul className="space-y-5 mb-10 flex-1">
+                    <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Acceso completo</span></li>
+                    <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Soporte prioritario</span></li>
+                    <li className="flex items-center gap-3 text-sm font-bold text-slate-700"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Actualizaciones</span></li>
                   </ul>
-                  <a href="https://checkout.bold.co/payment/LNK_8O3EX4CD1E" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-white text-indigo-600 font-bold hover:bg-slate-50 transition-colors">
+                  <a href="https://checkout.bold.co/payment/LNK_8O3EX4CD1E" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-4 px-6 rounded-2xl bg-brand-primary text-white font-black uppercase tracking-widest text-xs hover:brightness-110 transition-all shadow-xl shadow-brand-primary/20">
                     Suscribirse
                   </a>
                 </div>
 
                 {/* Anual */}
-                <div className="bg-slate-800 rounded-3xl p-8 border border-slate-700 flex flex-col">
-                  <h3 className="text-2xl font-bold mb-2">Anual</h3>
-                  <p className="text-slate-400 mb-6">Ahorra un 20%</p>
-                  <div className="mb-6">
-                    <span className="text-4xl font-extrabold">$480.000</span>
-                    <span className="text-slate-400">/año</span>
+                <div className="bg-slate-800/40 backdrop-blur-xl rounded-[2.5rem] p-10 border border-white/10 flex flex-col hover:bg-slate-800/60 transition-all">
+                  <h3 className="text-2xl font-black mb-2 uppercase tracking-tight">Anual</h3>
+                  <p className="text-slate-400 mb-8 text-sm font-medium">Ahorra un 20%</p>
+                  <div className="mb-10">
+                    <span className="text-5xl font-black">$480.000</span>
+                    <span className="text-slate-400 font-bold">/año</span>
                   </div>
-                  <ul className="space-y-4 mb-8 flex-1">
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-400" /> <span>Acceso completo</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-400" /> <span>Soporte 24/7</span></li>
-                    <li className="flex items-center gap-3"><CheckCircle2 className="w-5 h-5 text-indigo-400" /> <span>Actualizaciones</span></li>
+                  <ul className="space-y-5 mb-10 flex-1">
+                    <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Acceso completo</span></li>
+                    <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Soporte 24/7</span></li>
+                    <li className="flex items-center gap-3 text-sm font-medium"><CheckCircle2 className="w-5 h-5 text-brand-accent" /> <span>Actualizaciones</span></li>
                   </ul>
-                  <a href="https://checkout.bold.co/payment/LNK_HEOP6AYS3L" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-3 px-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition-colors">
+                  <a href="https://checkout.bold.co/payment/LNK_HEOP6AYS3L" target="_blank" rel="noopener noreferrer" className="w-full block text-center py-4 px-6 rounded-2xl bg-brand-accent text-white font-black uppercase tracking-widest text-xs hover:brightness-110 transition-all shadow-xl shadow-brand-accent/20">
                     Suscribirse
                   </a>
                 </div>
@@ -380,34 +406,34 @@ export default function Home() {
           </section>
 
           {/* Contact Form */}
-          <section className="py-20 bg-white">
+          <section id="contact" className="py-24 bg-brand-bg/10">
             <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl font-bold text-slate-900 mb-4">Contáctanos</h2>
-                <p className="text-lg text-slate-600">¿Tienes dudas o necesitas un plan personalizado? Escríbenos.</p>
+              <div className="text-center mb-16">
+                <h2 className="text-4xl font-black text-brand-primary mb-4 uppercase tracking-tighter">Contáctanos</h2>
+                <p className="text-lg text-slate-500 font-medium">¿Tienes dudas o necesitas un plan personalizado? Escríbenos.</p>
               </div>
-              <form onSubmit={handleContactSubmit} className="space-y-6 bg-slate-50 p-8 rounded-3xl border border-slate-100 shadow-sm">
+              <form onSubmit={handleContactSubmit} className="space-y-6 bg-white/80 backdrop-blur-2xl p-10 rounded-[2.5rem] border border-white shadow-xl">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
                     <label htmlFor="name" className="block text-sm font-medium text-slate-700 mb-1">Nombre Completo</label>
-                    <input type="text" name="name" id="name" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ej. Juan Pérez" />
+                    <input type="text" name="name" id="name" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none transition-all" placeholder="Ej. Juan Pérez" />
                   </div>
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
-                    <input type="email" name="email" id="email" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="ejemplo@correo.com" />
+                    <input type="email" name="email" id="email" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none transition-all" placeholder="ejemplo@correo.com" />
                   </div>
                   <div>
                     <label htmlFor="phone" className="block text-sm font-medium text-slate-700 mb-1">Teléfono (Opcional)</label>
-                    <input type="tel" name="phone" id="phone" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="+57 300 000 0000" />
+                    <input type="tel" name="phone" id="phone" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none transition-all" placeholder="+57 300 000 0000" />
                   </div>
                   <div>
                     <label htmlFor="company" className="block text-sm font-medium text-slate-700 mb-1">Nombre del Parqueadero / Empresa</label>
-                    <input type="text" name="company" id="company" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all" placeholder="Ej. Parqueadero Central" />
+                    <input type="text" name="company" id="company" className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none transition-all" placeholder="Ej. Parqueadero Central" />
                   </div>
                 </div>
                 <div>
                   <label htmlFor="request_type" className="block text-sm font-medium text-slate-700 mb-1">Tipo de Solicitud</label>
-                  <select name="request_type" id="request_type" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all bg-white">
+                  <select name="request_type" id="request_type" required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none transition-all bg-white">
                     <option value="">Selecciona una opción...</option>
                     <option value="Información de planes">Información de planes</option>
                     <option value="Soporte técnico">Soporte técnico</option>
@@ -417,9 +443,9 @@ export default function Home() {
                 </div>
                 <div>
                   <label htmlFor="message" className="block text-sm font-medium text-slate-700 mb-1">Mensaje o Detalles Adicionales</label>
-                  <textarea name="message" id="message" rows={4} required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all resize-none" placeholder="Cuéntanos más sobre lo que necesitas..."></textarea>
+                  <textarea name="message" id="message" rows={4} required className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none transition-all resize-none" placeholder="Cuéntanos más sobre lo que necesitas..."></textarea>
                 </div>
-                <button type="submit" disabled={isSubmittingContact} className="w-full py-4 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                <button type="submit" disabled={isSubmittingContact} className="w-full py-4 bg-brand-accent text-white rounded-xl font-bold hover:brightness-110 transition-all shadow-sm disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                   {isSubmittingContact ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -463,17 +489,17 @@ export default function Home() {
     }
 
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-brand-bg/20 flex flex-col items-center justify-center p-4 relative overflow-hidden">
         {/* Decoración de fondo */}
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
-          <div className="absolute -top-24 -left-24 w-96 h-96 bg-indigo-200 rounded-full blur-[100px] opacity-30"></div>
-          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-purple-200 rounded-full blur-[100px] opacity-30"></div>
+          <div className="absolute -top-24 -left-24 w-96 h-96 bg-brand-primary/20 rounded-full blur-[100px] opacity-30"></div>
+          <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-brand-accent/20 rounded-full blur-[100px] opacity-30"></div>
         </div>
 
         <div className="max-w-md w-full bg-white/80 backdrop-blur-2xl rounded-[2.5rem] shadow-2xl border border-white p-8 sm:p-10 relative z-10 animate-in fade-in zoom-in duration-500">
           <button
             onClick={() => setShowLogin(false)}
-            className="absolute top-8 left-8 p-2 rounded-xl bg-slate-100 text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-sm transition-all active:scale-95"
+            className="absolute top-8 left-8 p-2 rounded-xl bg-brand-bg text-slate-400 hover:text-brand-accent hover:bg-white hover:shadow-sm transition-all active:scale-95"
             title="Volver"
           >
             <ArrowRight className="w-5 h-5 rotate-180" />
@@ -481,7 +507,7 @@ export default function Home() {
 
           <div className="text-center mb-10">
             <div className="relative inline-block group">
-              <div className="absolute -inset-2 bg-gradient-to-tr from-indigo-600 to-indigo-400 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
+              <div className="absolute -inset-2 bg-gradient-to-tr from-brand-primary to-brand-accent rounded-full blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
               <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full flex items-center justify-center mx-auto shadow-xl border-4 border-white overflow-hidden bg-white">
                 <img
                   src={globalSettings.logo_url || "/logo.png"}
@@ -511,14 +537,14 @@ export default function Home() {
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre de Usuario</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-slate-300 group-focus-within:text-indigo-500 transition-colors" />
+                  <User className="h-5 w-5 text-slate-300 group-focus-within:text-brand-accent transition-colors" />
                 </div>
                 <input
                   type="text"
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="block w-full pl-12 pr-4 py-4 bg-slate-100/50 border border-slate-200/50 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all font-bold text-slate-800 placeholder:text-slate-400"
+                  className="block w-full pl-12 pr-4 py-4 bg-slate-100/50 border border-slate-200/50 rounded-2xl focus:ring-4 focus:ring-brand-accent/10 focus:border-brand-accent outline-none transition-all font-bold text-slate-800 placeholder:text-slate-400"
                   placeholder="ej. guard1"
                 />
               </div>
@@ -528,14 +554,14 @@ export default function Home() {
               <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Contraseña Segura</label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-slate-300 group-focus-within:text-indigo-500 transition-colors" />
+                  <Lock className="h-5 w-5 text-slate-300 group-focus-within:text-brand-accent transition-colors" />
                 </div>
                 <input
                   type="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-12 pr-4 py-4 bg-slate-100/50 border border-slate-200/50 rounded-2xl focus:ring-4 focus:ring-indigo-100 focus:border-indigo-500 outline-none transition-all font-bold text-slate-800 placeholder:text-slate-400"
+                  className="block w-full pl-12 pr-4 py-4 bg-slate-100/50 border border-slate-200/50 rounded-2xl focus:ring-4 focus:ring-brand-accent/10 focus:border-brand-accent outline-none transition-all font-bold text-slate-800 placeholder:text-slate-400"
                   placeholder="••••••••"
                 />
               </div>
@@ -544,7 +570,7 @@ export default function Home() {
             <button
               type="submit"
               disabled={authLoading}
-              className="w-full py-4 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black transition-all duration-300 shadow-xl shadow-indigo-200 hover:shadow-indigo-300 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed uppercase tracking-widest text-sm"
+              className="w-full py-4 px-6 rounded-2xl bg-brand-accent hover:brightness-110 text-white font-black transition-all duration-300 shadow-xl shadow-brand-accent/20 hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed uppercase tracking-widest text-sm"
             >
               {authLoading ? (
                 <Loader2 className="w-6 h-6 animate-spin" />
@@ -558,7 +584,7 @@ export default function Home() {
           </form>
 
           <p className="mt-10 text-center text-xs text-slate-400 font-bold uppercase tracking-widest">
-            &copy; {new Date().getFullYear()} {globalSettings.app_name} cloud v2.0
+            &copy; {new Date().getFullYear()} {globalSettings.app_name} cloud v3.0
           </p>
         </div>
       </div>
@@ -578,7 +604,7 @@ export default function Home() {
           </div>
           <h1 className="text-3xl font-black text-slate-900 mb-4 tracking-tighter uppercase">Suscripción Expirada</h1>
           <p className="text-slate-500 mb-10 leading-relaxed font-medium">
-            El tiempo de uso de la plataforma ha culminado. Para continuar utilizando <strong className="text-indigo-600 font-black">{globalSettings.app_name}</strong>, por favor renueva tu suscripción.
+            El tiempo de uso de la plataforma ha culminado. Para continuar utilizando <strong className="text-brand-accent font-black">{globalSettings.app_name}</strong>, por favor renueva tu suscripción.
           </p>
           
           <div className="space-y-4">
@@ -586,7 +612,7 @@ export default function Home() {
               href="https://checkout.bold.co/payment/LNK_IL54FGTSDC"
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full block text-center py-4 px-6 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-black transition-all duration-300 shadow-xl shadow-indigo-200 hover:shadow-indigo-300 hover:scale-[1.02] active:scale-95 uppercase tracking-widest text-sm"
+              className="w-full block text-center py-4 px-6 rounded-2xl bg-brand-accent hover:brightness-110 text-white font-black transition-all duration-300 shadow-xl shadow-brand-accent/20 hover:scale-[1.02] active:scale-95 uppercase tracking-widest text-sm"
             >
               Renovar Suscripción
             </a>
@@ -604,9 +630,14 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-12 pt-6">
+    <main className="min-h-screen bg-brand-bg/20 dark:bg-slate-950 pb-12 pt-6 transition-colors duration-300">
       {viewMode === 'superadmin' ? (
-        <SuperAdminDashboard user={user} onLogout={handleLogout} />
+        <SuperAdminDashboard
+          user={user}
+          onLogout={handleLogout}
+          isDarkMode={isDarkMode}
+          toggleDarkMode={toggleDarkMode}
+        />
       ) : viewMode === 'admin' ? (
         <AdminDashboard 
           user={user} 
@@ -615,6 +646,8 @@ export default function Home() {
           parkingLotId={parkingLotId} 
           onSwitchView={role === 'admin' ? setViewMode : undefined}
           currentView={viewMode}
+          isDarkMode={isDarkMode}
+          toggleDarkMode={toggleDarkMode}
         />
       ) : (
         <GuardDashboard 
@@ -623,6 +656,8 @@ export default function Home() {
           parkingLotId={parkingLotId} 
           onSwitchView={role === 'admin' ? setViewMode : undefined}
           currentView={viewMode as 'admin' | 'guard'}
+          isDarkMode={isDarkMode}
+          toggleDarkMode={toggleDarkMode}
         />
       )}
     </main>

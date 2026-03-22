@@ -23,6 +23,8 @@ import {
   X,
   Printer,
   Sparkles,
+  Sun,
+  Moon,
 } from "lucide-react";
 import UpdatesModal from "./UpdatesModal";
 import { format, differenceInMinutes, subDays } from "date-fns";
@@ -34,12 +36,16 @@ export default function GuardDashboard({
   parkingLotId,
   onSwitchView,
   currentView,
+  isDarkMode,
+  toggleDarkMode,
 }: {
   user: any;
   onLogout: () => void;
   parkingLotId: string | null;
   onSwitchView?: (view: "admin" | "guard") => void;
   currentView?: "admin" | "guard";
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
 }) {
   const [activeTab, setActiveTab] = useState<"active" | "history">("active");
   const [mobileView, setMobileView] = useState<"entry" | "list">("entry");
@@ -59,6 +65,7 @@ export default function GuardDashboard({
     last_closing: null,
   });
   const [specialVehicles, setSpecialVehicles] = useState<any[]>([]);
+  const [residents, setResidents] = useState<any[]>([]);
   const [privateSpots, setPrivateSpots] = useState<any[]>([]);
   const [privateSpotFields, setPrivateSpotFields] = useState<any[]>([
     { id: "spotNumber", label: "Espacio", required: true, enabled: true },
@@ -88,6 +95,8 @@ export default function GuardDashboard({
   const [currentTime, setCurrentTime] = useState(new Date());
   const [searchQuery, setSearchQuery] = useState("");
   const [autoCompleted, setAutoCompleted] = useState(false);
+
+  const plateInputRef = useRef<HTMLInputElement>(null);
 
   // Guard Name / Shift Management
   const [guardName, setGuardName] = useState("");
@@ -120,6 +129,19 @@ export default function GuardDashboard({
   }, []);
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey && e.key === "k") || e.key === "F2") {
+        e.preventDefault();
+        setMobileView("entry");
+        plateInputRef.current?.focus();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  useEffect(() => {
     const allowCars = capacitySettings?.allow_cars !== false;
     const allowMotorcycles = capacitySettings?.allow_motorcycles !== false;
     const allowBicycles = capacitySettings?.allow_bicycles === true;
@@ -140,6 +162,7 @@ export default function GuardDashboard({
     fetchActiveRates();
     fetchSettings();
     fetchGlobalSettings();
+    fetchResidents();
 
     // Refresh times every minute without re-fetching data
     const interval = setInterval(() => {
@@ -333,6 +356,25 @@ export default function GuardDashboard({
     if (data) setRates(data);
   };
 
+  const fetchResidents = async () => {
+    const { data, error } = await supabase
+      .from("residents")
+      .select("*")
+      .eq("parking_lot_id", parkingLotId);
+    if (!error && data) {
+      setResidents(data);
+    }
+  };
+
+  const validatePlate = (plate: string, vehicleType: string) => {
+    if (vehicleType === "car") {
+      return /^[A-Z]{3}[0-9]{3}$/.test(plate);
+    } else if (vehicleType === "motorcycle") {
+      return /^[A-Z]{3}[0-9]{2}[A-Z]$/.test(plate);
+    }
+    return plate.length >= 3; // Basic validation for bicycles or others
+  };
+
   const handlePlateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
     setPlate(val);
@@ -366,6 +408,9 @@ export default function GuardDashboard({
           if (data) {
             setType(data.vehicle_type);
 
+            // If it's a resident, we might want to prioritize their resident data or at least mark it
+            const resident = residents.find(r => r.license_plate === val);
+
             if (data.metadata && typeof data.metadata === "object") {
               const filteredMetadata = { ...data.metadata };
               // Limpiamos campos internos que no queremos autocompletar
@@ -378,9 +423,24 @@ export default function GuardDashboard({
               ];
               internalFields.forEach((field) => delete filteredMetadata[field]);
 
+              if (resident) {
+                filteredMetadata.resident_info = `${resident.tower} - ${resident.apartment}`;
+                filteredMetadata.owner_name = resident.owner_name;
+              }
+
               setFieldValues(filteredMetadata);
             }
             setAutoCompleted(true);
+          } else {
+            // Check if it's a resident even if no previous session
+            const resident = residents.find(r => r.license_plate === val);
+            if (resident) {
+              setFieldValues({
+                resident_info: `${resident.tower} - ${resident.apartment}`,
+                owner_name: resident.owner_name,
+              });
+              setAutoCompleted(true);
+            }
           }
         } catch (err) {
           console.error("Unexpected error during autocomplete:", err);
@@ -442,6 +502,8 @@ export default function GuardDashboard({
       return;
     }
 
+    const resident = residents.find(r => r.license_plate === formattedPlate);
+
     const sessionMetadata = {
       ...fieldValues,
       guard_name: guardName,
@@ -455,21 +517,47 @@ export default function GuardDashboard({
         guard_id: user.id,
         metadata: sessionMetadata,
         parking_lot_id: parkingLotId,
+        is_resident: !!resident,
       })
       .select()
       .single();
 
     if (!error && newSession) {
+      // Configurar sesión para renderizado del recibo (invisible)
+      const sessionForReceipt = {
+        ...newSession,
+        entry_time: new Date().toISOString(),
+        rate: { name: "Ingreso Registrado" },
+        amount_paid: 0,
+      };
+      setCompletedSession(sessionForReceipt);
+
+      // Auto-print receipt on entry
+      setTimeout(() => {
+        handlePrintReceipt();
+        // Limpiar después de imprimir para no dejar el modal abierto
+        setTimeout(() => setCompletedSession(null), 2000);
+      }, 500);
+
       if (hasEntryNovelty && entryNoveltyObservation.trim()) {
         let photoUrl = null;
         if (entryNoveltyPhoto) {
-          const fileExt = entryNoveltyPhoto.name.split(".").pop();
+          let photoToUpload: Blob | File = entryNoveltyPhoto;
+          if (entryNoveltyPhoto.size > 1024 * 1024) {
+            try {
+              photoToUpload = await compressImage(entryNoveltyPhoto);
+            } catch (err) {
+              console.error("Compression failed", err);
+            }
+          }
+
+          const fileExt = "jpg";
           const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
           const filePath = `${parkingLotId}/${newSession.id}/${fileName}`;
 
           const { error: uploadError } = await supabase.storage
             .from("novelties")
-            .upload(filePath, entryNoveltyPhoto);
+            .upload(filePath, photoToUpload, { contentType: "image/jpeg" });
 
           if (!uploadError) {
             const { data: publicUrlData } = supabase.storage
@@ -497,9 +585,6 @@ export default function GuardDashboard({
       setEntryNoveltyPhoto(null);
       setMobileView("list");
       fetchActiveSessions();
-      toast.success(
-        `Ingreso registrado exitosamente.\nNúmero de Recibo: ${newSession.ticket_number}`,
-      );
     } else {
       if (error?.code === "23505") {
         toast.error(
@@ -617,6 +702,14 @@ export default function GuardDashboard({
     setCheckoutSession(session);
     setConfirmAmount(false);
 
+    const resident = residents.find(
+      (r) => r.license_plate === session.license_plate,
+    );
+    if (resident) {
+      setSelectedRateId("resident");
+      return;
+    }
+
     const specialVehicle = specialVehicles.find(
       (v) => v.plate === session.license_plate,
     );
@@ -654,7 +747,9 @@ export default function GuardDashboard({
     setLoading(true);
 
     let cost = 0;
-    if (selectedRateId === "special") {
+    if (selectedRateId === "resident") {
+      cost = 0;
+    } else if (selectedRateId === "special") {
       const specialVehicle = specialVehicles.find(
         (v) => v.plate === checkoutSession.license_plate,
       );
@@ -681,24 +776,38 @@ export default function GuardDashboard({
         amount_paid: cost,
         rate_id: selectedRateId === "special" ? null : selectedRateId,
         rate_name:
-          selectedRateId === "special"
-            ? "Tarifa Especial"
-            : rates.find((r) => r.id === selectedRateId)?.name || "Desconocida",
+          selectedRateId === "resident"
+            ? "Residente (Exento)"
+            : selectedRateId === "special"
+              ? "Tarifa Especial"
+              : rates.find((r) => r.id === selectedRateId)?.name ||
+                "Desconocida",
         metadata: updatedMetadata,
       })
       .eq("id", checkoutSession.id);
 
     if (!error) {
       setCheckoutSession(null);
-      setCompletedSession({
+      const sessionForReceipt = {
         ...checkoutSession,
         exit_time: new Date().toISOString(),
         amount_paid: cost,
         rate:
-          selectedRateId === "special"
-            ? { name: "Tarifa Especial" }
-            : rates.find((r) => r.id === selectedRateId),
-      });
+          selectedRateId === "resident"
+            ? { name: "Residente (Exento)" }
+            : selectedRateId === "special"
+              ? { name: "Tarifa Especial" }
+              : rates.find((r) => r.id === selectedRateId),
+      };
+      setCompletedSession(sessionForReceipt);
+
+      // Auto-print on checkout
+      setTimeout(() => {
+        handlePrintReceipt();
+        // Limpiar después de imprimir para no dejar el modal abierto
+        setTimeout(() => setCompletedSession(null), 2000);
+      }, 500);
+
       fetchActiveSessions();
       if (revenueSettings?.show_to_guards) {
         fetchTotalRevenue(revenueSettings.last_closing);
@@ -794,6 +903,53 @@ export default function GuardDashboard({
     setNoveltyLoading(false);
   };
 
+  const compressImage = async (file: File): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          const MAX_WIDTH = 1280;
+          const MAX_HEIGHT = 720;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(img, 0, 0, width, height);
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                resolve(blob);
+              } else {
+                reject(new Error("Canvas to Blob conversion failed"));
+              }
+            },
+            "image/jpeg",
+            0.8,
+          );
+        };
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const handleSaveNovelty = async () => {
     if (!newNoveltyObservation.trim()) {
       toast.error("Por favor, ingresa una observación.");
@@ -804,13 +960,22 @@ export default function GuardDashboard({
     let photoUrl = null;
 
     if (newNoveltyPhoto) {
-      const fileExt = newNoveltyPhoto.name.split(".").pop();
+      let photoToUpload: Blob | File = newNoveltyPhoto;
+      if (newNoveltyPhoto.size > 1024 * 1024) {
+        try {
+          photoToUpload = await compressImage(newNoveltyPhoto);
+        } catch (err) {
+          console.error("Compression failed", err);
+        }
+      }
+
+      const fileExt = "jpg";
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `${parkingLotId}/${noveltyModalVehicle.plate || noveltyModalVehicle.license_plate}/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
         .from("novelties")
-        .upload(filePath, newNoveltyPhoto);
+        .upload(filePath, photoToUpload, { contentType: "image/jpeg" });
 
       if (!uploadError) {
         const { data: publicUrlData } = supabase.storage
@@ -846,7 +1011,36 @@ export default function GuardDashboard({
   };
 
   const handlePrintReceipt = () => {
-    const receiptElement = document.getElementById("receipt-content"); if (!receiptElement) return; const iframe = document.createElement("iframe"); iframe.style.display = "none"; document.body.appendChild(iframe); const iframeDoc = iframe.contentWindow?.document; if (!iframeDoc) return; const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]')).map((el) => el.outerHTML).join("\n"); iframeDoc.write("<html><head><title>Recibo</title>" + styles + "<style>@page { size: auto; margin: 0mm; } body { margin: 0; padding: 20px; background: white; } #receipt-content { transform: none !important; margin: 0 auto; box-shadow: none !important; border: none !important; }</style></head><body>" + receiptElement.outerHTML + "</body></html>"); iframeDoc.close(); iframe.contentWindow?.focus(); setTimeout(() => { iframe.contentWindow?.print(); setTimeout(() => { document.body.removeChild(iframe); }, 1000); }, 500);
+    const receiptElement = document.getElementById("receipt-content");
+    if (!receiptElement) return;
+
+    const iframe = document.createElement("iframe");
+    iframe.style.display = "none";
+    document.body.appendChild(iframe);
+    const iframeDoc = iframe.contentWindow?.document;
+    if (!iframeDoc) return;
+
+    const styles = Array.from(
+      document.querySelectorAll('style, link[rel="stylesheet"]'),
+    )
+      .map((el) => el.outerHTML)
+      .join("\n");
+
+    iframeDoc.write(
+      "<html><head><title>Recibo</title>" +
+        styles +
+        "<style>@page { size: auto; margin: 0mm; } body { margin: 0; padding: 20px; background: white; } #receipt-content { transform: none !important; margin: 0 auto; box-shadow: none !important; border: none !important; width: 100% !important; max-width: 300px !important; }</style></head><body>" +
+        receiptElement.outerHTML +
+        "</body></html>",
+    );
+    iframeDoc.close();
+    iframe.contentWindow?.focus();
+    setTimeout(() => {
+      iframe.contentWindow?.print();
+      setTimeout(() => {
+        document.body.removeChild(iframe);
+      }, 1000);
+    }, 500);
   };
 
   const applicableRates = checkoutSession
@@ -859,7 +1053,9 @@ export default function GuardDashboard({
 
   let currentCost = 0;
   if (checkoutSession) {
-    if (selectedRateId === "special") {
+    if (selectedRateId === "resident") {
+      currentCost = 0;
+    } else if (selectedRateId === "special") {
       const specialVehicle = specialVehicles.find(
         (v) => v.plate === checkoutSession.license_plate,
       );
@@ -881,14 +1077,14 @@ export default function GuardDashboard({
   );
 
   return (
-    <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 pb-20">
-      {/* Header Rediseñado */}
-      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-white/80 backdrop-blur-2xl border border-white shadow-xl relative overflow-hidden transition-all duration-300 p-4 sm:p-5 rounded-[2.5rem]">
+    <div className="max-w-7xl mx-auto p-3 sm:p-4 md:p-6 pb-20 transition-colors duration-300">
+      {/* Header Rediseñado - Glassmorphism */}
+      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-white dark:border-slate-800 shadow-xl relative overflow-hidden transition-all duration-300 p-4 sm:p-5 rounded-[2.5rem]">
         {/* Lado Izquierdo: Branding */}
         <div className="flex items-center gap-4 group">
           <div className="relative">
-            <div className="absolute -inset-1 bg-gradient-to-tr from-indigo-500 to-indigo-300 rounded-full blur opacity-25 group-hover:opacity-40 transition duration-300"></div>
-            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square bg-white">
+            <div className="absolute -inset-1 bg-gradient-to-tr from-brand-accent to-brand-primary rounded-full blur opacity-20 group-hover:opacity-35 transition duration-300"></div>
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white dark:border-slate-700 shadow-md shrink-0 aspect-square bg-white">
               <img
                 src={globalLogoUrl || "/logo.png"}
                 alt="Logo"
@@ -900,11 +1096,11 @@ export default function GuardDashboard({
             </div>
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 truncate leading-none mb-1">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-brand-primary dark:text-white truncate leading-none mb-1 uppercase">
               {globalSettings.name || globalAppName}
             </h1>
-            <div className="flex items-center gap-1.5 text-slate-500">
-              <Shield className="w-3.5 h-3.5 text-indigo-500" />
+            <div className="flex items-center gap-1.5 text-brand-primary/70 dark:text-white/70">
+              <Shield className="w-3.5 h-3.5 text-brand-accent" />
               <p className="text-xs sm:text-sm font-semibold truncate uppercase tracking-wider opacity-80">
                 Punto de Control
               </p>
@@ -915,18 +1111,18 @@ export default function GuardDashboard({
         {/* Lado Derecho: Acciones y Usuario */}
         <div className="flex flex-col sm:flex-row items-center gap-3 lg:gap-4">
           {/* Centro de Acciones Rápidas */}
-          <div className="flex items-center gap-2 bg-slate-50/50 p-1.5 rounded-2xl border border-slate-100 w-full sm:w-auto overflow-x-auto no-scrollbar shadow-inner">
+          <div className="flex items-center gap-2 bg-slate-50/50 dark:bg-slate-800/50 p-1.5 rounded-2xl border border-slate-100 dark:border-slate-800 w-full sm:w-auto overflow-x-auto no-scrollbar shadow-inner">
             {onSwitchView && (
-              <div className="bg-white rounded-xl p-1 flex border border-slate-200 shadow-sm shrink-0">
+              <div className="bg-white dark:bg-slate-800 rounded-xl p-1 flex border border-slate-200 dark:border-slate-700 shadow-sm shrink-0">
                 <button
                   onClick={() => onSwitchView("admin")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentView === "admin" ? "bg-indigo-600 text-white shadow-md" : "text-slate-500 hover:text-slate-800"}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentView === "admin" ? "bg-brand-primary text-white shadow-md" : "text-slate-500 dark:text-slate-400 hover:text-brand-primary"}`}
                 >
                   Admin
                 </button>
                 <button
                   onClick={() => onSwitchView("guard")}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentView === "guard" ? "bg-indigo-600 text-white shadow-md" : "text-slate-500 hover:text-slate-800"}`}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${currentView === "guard" ? "bg-brand-primary text-white shadow-md" : "text-slate-500 dark:text-slate-400 hover:text-brand-primary"}`}
                 >
                   Vigilancia
                 </button>
@@ -934,7 +1130,7 @@ export default function GuardDashboard({
             )}
             <button
               onClick={() => setShowPrivateSpots(true)}
-              className="px-4 py-2 rounded-xl flex items-center gap-2 bg-white text-slate-700 hover:bg-indigo-50 hover:text-indigo-600 border border-slate-200 transition-all font-bold text-xs shadow-sm shrink-0"
+              className="px-4 py-2 rounded-xl flex items-center gap-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-accent/10 dark:hover:bg-brand-accent/20 hover:text-brand-accent border border-slate-200 dark:border-slate-700 transition-all font-bold text-xs shadow-sm shrink-0"
             >
               <Car className="w-3.5 h-3.5" />
               <span>Privados</span>
@@ -949,18 +1145,30 @@ export default function GuardDashboard({
 
           {/* Perfil de Usuario y Logout */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <div className="flex-1 sm:flex-none flex items-center gap-3 bg-white pl-4 pr-2 py-1.5 rounded-2xl border border-slate-200 shadow-sm group">
+            <button
+              onClick={toggleDarkMode}
+              className="p-3.5 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-brand-primary dark:text-white transition-all shadow-sm"
+              title={isDarkMode ? "Modo Claro" : "Modo Oscuro"}
+            >
+              {isDarkMode ? (
+                <Sun className="w-5 h-5" />
+              ) : (
+                <Moon className="w-5 h-5" />
+              )}
+            </button>
+
+            <div className="flex-1 sm:flex-none flex items-center gap-3 bg-white dark:bg-slate-800 pl-4 pr-2 py-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm group">
               <div className="flex flex-col items-start min-w-0">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">
+                <span className="text-[10px] font-black text-brand-primary/50 dark:text-white/50 uppercase tracking-tighter leading-none mb-0.5">
                   Operador en turno
                 </span>
-                <span className="text-sm font-bold text-slate-800 truncate max-w-[120px]">
+                <span className="text-sm font-bold text-brand-primary dark:text-white truncate max-w-[120px]">
                   {guardName || "Sin Asignar"}
                 </span>
               </div>
               <button
                 onClick={handleLockScreen}
-                className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-all shadow-sm border border-slate-100 bg-slate-50/50"
+                className="p-2 rounded-xl bg-brand-primary/10 dark:bg-brand-primary/20 text-brand-primary dark:text-white transition-all shadow-sm border border-brand-primary/10"
                 title="Cambiar Turno / Bloquear"
               >
                 <UserCircle className="w-5 h-5" />
@@ -969,16 +1177,16 @@ export default function GuardDashboard({
 
             <button
               onClick={() => setShowUpdates(true)}
-              className="p-3.5 rounded-2xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all duration-300 border border-indigo-100 shadow-sm group relative"
+              className="p-3.5 rounded-2xl bg-brand-accent/10 text-brand-accent hover:bg-brand-accent hover:text-white transition-all duration-300 border border-brand-accent/20 shadow-sm group relative"
               title="Novedades"
             >
               <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
             </button>
 
             <button
               onClick={onLogout}
-              className="p-3.5 rounded-2xl bg-slate-900 hover:bg-red-600 text-white transition-all duration-300 shadow-lg hover:shadow-red-200 group relative"
+              className="p-3.5 rounded-2xl bg-brand-primary hover:bg-red-600 text-white transition-all duration-300 shadow-lg hover:shadow-red-200 group relative"
               title="Cerrar Sesión"
             >
               <LogOut className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
@@ -994,31 +1202,31 @@ export default function GuardDashboard({
       />
 
       {/* Mobile View Toggle */}
-      <div className="lg:hidden mb-8 bg-white rounded-2xl p-1.5 flex border border-slate-200 shadow-sm">
+      <div className="lg:hidden mb-8 bg-white dark:bg-slate-900 rounded-2xl p-1.5 flex border border-slate-200 dark:border-slate-800 shadow-sm">
         <button
           onClick={() => setMobileView("entry")}
-          className={`flex-1 py-3.5 rounded-xl text-sm font-semibold transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === "entry" ? "bg-indigo-600 text-white shadow-md transform scale-[1.02]" : "text-slate-500 hover:bg-slate-50"}`}
+          className={`flex-1 py-3.5 rounded-xl text-sm font-semibold transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === "entry" ? "bg-brand-primary text-white shadow-md transform scale-[1.02]" : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
         >
           <Plus className="w-4 h-4" />
           Registrar Ingreso
         </button>
         <button
           onClick={() => setMobileView("list")}
-          className={`flex-1 py-3.5 rounded-xl text-sm font-semibold transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === "list" ? "bg-indigo-600 text-white shadow-md transform scale-[1.02]" : "text-slate-500 hover:bg-slate-50"}`}
+          className={`flex-1 py-3.5 rounded-xl text-sm font-semibold transition-all min-h-[48px] flex items-center justify-center gap-2 ${mobileView === "list" ? "bg-brand-primary text-white shadow-md transform scale-[1.02]" : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
         >
           <Car className="w-4 h-4" />
           Vehículos Activos
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 relative">
         {/* Formulario de Ingreso */}
         <div
-          className={`lg:col-span-1 ${mobileView === "entry" ? "block" : "hidden lg:block"}`}
+          className={`lg:col-span-4 ${mobileView === "entry" ? "block" : "hidden lg:block"}`}
         >
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 sticky top-6">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+              <h2 className="text-lg font-bold text-brand-primary dark:text-white flex items-center gap-2 uppercase tracking-tight">
                 <CheckCircle className="w-5 h-5 text-emerald-500" />
                 Registrar Ingreso
               </h2>
@@ -1031,7 +1239,7 @@ export default function GuardDashboard({
 
             <form onSubmit={handleEntry} className="space-y-5">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Placa del Vehículo
                 </label>
                 <div className="relative">
@@ -1039,19 +1247,31 @@ export default function GuardDashboard({
                     <Search className="h-5 w-5 text-slate-400" />
                   </div>
                   <input
+                    ref={plateInputRef}
                     type="text"
                     required
                     maxLength={6}
                     value={plate}
                     onChange={handlePlateChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white uppercase font-mono text-lg tracking-wider"
+                    className={`block w-full pl-10 pr-3 py-4 border rounded-xl outline-none transition-all font-mono text-2xl tracking-widest uppercase text-center lg:text-left ${
+                      plate.length >= 5
+                        ? validatePlate(plate, type)
+                          ? "border-brand-accent bg-brand-accent/5 focus:ring-brand-accent"
+                          : "border-rose-500 bg-rose-50 dark:bg-rose-900/10 focus:ring-rose-500"
+                        : "border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 focus:ring-brand-primary"
+                    } focus:ring-2`}
                     placeholder="ABC123"
                   />
                 </div>
+                {plate.length >= 5 && !validatePlate(plate, type) && (
+                  <p className="text-rose-500 text-[10px] mt-1 font-bold uppercase tracking-wider">
+                    Formato inválido para {type === "car" ? "carro" : "moto"}
+                  </p>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Tipo de Vehículo
                 </label>
                 <div
@@ -1075,7 +1295,7 @@ export default function GuardDashboard({
                     <button
                       type="button"
                       onClick={() => setType("car")}
-                      className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === "car" ? "border-indigo-600 bg-indigo-50 text-indigo-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                      className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === "car" ? "border-brand-primary bg-brand-primary/10 text-brand-primary dark:text-brand-accent dark:border-brand-accent" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
                     >
                       <Car className="w-6 h-6" />
                       <span className="font-medium text-sm">Carro</span>
@@ -1094,7 +1314,7 @@ export default function GuardDashboard({
                     <button
                       type="button"
                       onClick={() => setType("motorcycle")}
-                      className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === "motorcycle" ? "border-indigo-600 bg-indigo-50 text-indigo-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                      className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === "motorcycle" ? "border-brand-primary bg-brand-primary/10 text-brand-primary dark:text-brand-accent dark:border-brand-accent" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
                     >
                       <Motorbike className="w-6 h-6" />
                       <span className="font-medium text-sm">Moto</span>
@@ -1114,7 +1334,7 @@ export default function GuardDashboard({
                     <button
                       type="button"
                       onClick={() => setType("bicycle")}
-                      className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === "bicycle" ? "border-indigo-600 bg-indigo-50 text-indigo-700" : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"}`}
+                      className={`py-3 px-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${type === "bicycle" ? "border-brand-primary bg-brand-primary/10 text-brand-primary dark:text-brand-accent dark:border-brand-accent" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700"}`}
                     >
                       <Bike className="w-6 h-6" />
                       <span className="font-medium text-sm">Bicicleta</span>
@@ -1139,7 +1359,7 @@ export default function GuardDashboard({
                 )
                 .map((field) => (
                   <div key={field.id}>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                       {field.label}{" "}
                       {field.required && (
                         <span className="text-red-500">*</span>
@@ -1155,41 +1375,43 @@ export default function GuardDashboard({
                           [field.id]: e.target.value,
                         })
                       }
-                      className="block w-full px-3 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                      className="block w-full px-3 py-3 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 dark:text-white"
                       placeholder={`Ingrese ${field.label.toLowerCase()}`}
                     />
                   </div>
                 ))}
 
-              <button
-                type="submit"
-                disabled={loading || plate.length < 5}
-                className="w-full py-3 px-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm mt-4"
-              >
-                {loading ? "Registrando..." : "Dar Ingreso"}
-              </button>
+              <div className="lg:static sticky bottom-0 -mx-6 px-6 py-4 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 lg:border-0 lg:bg-transparent lg:p-0 lg:m-0 z-20 mt-4">
+                <button
+                  type="submit"
+                  disabled={loading || plate.length < 3 || (type !== "bicycle" && !validatePlate(plate, type))}
+                  className="w-full py-4 px-4 rounded-xl bg-brand-accent text-white font-black uppercase tracking-widest hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg hover:shadow-brand-accent/20 cursor-pointer text-sm"
+                >
+                  {loading ? "Registrando..." : "Dar Ingreso"}
+                </button>
+              </div>
             </form>
           </div>
         </div>
 
         {/* Lista de Vehículos Activos e Historial */}
         <div
-          className={`lg:col-span-2 ${mobileView === "list" ? "block" : "hidden lg:block"}`}
+          className={`lg:col-span-8 ${mobileView === "list" ? "block" : "hidden lg:block"}`}
         >
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
-            <div className="p-5 border-b border-slate-200 bg-slate-50 space-y-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col h-full">
+            <div className="p-5 border-b border-slate-200 dark:border-slate-800 bg-brand-bg/30 dark:bg-slate-800/50 space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={() => setActiveTab("active")}
-                    className={`px-4 py-2 rounded-xl font-medium transition-colors ${activeTab === "active" ? "bg-indigo-100 text-indigo-700" : "text-slate-600 hover:bg-slate-200"}`}
+                    className={`px-4 py-2 rounded-xl font-bold transition-all text-sm uppercase tracking-wider ${activeTab === "active" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
                   >
                     Vehículos Activos
                   </button>
                   {guardPermissions.show_history && (
                     <button
                       onClick={() => setActiveTab("history")}
-                      className={`px-4 py-2 rounded-xl font-medium transition-colors flex items-center gap-2 ${activeTab === "history" ? "bg-indigo-100 text-indigo-700" : "text-slate-600 hover:bg-slate-200"}`}
+                      className={`px-4 py-2 rounded-xl font-bold transition-all text-sm uppercase tracking-wider flex items-center gap-2 ${activeTab === "history" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700"}`}
                     >
                       <History className="w-4 h-4" />
                       Historial (Minuta)
@@ -1206,14 +1428,14 @@ export default function GuardDashboard({
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Buscar por placa..."
-                      className="block w-full sm:w-64 pl-10 pr-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white text-sm"
+                      className="block w-full sm:w-64 pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-white dark:bg-slate-800 dark:text-white text-sm"
                     />
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto max-h-[calc(100vh-250px)] lg:max-h-[600px]">
+            <div className="flex-1 overflow-y-auto max-h-[calc(100vh-250px)] lg:max-h-[600px] dark:bg-slate-900">
               {activeTab === "active" ? (
                 filteredSessions.length === 0 ? (
                   <div className="p-12 text-center text-slate-500">
@@ -1237,11 +1459,11 @@ export default function GuardDashboard({
                       return (
                         <div
                           key={session.id}
-                          className="p-5 hover:bg-slate-50 transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+                          className="p-5 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 dark:border-slate-800 last:border-0"
                         >
                           <div className="flex items-center gap-4">
                             <div
-                              className={`p-3 rounded-xl ${session.vehicle_type === "car" ? "bg-blue-50 text-blue-600" : session.vehicle_type === "motorcycle" ? "bg-orange-50 text-orange-600" : "bg-green-50 text-green-600"}`}
+                              className={`p-3 rounded-xl ${session.vehicle_type === "car" ? "bg-brand-primary/10 dark:bg-brand-primary/20 text-brand-primary dark:text-brand-accent" : session.vehicle_type === "motorcycle" ? "bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400" : "bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400"}`}
                             >
                               {session.vehicle_type === "car" ? (
                                 <Car className="w-6 h-6" />
@@ -1253,12 +1475,20 @@ export default function GuardDashboard({
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
-                                <h3 className="text-lg sm:text-xl font-bold text-slate-800 font-mono tracking-wider">
+                                <h3 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-white font-mono tracking-wider">
                                   {session.license_plate}
                                 </h3>
                                 {session.ticket_number && (
-                                  <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded text-xs font-medium">
+                                  <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded text-xs font-medium">
                                     #{session.ticket_number}
+                                  </span>
+                                )}
+                                {residents.some(
+                                  (r) =>
+                                    r.license_plate === session.license_plate,
+                                ) && (
+                                  <span className="bg-brand-accent/10 text-brand-accent px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider animate-pulse border border-brand-accent/20">
+                                    Residente
                                   </span>
                                 )}
                               </div>
@@ -1307,7 +1537,7 @@ export default function GuardDashboard({
                                         return (
                                           <span
                                             key={key}
-                                            className={`${isNameField ? "bg-indigo-50 text-indigo-700" : "bg-slate-100 text-slate-700"} px-2 py-0.5 rounded-md font-medium`}
+                                            className={`${isNameField ? "bg-brand-accent/10 text-brand-accent" : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"} px-2 py-0.5 rounded-md font-medium`}
                                           >
                                             {isNameField
                                               ? String(value)
@@ -1317,7 +1547,7 @@ export default function GuardDashboard({
                                       })}
                                   </div>
                                 )}
-                              <div className="flex items-center gap-2 text-sm text-slate-500 mt-1">
+                              <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mt-1">
                                 <Clock className="w-3.5 h-3.5" />
                                 <span>
                                   {format(
@@ -1325,8 +1555,8 @@ export default function GuardDashboard({
                                     "dd/MM/yy h:mm a",
                                   )}
                                 </span>
-                                <span className="text-slate-300">•</span>
-                                <span className="font-medium text-indigo-600">
+                                <span className="text-slate-300 dark:text-slate-700">•</span>
+                                <span className="font-bold text-brand-primary dark:text-brand-accent">
                                   {mins} min
                                 </span>
                               </div>
@@ -1335,7 +1565,7 @@ export default function GuardDashboard({
 
                           <button
                             onClick={() => handleCheckoutClick(session)}
-                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-800 text-white font-medium hover:bg-slate-700 transition-colors"
+                            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-brand-primary dark:bg-slate-700 text-white font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all shadow-md"
                           >
                             Dar Salida
                           </button>
@@ -1348,7 +1578,7 @@ export default function GuardDashboard({
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-50 text-slate-500 text-sm border-b border-slate-200">
+                      <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-sm border-b border-slate-200 dark:border-slate-800">
                         <th className="px-4 py-3 font-medium">Recibo</th>
                         <th className="px-4 py-3 font-medium">Placa</th>
                         <th className="px-4 py-3 font-medium">Tipo</th>
@@ -1384,15 +1614,15 @@ export default function GuardDashboard({
                           return (
                             <tr
                               key={session.id}
-                              className="border-b border-slate-100 hover:bg-slate-50"
+                              className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/30"
                             >
-                              <td className="px-4 py-3 text-slate-500 text-sm">
+                              <td className="px-4 py-3 text-slate-500 dark:text-slate-400 text-sm">
                                 {session.ticket_number}
                               </td>
-                              <td className="px-4 py-3 font-mono font-medium text-slate-800">
+                              <td className="px-4 py-3 font-mono font-medium text-slate-800 dark:text-white">
                                 {session.license_plate}
                               </td>
-                              <td className="px-4 py-3 text-slate-600">
+                              <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
                                 {session.vehicle_type === "car"
                                   ? "Carro"
                                   : session.vehicle_type === "motorcycle"
@@ -1438,10 +1668,10 @@ export default function GuardDashboard({
       {/* Modal de Parqueaderos Privados */}
       {showPrivateSpots && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <Car className="w-6 h-6 text-indigo-600" />
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200 border border-white/20 dark:border-slate-800">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+              <h2 className="text-xl font-bold text-brand-primary dark:text-white flex items-center gap-2">
+                <Car className="w-6 h-6 text-brand-accent" />
                 Parqueaderos Privados
               </h2>
               <button
@@ -1451,7 +1681,7 @@ export default function GuardDashboard({
                 ✕
               </button>
             </div>
-            <div className="p-6 border-b border-slate-100 bg-white">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1 relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -1462,14 +1692,14 @@ export default function GuardDashboard({
                     value={privateSpotsSearch}
                     onChange={(e) => setPrivateSpotsSearch(e.target.value)}
                     placeholder="Buscar por placa, propietario o espacio..."
-                    className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none bg-white dark:bg-slate-800 dark:text-white"
                   />
                 </div>
                 <div className="sm:w-48">
                   <select
                     value={privateSpotsSort}
                     onChange={(e) => setPrivateSpotsSort(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none bg-white dark:bg-slate-800 dark:text-white"
                   >
                     {privateSpotFields
                       .filter((f) => f.enabled)
@@ -1514,23 +1744,23 @@ export default function GuardDashboard({
                       return (
                         <div
                           key={spot.id}
-                          className="border border-slate-200 rounded-2xl p-4 relative overflow-hidden group"
+                          className="border border-slate-200 dark:border-slate-700 rounded-2xl p-4 relative overflow-hidden group bg-white dark:bg-slate-800"
                         >
-                          <div className="absolute top-0 right-0 w-16 h-16 bg-indigo-50 rounded-bl-full -z-10"></div>
+                          <div className="absolute top-0 right-0 w-16 h-16 bg-brand-accent/5 dark:bg-brand-accent/10 rounded-bl-full -z-10"></div>
                           <div className="flex justify-between items-start mb-3">
-                            <span className="text-2xl font-bold text-indigo-900">
+                            <span className="text-2xl font-bold text-brand-primary dark:text-brand-accent">
                               {spot.spotNumber || "N/A"}
                             </span>
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => setEditingSpot(spot)}
-                                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                  className="p-1.5 text-slate-400 hover:text-brand-accent hover:bg-brand-accent/10 dark:hover:bg-brand-accent/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
                                 title="Editar"
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
                               <span
-                                className={`px-2.5 py-1 rounded-full text-xs font-medium ${activeSession ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}
+                                className={`px-2.5 py-1 rounded-full text-xs font-medium ${activeSession ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400" : "bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400"}`}
                               >
                                 {activeSession ? "Ocupado" : "Libre"}
                               </span>
@@ -1542,9 +1772,9 @@ export default function GuardDashboard({
                               .map((field) => (
                                 <p
                                   key={field.id}
-                                  className="text-sm text-slate-600"
+                                  className="text-sm text-slate-600 dark:text-slate-400"
                                 >
-                                  <span className="font-medium text-slate-800">
+                                  <span className="font-medium text-slate-800 dark:text-slate-200">
                                     {field.label}:
                                   </span>{" "}
                                   <span
@@ -1628,7 +1858,7 @@ export default function GuardDashboard({
                         name={field.id}
                         defaultValue={editingSpot[field.id]}
                         required={field.required}
-                        className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                        className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none bg-white"
                       >
                         <option value="car">Carro</option>
                         <option value="motorcycle">Moto</option>
@@ -1640,7 +1870,7 @@ export default function GuardDashboard({
                         name={field.id}
                         defaultValue={editingSpot[field.id]}
                         required={field.required}
-                        className={`w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none ${field.id === "licensePlate" ? "uppercase" : ""}`}
+                        className={`w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent outline-none ${field.id === "licensePlate" ? "uppercase" : ""}`}
                       />
                     )}
                   </div>
@@ -1655,7 +1885,7 @@ export default function GuardDashboard({
                 </button>
                 <button
                   type="submit"
-                  className="px-6 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors"
+                  className="px-6 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all shadow-md"
                 >
                   Guardar
                 </button>
@@ -1668,14 +1898,14 @@ export default function GuardDashboard({
       {/* Modal de Recibo (Completed Session) */}
       {completedSession && (
         <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto"
+          className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto print:hidden"
           onClick={() => {
             setCompletedSession(null);
             setWhatsappNumber("");
           }}
         >
           <div
-            className="bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full my-auto animate-in fade-in zoom-in duration-300 relative border border-white/20"
+            className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl max-w-md w-full my-auto animate-in fade-in zoom-in duration-300 relative border border-white/20 dark:border-slate-800"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="sticky top-0 right-0 flex justify-end p-4 z-20 pointer-events-none">
@@ -1684,7 +1914,7 @@ export default function GuardDashboard({
                   setCompletedSession(null);
                   setWhatsappNumber("");
                 }}
-                className="p-2.5 bg-slate-100 text-slate-500 hover:bg-red-50 hover:text-red-600 rounded-full transition-all shadow-sm border border-white pointer-events-auto"
+                className="p-2.5 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-red-50 hover:text-red-600 rounded-full transition-all shadow-sm border border-white dark:border-slate-700 pointer-events-auto"
                 title="Cerrar Recibo"
               >
                 <X className="w-6 h-6" />
@@ -1692,13 +1922,13 @@ export default function GuardDashboard({
             </div>
 
             <div className="px-6 pb-8 text-center -mt-6">
-              <div className="w-20 h-20 rounded-3xl bg-emerald-50 flex items-center justify-center mx-auto mb-4 border border-emerald-100 shadow-inner">
-                <CheckCircle className="w-10 h-10 text-emerald-600" />
+              <div className="w-20 h-20 rounded-3xl bg-brand-accent/10 dark:bg-brand-accent/20 flex items-center justify-center mx-auto mb-4 border border-brand-accent/20 shadow-inner">
+                <CheckCircle className="w-10 h-10 text-brand-accent" />
               </div>
-              <h2 className="text-2xl font-black text-slate-900 mb-1 tracking-tight">
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-1 tracking-tight">
                 Pago Registrado
               </h2>
-              <p className="text-slate-500 mb-6 font-mono font-bold text-lg bg-slate-50 inline-block px-4 py-1 rounded-xl border border-slate-100">
+              <p className="text-slate-500 dark:text-slate-400 mb-6 font-mono font-bold text-lg bg-slate-50 dark:bg-slate-800 inline-block px-4 py-1 rounded-xl border border-slate-100 dark:border-slate-700">
                 {completedSession.license_plate}
               </p>
 
@@ -1834,7 +2064,7 @@ export default function GuardDashboard({
 
               <div className="space-y-4 mb-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1 text-left">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-400 mb-1 text-left">
                     Enviar por WhatsApp
                   </label>
                   <div className="flex gap-2">
@@ -1842,7 +2072,7 @@ export default function GuardDashboard({
                       type="text"
                       value={whatsappCountryCode}
                       onChange={(e) => setWhatsappCountryCode(e.target.value)}
-                      className="w-14 sm:w-16 px-1 sm:px-2 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-center shrink-0"
+                      className="w-14 sm:w-16 px-1 sm:px-2 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-center shrink-0 bg-white dark:bg-slate-800 dark:text-white"
                       placeholder="+57"
                     />
                     <input
@@ -1850,7 +2080,7 @@ export default function GuardDashboard({
                       placeholder="Número"
                       value={whatsappNumber}
                       onChange={(e) => setWhatsappNumber(e.target.value)}
-                      className="flex-1 min-w-0 px-2 sm:px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none"
+                      className="flex-1 min-w-0 px-2 sm:px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none bg-white dark:bg-slate-800 dark:text-white"
                     />
                     <button
                       onClick={handleWhatsAppShare}
@@ -1866,7 +2096,7 @@ export default function GuardDashboard({
               <div className="flex flex-col gap-3 px-2">
                 <button
                   onClick={handlePrintReceipt}
-                  className="w-full py-4 rounded-2xl font-bold bg-slate-900 text-white hover:bg-indigo-600 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-indigo-200 group"
+                  className="w-full py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] bg-brand-primary text-white hover:brightness-110 transition-all duration-300 flex items-center justify-center gap-2 shadow-lg group"
                 >
                   <Printer className="w-5 h-5 group-hover:scale-110 transition-transform" />
                   Imprimir Recibo
@@ -1876,7 +2106,7 @@ export default function GuardDashboard({
                     setCompletedSession(null);
                     setWhatsappNumber("");
                   }}
-                  className="w-full py-4 rounded-2xl font-bold bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-300 flex items-center justify-center gap-2 border border-slate-200"
+                  className="w-full py-4 rounded-2xl font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-red-50 hover:text-red-600 transition-all duration-300 flex items-center justify-center gap-2 border border-slate-200 dark:border-slate-700"
                 >
                   Finalizar Operación
                 </button>
@@ -1889,7 +2119,7 @@ export default function GuardDashboard({
       {/* Modal de Checkout */}
       {checkoutSession && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200 relative">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in zoom-in duration-200 relative border border-white/20 dark:border-slate-800">
             <button
               onClick={() => {
                 setCheckoutSession(null);
@@ -1901,26 +2131,26 @@ export default function GuardDashboard({
             </button>
             <div className="p-6 text-center overflow-y-auto">
               <div
-                className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${confirmAmount ? "bg-emerald-50" : "bg-indigo-50"}`}
+                className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${confirmAmount ? "bg-emerald-50 dark:bg-emerald-900/20" : "bg-brand-accent/10"}`}
               >
                 {confirmAmount ? (
                   <DollarSign className="w-8 h-8 text-emerald-600" />
                 ) : (
-                  <CheckCircle className="w-8 h-8 text-indigo-600" />
+                  <CheckCircle className="w-8 h-8 text-brand-accent" />
                 )}
               </div>
-              <h2 className="text-2xl font-bold text-slate-800 mb-1">
+              <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-1">
                 {confirmAmount ? "Confirmar Pago" : "Confirmar Salida"}
               </h2>
-              <p className="text-slate-500 mb-6 font-mono text-lg">
+              <p className="text-slate-500 dark:text-slate-400 mb-6 font-mono text-lg">
                 {checkoutSession.license_plate}
               </p>
 
               {!confirmAmount ? (
-                <div className="bg-slate-50 rounded-2xl p-4 mb-6 text-left space-y-4">
+                <div className="bg-slate-50 dark:bg-slate-800 rounded-2xl p-4 mb-6 text-left space-y-4">
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-500">Ingreso:</span>
-                    <span className="font-medium text-slate-800">
+                    <span className="text-slate-500 dark:text-slate-400">Ingreso:</span>
+                    <span className="font-medium text-slate-800 dark:text-white">
                       {format(
                         new Date(checkoutSession.entry_time),
                         "dd/MM/yy h:mm a",
@@ -1928,14 +2158,14 @@ export default function GuardDashboard({
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-500">Salida:</span>
-                    <span className="font-medium text-slate-800">
+                    <span className="text-slate-500 dark:text-slate-400">Salida:</span>
+                    <span className="font-medium text-slate-800 dark:text-white">
                       {format(new Date(), "dd/MM/yy h:mm a")}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-sm">
-                    <span className="text-slate-500">Tiempo Transcurrido:</span>
-                    <span className="font-medium text-slate-800">
+                    <span className="text-slate-500 dark:text-slate-400">Tiempo Transcurrido:</span>
+                    <span className="font-medium text-slate-800 dark:text-white">
                       {Math.max(
                         1,
                         differenceInMinutes(
@@ -1947,30 +2177,37 @@ export default function GuardDashboard({
                     </span>
                   </div>
 
+                  {selectedRateId === "resident" && (
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="font-black text-brand-accent bg-brand-accent/5 px-3 py-1 rounded-full text-xs uppercase tracking-widest border border-brand-accent/20">
+                        Vehículo Residente
+                      </span>
+                    </div>
+                  )}
+
                   {selectedRateId === "special" && (
                     <div className="flex justify-between items-center text-sm">
-
-                      <span className="font-medium text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
+                      <span className="font-bold text-brand-primary dark:text-brand-accent bg-brand-bg/50 px-2 py-0.5 rounded text-xs uppercase tracking-widest">
                         Tarifa Especial
                       </span>
                     </div>
                   )}
 
-                  <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
-                    <span className="font-semibold text-slate-800">
+                  <div className="pt-3 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                    <span className="font-semibold text-slate-800 dark:text-white uppercase tracking-tighter text-sm">
                       Total a Pagar:
                     </span>
-                    <span className="text-2xl font-bold text-indigo-600">
+                    <span className="text-3xl font-black text-brand-primary dark:text-brand-accent">
                       {formatCurrency(currentCost)}
                     </span>
                   </div>
                 </div>
               ) : (
-                <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-6 mb-6">
-                  <p className="text-emerald-800 mb-2">
+                <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl p-6 mb-6">
+                  <p className="text-emerald-800 dark:text-emerald-400 mb-2">
                     ¿Confirma que ha recibido el pago exacto de:
                   </p>
-                  <p className="text-4xl font-bold text-emerald-600">
+                  <p className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">
                     {formatCurrency(currentCost)}?
                   </p>
                 </div>
@@ -1983,19 +2220,19 @@ export default function GuardDashboard({
                       ? setConfirmAmount(false)
                       : setCheckoutSession(null)
                   }
-                  className="flex-1 py-3 px-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50 transition-colors"
+                  className="flex-1 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-medium hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                 >
                   {confirmAmount ? "Atrás" : "Cancelar"}
                 </button>
                 <button
                   onClick={handleCheckout}
                   disabled={loading || !selectedRateId}
-                  className={`flex-1 py-3 px-4 rounded-xl text-white font-medium disabled:opacity-50 transition-colors shadow-sm ${confirmAmount ? "bg-emerald-600 hover:bg-emerald-700" : "bg-indigo-600 hover:bg-indigo-700"}`}
+                  className={`flex-1 py-4 px-4 rounded-xl text-white font-black uppercase tracking-widest text-[10px] disabled:opacity-50 transition-all shadow-lg ${confirmAmount ? "bg-brand-accent hover:brightness-110" : "bg-brand-primary hover:brightness-110"}`}
                 >
                   {loading
-                    ? "Procesando..."
+                    ? "..."
                     : confirmAmount
-                      ? "Sí, Dar Salida"
+                      ? "Confirmar Salida"
                       : "Cobrar"}
                 </button>
               </div>
@@ -2009,8 +2246,8 @@ export default function GuardDashboard({
         <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4 z-[100]">
           <div className="bg-white rounded-3xl shadow-xl max-w-sm w-full overflow-hidden animate-in fade-in zoom-in duration-200">
             <div className="p-6 text-center">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-indigo-50">
-                <Shield className="w-8 h-8 text-indigo-600" />
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 bg-brand-accent/10">
+                <Shield className="w-8 h-8 text-brand-accent" />
               </div>
               <h2 className="text-2xl font-bold text-slate-800 mb-2">
                 Turno de Guarda
@@ -2032,7 +2269,7 @@ export default function GuardDashboard({
                     onKeyDown={(e) =>
                       e.key === "Enter" && handleSaveGuardName()
                     }
-                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white"
+                    className="block w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-accent focus:border-brand-accent outline-none transition-all bg-slate-50 focus:bg-white"
                     placeholder="Ej. Juan Pérez"
                     autoFocus
                   />
@@ -2041,7 +2278,7 @@ export default function GuardDashboard({
                 <button
                   onClick={handleSaveGuardName}
                   disabled={!tempGuardName.trim()}
-                  className="w-full py-3 px-4 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors shadow-sm"
+                  className="w-full py-3 px-4 rounded-xl bg-brand-accent text-white font-black uppercase tracking-widest text-[10px] hover:brightness-110 disabled:opacity-50 transition-all shadow-md"
                 >
                   Iniciar Turno
                 </button>

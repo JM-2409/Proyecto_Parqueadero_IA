@@ -22,15 +22,21 @@ import {
   UserCircle,
   Zap,
   Sparkles,
+  Sun,
+  Moon,
 } from "lucide-react";
 import UpdatesModal from "./UpdatesModal";
 
 export default function SuperAdminDashboard({
   user,
   onLogout,
+  isDarkMode,
+  toggleDarkMode,
 }: {
   user: any;
   onLogout: () => void;
+  isDarkMode: boolean;
+  toggleDarkMode: () => void;
 }) {
   const [activeTab, setActiveTab] = useState<
     "parking_lots" | "users" | "settings"
@@ -358,14 +364,14 @@ export default function SuperAdminDashboard({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
-      {/* Header Rediseñado */}
-      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-white/80 backdrop-blur-2xl border border-white shadow-xl relative overflow-hidden transition-all duration-300 p-4 sm:p-5 rounded-[2.5rem]">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 transition-colors duration-300">
+      {/* Header Rediseñado - Glassmorphism */}
+      <div className="flex flex-col lg:flex-row justify-between items-stretch lg:items-center mb-8 gap-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border border-white dark:border-slate-800 shadow-xl relative overflow-hidden transition-all duration-300 p-4 sm:p-5 rounded-[2.5rem]">
         {/* Lado Izquierdo: Branding */}
         <div className="flex items-center gap-4 group">
           <div className="relative">
-            <div className="absolute -inset-1 bg-gradient-to-tr from-amber-500 to-red-400 rounded-full blur opacity-20 group-hover:opacity-35 transition duration-300"></div>
-            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white shadow-md shrink-0 aspect-square">
+            <div className="absolute -inset-1 bg-gradient-to-tr from-brand-accent to-brand-primary rounded-full blur opacity-20 group-hover:opacity-35 transition duration-300"></div>
+            <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden flex items-center justify-center border-2 border-white dark:border-slate-700 shadow-md shrink-0 aspect-square bg-white">
               <img
                 src="/logo.png"
                 alt="Logo"
@@ -374,11 +380,11 @@ export default function SuperAdminDashboard({
             </div>
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 truncate leading-none mb-1">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-brand-primary dark:text-white truncate leading-none mb-1 uppercase">
               Super Admin
             </h1>
-            <div className="flex items-center gap-1.5 text-slate-500">
-              <Zap className="w-3.5 h-3.5 text-amber-500" />
+            <div className="flex items-center gap-1.5 text-brand-primary/70 dark:text-white/70">
+              <Zap className="w-3.5 h-3.5 text-brand-accent" />
               <p className="text-xs sm:text-sm font-semibold truncate uppercase tracking-wider opacity-80">
                 Gestión Global NexoPark
               </p>
@@ -387,33 +393,45 @@ export default function SuperAdminDashboard({
         </div>
 
         {/* Lado Derecho: Perfil y Logout */}
-        <div className="flex items-center gap-2">
-          <div className="flex-1 lg:flex-none flex items-center gap-3 bg-white pl-4 pr-2 py-1.5 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex flex-col sm:flex-row items-center gap-2">
+          <button
+            onClick={toggleDarkMode}
+            className="p-3.5 rounded-2xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-brand-primary dark:text-white transition-all shadow-sm"
+            title={isDarkMode ? "Modo Claro" : "Modo Oscuro"}
+          >
+            {isDarkMode ? (
+              <Sun className="w-5 h-5" />
+            ) : (
+              <Moon className="w-5 h-5" />
+            )}
+          </button>
+
+          <div className="flex-1 lg:flex-none flex items-center gap-3 bg-white dark:bg-slate-800 pl-4 pr-2 py-1.5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm group">
             <div className="flex flex-col items-start min-w-0">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter leading-none mb-0.5">
+              <span className="text-[10px] font-black text-brand-primary/50 dark:text-white/50 uppercase tracking-tighter leading-none mb-0.5">
                 Root Access
               </span>
-              <span className="text-sm font-bold text-slate-800 truncate max-w-[150px]">
+              <span className="text-sm font-bold text-brand-primary dark:text-white truncate max-w-[150px]">
                 {user.email.split("@")[0]}
               </span>
             </div>
-            <div className="p-2 rounded-xl bg-amber-50 text-amber-600 border border-amber-100">
+            <div className="p-2 rounded-xl bg-brand-primary/10 dark:bg-brand-primary/20 text-brand-primary dark:text-white transition-all shadow-sm border border-brand-primary/10">
               <Shield className="w-5 h-5" />
             </div>
           </div>
 
           <button
             onClick={() => setShowUpdates(true)}
-            className="p-3.5 rounded-2xl bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all duration-300 border border-indigo-100 shadow-sm group relative"
+            className="p-3.5 rounded-2xl bg-brand-accent/10 text-brand-accent hover:bg-brand-accent hover:text-white transition-all duration-300 border border-brand-accent/20 shadow-sm group relative"
             title="Novedades"
           >
             <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
           </button>
 
           <button
             onClick={onLogout}
-            className="p-3.5 rounded-2xl bg-slate-900 hover:bg-red-600 text-white transition-all duration-300 shadow-lg hover:shadow-red-200 group"
+            className="p-3.5 rounded-2xl bg-brand-primary hover:bg-red-600 text-white transition-all duration-300 shadow-lg hover:shadow-red-200 group"
             title="Cerrar Sesión"
           >
             <LogOut className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" />
@@ -428,13 +446,13 @@ export default function SuperAdminDashboard({
       />
 
       <div className="flex flex-col lg:flex-row gap-4 mb-6 sm:mb-8 justify-between items-start lg:items-center">
-        <div className="flex gap-1.5 sm:gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200 w-full overflow-x-auto no-scrollbar sticky top-0 z-30">
+        <div className="flex gap-1.5 sm:gap-2 bg-white dark:bg-slate-900 p-1.5 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 w-full overflow-x-auto no-scrollbar sticky top-0 z-30">
           <button
             onClick={() => {
               setActiveTab("parking_lots");
               setSearchTerm("");
             }}
-            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "parking_lots" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}
+            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "parking_lots" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
           >
             <Building2 className="w-4 h-4" />
             Parqueaderos
@@ -444,7 +462,7 @@ export default function SuperAdminDashboard({
               setActiveTab("users");
               setSearchTerm("");
             }}
-            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "users" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}
+            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "users" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
           >
             <Users className="w-4 h-4" />
             Usuarios
@@ -454,7 +472,7 @@ export default function SuperAdminDashboard({
               setActiveTab("settings");
               setSearchTerm("");
             }}
-            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-indigo-600 text-white shadow-sm" : "text-slate-600 hover:bg-slate-50"}`}
+            className={`px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all flex items-center gap-2 whitespace-nowrap min-h-[44px] sm:min-h-0 ${activeTab === "settings" ? "bg-brand-primary text-white shadow-md" : "text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"}`}
           >
             <Settings className="w-4 h-4" />
             Configuración
@@ -469,7 +487,7 @@ export default function SuperAdminDashboard({
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all bg-white shadow-sm text-sm min-h-[48px] lg:min-h-0"
+            className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-white dark:bg-slate-800 dark:text-white shadow-sm text-sm min-h-[48px] lg:min-h-0"
             placeholder={`Buscar ${activeTab === "parking_lots" ? "parqueaderos" : "usuarios"}...`}
           />
         </div>
@@ -477,15 +495,15 @@ export default function SuperAdminDashboard({
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
+          <Loader2 className="w-8 h-8 text-brand-primary animate-spin" />
         </div>
       ) : (
         <>
           {activeTab === "parking_lots" && (
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <Building2 className="w-5 h-5 text-indigo-600" />
+            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+              <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                <h2 className="text-lg font-bold text-brand-primary dark:text-white flex items-center gap-2 uppercase tracking-tight">
+                  <Building2 className="w-5 h-5 text-brand-accent" />
                   Parqueaderos Registrados
                 </h2>
                 <button
@@ -507,14 +525,14 @@ export default function SuperAdminDashboard({
 
                     setShowLotForm(true);
                   }}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-2"
+                  className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all shadow-md flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   Nuevo Parqueadero
                 </button>
               </div>
 
-              <div className="divide-y divide-slate-100 overflow-x-auto">
+              <div className="divide-y divide-slate-100 dark:divide-slate-800 overflow-x-auto">
                 {parkingLots
                   .filter(
                     (lot) =>
@@ -526,13 +544,13 @@ export default function SuperAdminDashboard({
                   .map((lot) => (
                     <div
                       key={lot.id}
-                      className={`p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 transition-colors ${lot.status === "suspended" ? "opacity-60" : ""}`}
+                      className={`p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${lot.status === "suspended" ? "opacity-60" : ""}`}
                     >
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-slate-800 text-lg truncate">
+                        <h3 className="font-semibold text-slate-800 dark:text-white text-lg truncate">
                           {lot.name}
                         </h3>
-                        <div className="text-sm text-slate-500 mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                        <div className="text-sm text-slate-500 dark:text-slate-400 mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
                           <span className="truncate">
                             NIT: {lot.nit || "N/A"}
                           </span>
@@ -594,7 +612,7 @@ export default function SuperAdminDashboard({
                             );
                             setShowLotForm(true);
                           }}
-                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          className="p-2 text-slate-400 hover:text-brand-primary hover:bg-brand-primary/10 rounded-lg transition-all"
                         >
                           <Edit2 className="w-5 h-5" />
                         </button>
@@ -618,10 +636,10 @@ export default function SuperAdminDashboard({
           )}
 
           {activeTab === "users" && (
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
-                <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <Users className="w-5 h-5 text-indigo-600" />
+            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50">
+                <h2 className="text-lg font-bold text-brand-primary dark:text-white flex items-center gap-2 uppercase tracking-tight">
+                  <Users className="w-5 h-5 text-brand-accent" />
                   Administradores y Vigilantes
                 </h2>
                 <button
@@ -633,14 +651,14 @@ export default function SuperAdminDashboard({
                     setUserLotId(parkingLots[0]?.id || "");
                     setShowUserForm(true);
                   }}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 transition-colors shadow-sm flex items-center gap-2"
+                  className="px-4 py-2 bg-brand-accent text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:brightness-110 transition-all shadow-md flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
                   Nuevo Usuario
                 </button>
               </div>
 
-              <div className="divide-y divide-slate-100">
+              <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {users
                   .filter(
                     (u) =>
@@ -655,11 +673,11 @@ export default function SuperAdminDashboard({
                   .map((u) => (
                     <div
                       key={u.user_id}
-                      className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-slate-50 transition-colors"
+                      className="p-4 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
                     >
                       <div className="flex items-center gap-4 flex-1 min-w-0">
                         <div
-                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${u.role === "admin" ? "bg-purple-100 text-purple-600" : "bg-blue-100 text-blue-600"}`}
+                          className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${u.role === "admin" ? "bg-brand-primary/10 dark:bg-brand-primary/30 text-brand-primary dark:text-brand-accent" : "bg-brand-accent/10 dark:bg-brand-accent/30 text-brand-accent"}`}
                         >
                           {u.role === "admin" ? (
                             <Key className="w-5 h-5" />
@@ -668,12 +686,12 @@ export default function SuperAdminDashboard({
                           )}
                         </div>
                         <div className="min-w-0">
-                          <h3 className="font-semibold text-slate-800 truncate">
+                          <h3 className="font-semibold text-slate-800 dark:text-white truncate uppercase tracking-tight">
                             {u.email.split("@")[0]}
                           </h3>
-                          <div className="text-sm text-slate-500 mt-0.5 flex flex-wrap items-center gap-2">
+                          <div className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 flex flex-wrap items-center gap-2">
                             <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${u.role === "admin" ? "bg-purple-50 text-purple-700" : "bg-blue-50 text-blue-700"}`}
+                              className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-widest ${u.role === "admin" ? "bg-brand-primary/5 dark:bg-brand-primary/40 text-brand-primary dark:text-brand-accent" : "bg-brand-accent/5 dark:bg-brand-accent/40 text-brand-accent"}`}
                             >
                               {u.role === "admin"
                                 ? "Administrador"
@@ -682,7 +700,7 @@ export default function SuperAdminDashboard({
                             <span className="hidden sm:inline">•</span>
                             <span className="flex items-center gap-1 w-full sm:w-auto mt-1 sm:mt-0">
                               <Building2 className="w-3 h-3 shrink-0" />{" "}
-                              <span className="truncate max-w-[150px] sm:max-w-xs">
+                              <span className="truncate max-w-[150px] sm:max-w-xs font-medium">
                                 {u.parking_lot_name}
                               </span>
                             </span>
@@ -699,7 +717,7 @@ export default function SuperAdminDashboard({
                             setUserLotId(u.parking_lot_id || "");
                             setShowUserForm(true);
                           }}
-                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          className="p-2 text-slate-400 hover:text-brand-primary hover:bg-brand-primary/10 rounded-lg transition-all"
                         >
                           <Edit2 className="w-5 h-5" />
                         </button>
@@ -722,10 +740,10 @@ export default function SuperAdminDashboard({
           )}
 
           {activeTab === "settings" && (
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="p-6 border-b border-slate-200 bg-slate-50">
-                <h2 className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-indigo-600" />
+            <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="p-6 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50">
+                <h2 className="text-lg font-bold text-brand-primary dark:text-white flex items-center gap-2 uppercase tracking-tight">
+                  <Settings className="w-5 h-5 text-brand-accent" />
                   Configuración Global del Sistema
                 </h2>
               </div>
@@ -741,7 +759,7 @@ export default function SuperAdminDashboard({
                       type="text"
                       value={globalAppName}
                       onChange={(e) => setGlobalAppName(e.target.value)}
-                      className="block w-full px-4 py-3 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all bg-slate-50 focus:bg-white font-bold text-slate-800"
+                      className="block w-full px-4 py-3 border border-slate-200 dark:border-slate-700 rounded-2xl focus:ring-2 focus:ring-brand-primary outline-none transition-all bg-slate-50 dark:bg-slate-800 focus:bg-white dark:focus:bg-slate-900 font-bold text-slate-800 dark:text-white"
                       placeholder="Ej. NexoPark"
                     />
                     <p className="text-xs text-slate-500">Este nombre aparecerá en el encabezado y en los recibos generados.</p>
@@ -753,7 +771,7 @@ export default function SuperAdminDashboard({
                       Logo de la Plataforma
                     </label>
 
-                    <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
+                    <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-slate-50 dark:bg-slate-800/50 rounded-[2rem] border-2 border-dashed border-slate-200 dark:border-slate-700">
                       <div className="relative group">
                         <div className="w-24 h-24 rounded-full overflow-hidden bg-white border-4 border-white shadow-lg shrink-0 flex items-center justify-center">
                           {newGlobalLogoFile ? (
@@ -795,7 +813,7 @@ export default function SuperAdminDashboard({
                         />
                         <label
                           htmlFor="global-logo-upload"
-                          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 cursor-pointer transition-all shadow-sm"
+                          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-all shadow-sm"
                         >
                           <Plus className="w-4 h-4" />
                           Subir Nuevo Logo
@@ -807,11 +825,11 @@ export default function SuperAdminDashboard({
                     </div>
                   </div>
 
-                  <div className="pt-6 border-t border-slate-100">
+                  <div className="pt-6 border-t border-slate-100 dark:border-slate-800">
                     <button
                       onClick={handleSaveGlobalSettings}
                       disabled={savingGlobalSettings}
-                      className="w-full sm:w-auto px-8 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-indigo-600 transition-all shadow-xl hover:shadow-indigo-200 disabled:opacity-50 flex items-center justify-center gap-3 group"
+                      className="w-full sm:w-auto px-8 py-4 bg-brand-primary text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:brightness-110 transition-all shadow-xl hover:shadow-brand-primary/20 disabled:opacity-50 flex items-center justify-center gap-3 group"
                     >
                       {savingGlobalSettings ? (
                         <>
@@ -841,21 +859,21 @@ export default function SuperAdminDashboard({
           onClick={() => setShowLotForm(false)}
         >
           <div
-            className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md my-auto animate-in fade-in zoom-in duration-300 relative border border-white/20 flex flex-col max-h-[90vh]"
+            className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-md my-auto animate-in fade-in zoom-in duration-300 relative border border-white/20 dark:border-slate-800 flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 border border-indigo-100">
+                <div className="p-2 rounded-xl bg-brand-primary/10 dark:bg-brand-primary/30 text-brand-primary dark:text-brand-accent border border-brand-primary/20 dark:border-brand-primary/50">
                   <Building2 className="w-5 h-5" />
                 </div>
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
                   {editingLot ? "Editar Parqueadero" : "Nuevo Parqueadero"}
                 </h3>
               </div>
               <button
                 onClick={() => setShowLotForm(false)}
-                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
+                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-all"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -865,7 +883,7 @@ export default function SuperAdminDashboard({
               className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 custom-scrollbar"
             >
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Nombre *
                 </label>
                 <input
@@ -873,64 +891,64 @@ export default function SuperAdminDashboard({
                   required
                   value={lotName}
                   onChange={(e) => setLotName(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none bg-white dark:bg-slate-800 dark:text-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   NIT
                 </label>
                 <input
                   type="text"
                   value={lotNit}
                   onChange={(e) => setLotNit(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none bg-white dark:bg-slate-800 dark:text-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Dirección
                 </label>
                 <input
                   type="text"
                   value={lotAddress}
                   onChange={(e) => setLotAddress(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none bg-white dark:bg-slate-800 dark:text-white"
                 />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Teléfono
                   </label>
                   <input
                     type="text"
                     value={lotPhone}
                     onChange={(e) => setLotPhone(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none bg-white dark:bg-slate-800 dark:text-white"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Email
                   </label>
                   <input
                     type="email"
                     value={lotEmail}
                     onChange={(e) => setLotEmail(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none bg-white dark:bg-slate-800 dark:text-white"
                   />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Plan de Suscripción
                   </label>
                   <select
                     value={lotSubscriptionPlan}
                     onChange={(e) => setLotSubscriptionPlan(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                    className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none bg-white dark:bg-slate-800 dark:text-white"
                   >
                     <option value="trial">Prueba (Trial)</option>
                     <option value="monthly">Mensual</option>
@@ -940,14 +958,14 @@ export default function SuperAdminDashboard({
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Fecha de Fin
                   </label>
                   <input
                     type="date"
                     value={lotSubscriptionEndDate}
                     onChange={(e) => setLotSubscriptionEndDate(e.target.value)}
-                    className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                    className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none bg-white dark:bg-slate-800 dark:text-white"
                   />
                 </div>
               </div>
@@ -955,14 +973,14 @@ export default function SuperAdminDashboard({
                 <button
                   type="button"
                   onClick={() => setShowLotForm(false)}
-                  className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50"
+                  className="flex-1 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={formLoading}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50"
+                  className="flex-1 py-3 px-4 rounded-xl bg-brand-primary text-white font-black uppercase tracking-widest text-xs hover:brightness-110 disabled:opacity-50 transition-all shadow-lg"
                 >
                   Guardar
                 </button>
@@ -979,21 +997,21 @@ export default function SuperAdminDashboard({
           onClick={() => setShowUserForm(false)}
         >
           <div
-            className="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-md my-auto animate-in fade-in zoom-in duration-300 relative border border-white/20 flex flex-col max-h-[90vh]"
+            className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-md my-auto animate-in fade-in zoom-in duration-300 relative border border-white/20 dark:border-slate-800 flex flex-col max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 shrink-0">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 shrink-0">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-purple-50 text-purple-600 border border-purple-100">
+                <div className="p-2 rounded-xl bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
                   <Users className="w-5 h-5" />
                 </div>
-                <h3 className="text-xl font-black text-slate-900 tracking-tight">
+                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
                   {editingUser ? "Editar Usuario" : "Nuevo Usuario"}
                 </h3>
               </div>
               <button
                 onClick={() => setShowUserForm(false)}
-                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
+                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-all"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -1003,7 +1021,7 @@ export default function SuperAdminDashboard({
               className="p-6 sm:p-8 space-y-6 overflow-y-auto flex-1 custom-scrollbar"
             >
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Usuario
                 </label>
                 <input
@@ -1012,11 +1030,11 @@ export default function SuperAdminDashboard({
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   disabled={!!editingUser}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none disabled:bg-slate-100"
+                  className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none disabled:bg-slate-100 dark:disabled:bg-slate-800 bg-white dark:bg-slate-800 dark:text-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Contraseña{" "}
                   {editingUser && "(Dejar en blanco para no cambiar)"}
                 </label>
@@ -1026,18 +1044,18 @@ export default function SuperAdminDashboard({
                   minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"
+                  className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none bg-white dark:bg-slate-800 dark:text-white"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Parqueadero
                 </label>
                 <select
                   required
                   value={userLotId}
                   onChange={(e) => setUserLotId(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none bg-white"
+                  className="w-full px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-brand-primary outline-none bg-white dark:bg-slate-800 dark:text-white"
                 >
                   <option value="">Seleccione un parqueadero</option>
                   {parkingLots.map((lot) => (
@@ -1048,21 +1066,21 @@ export default function SuperAdminDashboard({
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Rol
                 </label>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     type="button"
                     onClick={() => setUserRole("admin")}
-                    className={`py-2 px-3 rounded-xl border flex items-center justify-center gap-2 ${userRole === "admin" ? "border-purple-600 bg-purple-50 text-purple-700" : "border-slate-200 bg-white text-slate-600"}`}
+                    className={`py-2 px-3 rounded-xl border flex items-center justify-center gap-2 transition-all ${userRole === "admin" ? "border-brand-primary bg-brand-primary/10 text-brand-primary font-bold" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400"}`}
                   >
                     <Key className="w-4 h-4" /> Admin
                   </button>
                   <button
                     type="button"
                     onClick={() => setUserRole("guard")}
-                    className={`py-2 px-3 rounded-xl border flex items-center justify-center gap-2 ${userRole === "guard" ? "border-blue-600 bg-blue-50 text-blue-700" : "border-slate-200 bg-white text-slate-600"}`}
+                    className={`py-2 px-3 rounded-xl border flex items-center justify-center gap-2 transition-all ${userRole === "guard" ? "border-brand-accent bg-brand-accent/10 text-brand-accent font-bold" : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400"}`}
                   >
                     <Shield className="w-4 h-4" /> Vigilante
                   </button>
@@ -1072,14 +1090,14 @@ export default function SuperAdminDashboard({
                 <button
                   type="button"
                   onClick={() => setShowUserForm(false)}
-                  className="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-medium hover:bg-slate-50"
+                  className="flex-1 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={formLoading}
-                  className="flex-1 py-2.5 px-4 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-700 disabled:opacity-50"
+                  className="flex-1 py-3 px-4 rounded-xl bg-brand-accent text-white font-black uppercase tracking-widest text-xs hover:brightness-110 disabled:opacity-50 transition-all shadow-lg"
                 >
                   Guardar
                 </button>
@@ -1088,45 +1106,61 @@ export default function SuperAdminDashboard({
           </div>
         </div>
       )}
+
       {/* Delete Lot Modal */}
       {deletingLot && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden p-6">
-            <h3 className="text-xl font-bold text-slate-800 mb-2">
-              Eliminar Parqueadero
-            </h3>
-            <p className="text-slate-600 mb-6">
-              ¿Estás seguro de que deseas eliminar el parqueadero{" "}
-              <strong>{deletingLot.name}</strong>?
-              <br />
-              <br />
-              <span className="text-red-600 font-medium">
-                ¡Advertencia!
-              </span>{" "}
-              Esta acción eliminará permanentemente todos los usuarios, tarifas,
-              configuraciones y registros de vehículos asociados a este
-              parqueadero. Esta acción no se puede deshacer.
-            </p>
-            <div className="flex justify-end gap-3">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-md my-auto animate-in fade-in zoom-in duration-300 relative border border-white/20 dark:border-slate-800 overflow-hidden">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-red-50 dark:bg-red-900/10">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-600">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                  Eliminar Parqueadero
+                </h3>
+              </div>
               <button
                 onClick={() => setDeletingLot(null)}
-                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition-colors"
-                disabled={formLoading}
+                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-all"
               >
-                Cancelar
+                <X className="w-6 h-6" />
               </button>
-              <button
-                onClick={executeDeleteLot}
-                disabled={formLoading}
-                className="px-4 py-2 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2"
-              >
-                {formLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Trash2 className="w-4 h-4" />
-                )}
-                Eliminar Parqueadero
-              </button>
+            </div>
+            <div className="p-6 sm:p-8">
+              <p className="text-slate-600 dark:text-slate-400 mb-6">
+                ¿Estás seguro de que deseas eliminar el parqueadero{" "}
+                <strong className="text-slate-900 dark:text-white">{deletingLot.name}</strong>?
+                <br />
+                <br />
+                <span className="text-red-600 dark:text-red-400 font-bold uppercase text-xs tracking-widest">
+                  ¡Advertencia!
+                </span>{" "}
+                Esta acción eliminará permanentemente todos los usuarios, tarifas,
+                configuraciones y registros de vehículos asociados a este
+                parqueadero. Esta acción no se puede deshacer.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeletingLot(null)}
+                  className="flex-1 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+                  disabled={formLoading}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={executeDeleteLot}
+                  disabled={formLoading}
+                  className="flex-1 py-3 px-4 rounded-xl bg-red-600 text-white font-black uppercase tracking-widest text-xs hover:bg-red-700 disabled:opacity-50 transition-all shadow-lg flex items-center justify-center gap-2"
+                >
+                  {formLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                  Eliminar
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1134,36 +1168,51 @@ export default function SuperAdminDashboard({
 
       {/* Delete User Modal */}
       {deletingUser && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md overflow-hidden p-6">
-            <h3 className="text-xl font-bold text-slate-800 mb-2">
-              Eliminar Usuario
-            </h3>
-            <p className="text-slate-600 mb-6">
-              ¿Estás seguro de que deseas eliminar al usuario{" "}
-              <strong>{deletingUser.email}</strong>? Esta acción no se puede
-              deshacer.
-            </p>
-            <div className="flex justify-end gap-3">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-2xl w-full max-w-md my-auto animate-in fade-in zoom-in duration-300 relative border border-white/20 dark:border-slate-800 overflow-hidden">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-red-50 dark:bg-red-900/10">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-red-100 dark:bg-red-900/30 text-red-600">
+                  <Trash2 className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">
+                  Eliminar Usuario
+                </h3>
+              </div>
               <button
                 onClick={() => setDeletingUser(null)}
-                className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition-colors"
-                disabled={formLoading}
+                className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-all"
               >
-                Cancelar
+                <X className="w-6 h-6" />
               </button>
-              <button
-                onClick={executeDeleteUser}
-                disabled={formLoading}
-                className="px-4 py-2 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 disabled:opacity-50 transition-colors shadow-sm flex items-center gap-2"
-              >
-                {formLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Trash2 className="w-4 h-4" />
-                )}
-                Eliminar Usuario
-              </button>
+            </div>
+            <div className="p-6 sm:p-8">
+              <p className="text-slate-600 dark:text-slate-400 mb-6">
+                ¿Estás seguro de que deseas eliminar al usuario{" "}
+                <strong className="text-slate-900 dark:text-white">{deletingUser.email}</strong>? Esta acción no se puede
+                deshacer.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeletingUser(null)}
+                  className="flex-1 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 font-bold text-xs uppercase tracking-widest hover:bg-slate-50 dark:hover:bg-slate-800 transition-all"
+                  disabled={formLoading}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={executeDeleteUser}
+                  disabled={formLoading}
+                  className="flex-1 py-3 px-4 rounded-xl bg-red-600 text-white font-black uppercase tracking-widest text-xs hover:bg-red-700 disabled:opacity-50 transition-all shadow-lg flex items-center justify-center gap-2"
+                >
+                  {formLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
+                  Eliminar
+                </button>
+              </div>
             </div>
           </div>
         </div>
